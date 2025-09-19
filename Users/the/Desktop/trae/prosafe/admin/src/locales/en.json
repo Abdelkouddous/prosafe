@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "events": "Events",
+    "users": "Users",
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile",
+    "language": "Language"
+  },
+  "hero": {
+    "title": {
+      "part1": "Secure Event",
+      "part2": "Management"
+    },
+    "description": "Comprehensive security management platform for events. Monitor, manage, and secure your events with advanced analytics and real-time insights.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "features": {
+      "title": "Key Features",
+      "security": "Advanced Security",
+      "management": "User Management",
+      "analytics": "Real-time Analytics"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "totalEvents": "Total Events",
+    "activeUsers": "Active Users",
+    "securityAlerts": "Security Alerts",
+    "recentActivity": "Recent Activity"
+  },
+  "events": {
+    "title": "Events",
+    "create": "Create Event",
+    "edit": "Edit Event",
+    "delete": "Delete Event",
+    "status": "Status",
+    "date": "Date",
+    "location": "Location",
+    "attendees": "Attendees"
+  },
+  "users": {
+    "title": "Users",
+    "add": "Add User",
+    "edit": "Edit User",
+    "delete": "Delete User",
+    "role": "Role",
+    "email": "Email",
+    "lastActive": "Last Active"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "security": "Security",
+    "notifications": "Notifications",
+    "save": "Save Changes"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  }
+}

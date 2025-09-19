@@ -7,6 +7,7 @@ import { Shield, ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Login = () => {
@@ -20,7 +21,8 @@ const Login = () => {
   // const { register } = useAuth(); // Uncomment if using AuthContext for registration
 
   const navigate = useNavigate();
-
+  // const t = useTranslation(); const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Handle navigation after successful authentication
   useEffect(() => {
     if (isAuthenticated) {
@@ -131,7 +133,7 @@ const Login = () => {
           <Button variant="ghost" size="icon" asChild>
             <Link to="/">
               <ArrowLeft className="h-5 w-5" />
-              <span className="sr-only">Back to home</span>
+              <span className="sr-only">{t("auth.backToHome")}</span>
             </Link>
           </Button>
         </div>
@@ -140,26 +142,26 @@ const Login = () => {
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-prosafe-100 mb-4">
             <Shield className="h-6 w-6 text-prosafe-600" />
           </div>
-          <h1 className="text-2xl font-bold text-center">Welcome to PROSAFE</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            Sign in to access your secure dashboard
-          </p>
+          <h1 className="text-2xl font-bold text-center">
+            {t("auth.welcomeTitle")}
+          </h1>
+          <p className="text-sm text-gray-500 mt-2">{t("auth.signIn")}</p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign up</TabsTrigger>
+            <TabsTrigger value="login">{t("auth.loginTab")}</TabsTrigger>
+            <TabsTrigger value="signup">{t("auth.signupTab")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("auth.email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@company.com"
+                  placeholder={t("auth.emailPlaceholder")}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -167,12 +169,12 @@ const Login = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("auth.password")}</Label>
                   <Link
                     to="/forgot-password"
                     className="text-sm text-prosafe-600 hover:text-prosafe-800"
                   >
-                    Forgot password?
+                    {t("auth.forgotPassword")}
                   </Link>
                 </div>
                 <Input
@@ -188,7 +190,7 @@ const Login = () => {
                 type="submit"
                 className="w-full bg-prosafe-600 hover:bg-prosafe-700"
               >
-                Sign in
+                {t("auth.signIn")}
               </Button>
 
               <div className="relative my-6">
@@ -197,7 +199,7 @@ const Login = () => {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="bg-background px-2 text-gray-500">
-                    Or continue with
+                    {t("auth.orContinueWith")}
                   </span>
                 </div>
               </div>
@@ -243,7 +245,7 @@ const Login = () => {
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first-name">First Name</Label>
+                  <Label htmlFor="first-name">{t("auth.firstName")}</Label>
                   <Input
                     id="first-name"
                     placeholder="John"
@@ -253,7 +255,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last-name">Last Name</Label>
+                  <Label htmlFor="last-name">{t("auth.lastName")}</Label>
                   <Input
                     id="last-name"
                     placeholder="Doe"
@@ -264,7 +266,7 @@ const Login = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email-signup">Email</Label>
+                <Label htmlFor="email-signup">{t("auth.email")}</Label>
                 <Input
                   id="email-signup"
                   type="email"
@@ -275,7 +277,7 @@ const Login = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password-signup">Password</Label>
+                <Label htmlFor="password-signup">{t("auth.password")}</Label>
                 <Input
                   id="password-signup"
                   type="password"
@@ -285,7 +287,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <p className="text-xs text-gray-500">
-                  Must be at least 8 characters
+                  {t("auth.passwordMinLength")}
                 </p>
               </div>
 
@@ -293,36 +295,38 @@ const Login = () => {
                 type="submit"
                 className="w-full bg-prosafe-600 hover:bg-prosafe-700"
               >
-                Create account
+                {t("auth.signUp")}
               </Button>
 
               <p className="text-xs text-center text-gray-500 pt-4">
-                By signing up, you agree to our{" "}
+                {t("auth.termsAgreement")}{" "}
                 <Link
                   to="/terms"
                   className="text-prosafe-600 hover:text-prosafe-800"
                 >
-                  Terms of Service
+                  {t("auth.termsOfService")}
                 </Link>{" "}
-                and{" "}
+                {t("auth.and")}{" "}
                 <Link
                   to="/privacy"
                   className="text-prosafe-600 hover:text-prosafe-800"
                 >
-                  Privacy Policy
+                  {t("auth.privacyPolicy")}
                 </Link>
                 .
               </p>
 
               <p className="text-sm text-center text-gray-500 pt-2">
-                Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="font-medium text-prosafe-600 hover:text-prosafe-800"
-                >
-                  Sign in
-                </Link>
+                {t("auth.alreadyHaveAccount")}{" "}
               </p>
+              <TabsList className="flex w-full  mb-8">
+                <TabsTrigger
+                  value="login"
+                  className="text-prosafe-600 hover:text-prosafe-800"
+                >
+                  {t("auth.loginTab")}
+                </TabsTrigger>
+              </TabsList>
             </form>
           </TabsContent>
         </Tabs>

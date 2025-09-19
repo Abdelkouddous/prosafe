@@ -109,6 +109,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@radix-ui/react-label";
+import { t } from "node_modules/i18next";
+import { useTranslation } from "react-i18next";
+import { alertApi } from "@/services/alertApi";
 interface User {
   id: number;
   firstName: string;
@@ -207,17 +210,6 @@ const INCIDENT_COLORS = {
   critical: "#F44336",
 };
 
-const categories = [
-  "Tous",
-  "electronics",
-  "office_supplies",
-  "furniture",
-  "safety_equipment",
-  "tools",
-  "consumables",
-  "other",
-];
-
 // const incidentLogs: Incident[] = [
 //   {
 //     id: 1,
@@ -304,6 +296,7 @@ const categories = [
 // ];
 
 const Dashboard = () => {
+  const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -336,13 +329,24 @@ const Dashboard = () => {
     supplier: "",
     location: "",
   });
+  //
+  const categories = [
+    t("adminDashboard.categories.allCategories"),
+    t("adminDashboard.categories.electronics"),
+    t("adminDashboard.categories.officeSupplies"),
+    t("adminDashboard.categories.furniture"),
+    t("adminDashboard.categories.safetyEquipment"),
+    t("adminDashboard.categories.tools"),
+    t("adminDashboard.categories.consumables"),
+    t("adminDashboard.categories.other"),
+  ];
 
   const handleAddEquipment = async () => {
     try {
       await inventoryApi.createItem(newItem);
       toast({
-        title: "Succès",
-        description: "Équipement ajouté avec succès",
+        title: t("dashboard.equipmentAdded"),
+        description: t("dashboard.equipmentAddedDescription"),
       });
       setIsAddModalOpen(false);
       fetchInventoryData();
@@ -360,8 +364,8 @@ const Dashboard = () => {
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'ajout de l'équipement",
+        title: t("dashboard.equipmentAddError"),
+        description: t("dashboard.equipmentAddErrorDescription"),
         variant: "destructive",
       });
     }
@@ -375,8 +379,8 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error fetching inventory data:", error);
       toast({
-        title: "Error",
-        description: "Erreur lors du chargement de l'inventaire",
+        title: t("errors.error"),
+        description: t("errors.inventoryLoadError"),
         variant: "destructive",
       });
     } finally {
@@ -941,10 +945,12 @@ const Dashboard = () => {
       <>
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">
-            Welcome back, {user?.firstName || "User"}
+            {t("adminDashboard.welcome_back", {
+              firstName: user?.firstName || "User",
+            })}
           </h2>
           <p className="text-gray-600">
-            Here's what's happening with your security today
+            {t("adminDashboard.dashboard_description")}
           </p>
         </div>
 
@@ -953,7 +959,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">
-                Security Score
+                {t("adminDashboard.total_assets")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -964,7 +970,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Last updated []
+                {t("adminDashboard.total_assets_description")}
                 {/* Security score is a measure of how secure your system is */}
               </p>
             </CardContent>
@@ -973,7 +979,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">
-                Active Threats
+                {t("adminDashboard.total_incidents")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -992,7 +998,7 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">
-                Protected Assets
+                {t("adminDashboard.total_devices")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -1003,7 +1009,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                86 devices, 41 applications[]
+                {t("adminDashboard.total_devices_description")}
               </p>
             </CardContent>
           </Card>
@@ -1011,18 +1017,18 @@ const Dashboard = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">
-                System Status
+                {t("adminDashboard.system_status")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-lg font-bold flex items-center">
                   <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                  Operational
+                  {t("adminDashboard.operational")}
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                All systems running properly
+                {t("adminDashboard.all_systems_running_properly")}
               </p>
             </CardContent>
           </Card>
@@ -1034,7 +1040,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Items
+                  {t("adminDashboard.total_items")}
                 </CardTitle>
                 <Box className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -1046,7 +1052,9 @@ const Dashboard = () => {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {t("adminDashboard.low_stock")}
+                </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-yellow-500" />
               </CardHeader>
               <CardContent>
@@ -1058,7 +1066,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Out of Stock
+                  {t("adminDashboard.out_of_stock")}
                 </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-red-500" />
               </CardHeader>
@@ -1071,7 +1079,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Value
+                  {t("adminDashboard.total_value")}
                 </CardTitle>
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>

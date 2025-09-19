@@ -65,7 +65,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/footer/features"
+                  to="/features"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Features
@@ -73,7 +73,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/pricing"
+                  to="/pricing"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Pricing
@@ -82,7 +82,7 @@ const Footer = () => {
 
               <li>
                 <Link
-                  to="/footer/updates"
+                  to="/updates"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Updates
@@ -98,7 +98,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/footer/about"
+                  to="/about"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   About
@@ -106,7 +106,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/careers"
+                  to="/careers"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Careers
@@ -114,7 +114,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/blog"
+                  to="/blog"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Blog
@@ -122,7 +122,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/contact"
+                  to="/contact"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Contact
@@ -138,7 +138,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/footer/privacy"
+                  to="/privacy"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Privacy
@@ -146,7 +146,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/terms"
+                  to="/terms"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Terms
@@ -154,7 +154,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/footer/security"
+                  to="/security"
                   className="text-gray-600 hover:text-prosafe-600"
                 >
                   Security

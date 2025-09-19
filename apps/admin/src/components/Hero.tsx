@@ -2,33 +2,35 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ShieldCheck, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const Hero = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-20 md:py-32 px-4">
       <div className="container max-w-6xl mx-auto text-center">
         <div className="flex justify-center mb-6">
           <div className="inline-flex items-center px-3 py-1 rounded-full bg-prosafe-100 text-prosafe-800 text-sm font-medium">
             <span className="mr-1">✨</span> 
-            <span>Introducing PROSAFE Guardian System</span>
+            <span>{t('hero.introducing')}</span>
           </div>
         </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-6 gradient-text">
-          Advanced Security Management for Modern Enterprises
+          {t('hero.title')}
         </h1>
         <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-          Comprehensive protection for your business assets with real-time monitoring, 
-          threat detection, and intelligent response capabilities.
+          {t('hero.description')}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
           <Button size="lg" className="bg-prosafe-600 hover:bg-prosafe-700 h-12 px-8" asChild>
             <Link to="/login">
-              Get Started
+              {t('auth.getStarted')}
               <ChevronRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
           <Button variant="outline" size="lg" className="h-12 px-8" asChild>
-            <Link to="/demo">Request Demo</Link>
+            <Link to="/demo">{t('hero.requestDemo')}</Link>
           </Button>
         </div>
         
@@ -44,20 +46,20 @@ const Hero = () => {
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
                   <div className="absolute left-1/2 -translate-x-1/2 bg-slate-700 rounded-md px-4 py-1 text-xs text-slate-300">
-                    PROSAFE Dashboard
+                    {t('hero.dashboardPreview')}
                   </div>
                 </div>
                 <div className="pt-16 pb-4 px-4">
                   <div className="grid grid-cols-3 gap-4">
                     <div className="col-span-3 md:col-span-2 bg-slate-800 rounded-lg p-4 animate-pulse-slow">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-medium text-white">Security Overview</h3>
+                        <h3 className="text-sm font-medium text-white">{t('dashboard.securityOverview')}</h3>
                         <ShieldCheck className="h-5 w-5 text-prosafe-400" />
                       </div>
                       <div className="h-40 rounded-md bg-slate-700"></div>
                     </div>
                     <div className="col-span-3 md:col-span-1 bg-slate-800 rounded-lg p-4 animate-pulse-slow">
-                      <h3 className="text-sm font-medium text-white mb-4">Recent Alerts</h3>
+                      <h3 className="text-sm font-medium text-white mb-4">{t('dashboard.recentAlerts')}</h3>
                       <div className="space-y-2">
                         <div className="h-8 rounded-md bg-slate-700"></div>
                         <div className="h-8 rounded-md bg-slate-700"></div>

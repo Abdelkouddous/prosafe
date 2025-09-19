@@ -1,6 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import Features from "@/components/Features";
+import Features from "@/pages/footer/Features";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Shield, Target, Zap, Award } from "lucide-react";

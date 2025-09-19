@@ -1,0 +1,207 @@
+{
+  "navigation": {
+    "home": "بيت",
+    "dashboard": "لوحة القيادة",
+    "inventory": "جرد",
+    "goToHome": "اذهب إلى المنزل",
+    "myProfile": "ملفي الشخصي",
+    "settings": "إعدادات",
+    "notifications": "إشعارات",
+    "incidents": "الحوادث",
+    "training": "تمرين",
+    "adminAccess": "وصول المسؤول",
+    "userManagement": "إدارة المستخدم",
+    "roleManagement": "إدارة الأدوار",
+    "permissions": "أذونات",
+    "logout": "تسجيل الخروج",
+    "about": "عن",
+    "services": "خدمات",
+    "contact": "اتصال"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "getStarted": "ابدأ الآن",
+    "logout": "تسجيل الخروج",
+    "register": "التسجيل",
+    "forgotPassword": "نسيت كلمة المرور",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "backToLogin": "العودة لتسجيل الدخول",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "orContinueWith": "أو المتابعة مع",
+    "passwordMinLength": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل",
+    "emailPlaceholder": "الاسم@الشركة.com",
+    "passwordPlaceholder": "••••••••",
+    "firstNamePlaceholder": "أحمد",
+    "lastNamePlaceholder": "محمد",
+    "welcomeTitle": " PROSAFE مرحباً بك في",
+    "backToHome": "العودة للرئيسية",
+    "loginTab": "تسجيل الدخول",
+    "signupTab": "إنشاء حساب",
+    "googleLogin": "جوجل",
+    "facebookLogin": "فيسبوك",
+    "termsAgreement": "بالتسجيل، فإنك توافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
+    "forgotPasswordLink": "نسيت كلمة المرور؟"
+  },
+  "errors": {
+    "loginFailed": "فشل تسجيل الدخول",
+    "registrationFailed": "فشل التسجيل",
+    "registrationSuccessful": "تم التسجيل بنجاح",
+    "error": "خطأ",
+    "loginError": "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.",
+    "registrationError": "حدث خطأ أثناء التسجيل.",
+    "accountCreated": "تم إنشاء حسابك.",
+    "apiNotConfigured": "لم يتم تكوين رابط API.",
+    "serverConnectionError": "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى لاحقاً."
+  },
+  "hero": {
+    "introducing": "إدخال نظام الوصي Prosafe",
+    "title": "إدارة الأمن المتقدمة للمؤسسات الحديثة",
+    "description": "حماية شاملة لأصول عملك مع المراقبة في الوقت الفعلي ، واكتشاف التهديدات ، وقدرات الاستجابة الذكية.",
+    "requestDemo": "طلب العرض التوضيحي",
+    "dashboardPreview": "لوحة القيادة Prosafe"
+  },
+  "dashboard": {
+    "title": "لوحة القيادة",
+    "overview": "ملخص",
+    "statistics": "إحصائيات",
+    "recentActivity": "النشاط الحديث",
+    "securityOverview": "نظرة عامة على الأمن",
+    "recentAlerts": "التنبيهات الأخيرة",
+    "totalUsers": "إجمالي المستخدمين",
+    "activeIncidents": "حوادث نشطة",
+    "completedTraining": "التدريب المكتمل",
+    "systemHealth": "صحة النظام"
+  },
+  "adminDashboard": {
+    "welcome_back": "مرحباً بعودتك",
+    "dashboard_description": "إليك ما يحدث مع أمانك اليوم",
+    "total_assets": "إجمالي الأصول",
+    "active_threats": "التهديدات النشطة",
+    "compliance_score": "نقاط الامتثال",
+    "recent_incidents": "الحوادث الأخيرة",
+    "categories": {
+      "electronics": "الإلكترونيات",
+      "office_supplies": "لوازم المكتب",
+      "safety_equipment": "معدات السلامة",
+      "medical_supplies": "اللوازم الطبية",
+      "tools": "الأدوات",
+      "furniture": "الأثاث"
+    },
+    "messages": {
+      "error": "خطأ",
+      "success": "نجح",
+      "failed_unblock_user": "فشل في إلغاء حظر المستخدم",
+      "quantity_updated": "تم تحديث كمية {itemName}",
+      "error_updating_quantity": "خطأ في تحديث الكمية",
+      "inventory_updated": "تم تحديث المخزون",
+      "user_blocked": "تم حظر المستخدم بنجاح",
+      "user_unblocked": "تم إلغاء حظر المستخدم بنجاح",
+      "message_sent": "تم إرسال الرسالة بنجاح",
+      "failed_send_message": "فشل في إرسال الرسالة",
+      "incident_created": "تم إنشاء الحادث بنجاح",
+      "failed_create_incident": "فشل في إنشاء الحادث"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "threats": "التهديدات",
+      "compliance": "الامتثال",
+      "audit_logs": "سجلات التدقيق"
+    },
+    "charts": {
+      "security_score_trend": "اتجاه نقاط الأمان",
+      "security_posture_description": "وضعية الأمان الخاصة بك مع مرور الوقت",
+      "incident_trends": "اتجاهات الحوادث",
+      "incidents_by_month": "عدد الحوادث المبلغ عنها شهرياً"
+    },
+    "incidents": {
+      "user_incidents": "حوادث المستخدم",
+      "no_incidents": "لم يتم الإبلاغ عن أي حوادث من قبلك بعد",
+      "view_all": "عرض جميع الحوادث"
+    },
+    "activity": {
+      "system_activity": "نشاط النظام",
+      "system_backup_completed": "اكتملت النسخة الاحتياطية للنظام",
+      "user_login": "تسجيل دخول المستخدم",
+      "security_scan": "اكتمل فحص الأمان",
+      "policy_update": "تم تحديث السياسة"
+    },
+    "sidebar": {
+      "dashboard": "لوحة التحكم",
+      "incidents": "الحوادث",
+      "users": "المستخدمون",
+      "logout": "تسجيل الخروج"
+    },
+    "page_titles": {
+      "security_dashboard": "لوحة تحكم الأمان",
+      "user_management": "إدارة المستخدمين",
+      "incident_management": "إدارة الحوادث"
+    },
+    "status": {
+      "critical": "حرج",
+      "moderate": "متوسط",
+      "low": "منخفض"
+    }
+  },
+  "events": {
+    "title": "الأحداث",
+    "create": "إنشاء حدث",
+    "edit": "تحرير الحدث",
+    "delete": "حذف الحدث",
+    "name": "اسم الحدث",
+    "description": "وصف",
+    "date": "تاريخ",
+    "location": "موقع",
+    "status": "حالة",
+    "participants": "مشاركون"
+  },
+  "inventory": {
+    "title": "إدارة المخزون",
+    "addItem": "أضف العنصر",
+    "editItem": "تحرير العنصر",
+    "deleteItem": "حذف العنصر",
+    "itemName": "اسم العنصر",
+    "quantity": "كمية",
+    "category": "فئة",
+    "location": "موقع",
+    "status": "حالة"
+  },
+  "users": {
+    "title": "إدارة المستخدم",
+    "addUser": "أضف المستخدم",
+    "editUser": "تحرير المستخدم",
+    "deleteUser": "حذف المستخدم",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "email": "بريد إلكتروني",
+    "role": "دور",
+    "status": "حالة",
+    "lastLogin": "تسجيل الدخول"
+  },
+  "training": {
+    "title": "تمرين",
+    "courses": "دورات",
+    "progress": "تقدم",
+    "completed": "مكتمل",
+    "inProgress": "في تَقَدم",
+    "notStarted": "لم تبدأ"
+  },
+  "incidents": {
+    "title": "الحوادث",
+    "report": "تقرير الحادث",
+    "severity": "خطورة",
+    "type": "يكتب",
+    "description": "وصف",
+    "status": "حالة",
+    "assignedTo": "تعيين ل"
+  }
+}

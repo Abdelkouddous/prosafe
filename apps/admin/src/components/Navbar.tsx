@@ -15,259 +15,311 @@ import {
   Settings,
   Users,
   ChevronDown,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
   const isAdmin = user?.roles.includes("admin");
   const isDashboard = location.pathname.startsWith("/dashboard");
 
+  // Add the missing changeLanguage function
+  const changeLanguage = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
+    setIsUserMenuOpen(false);
+    setIsOpen(false);
   };
 
   return (
-    <header className="sticky bg-white top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
-      <div className="bg-white container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Shield className="h-6 w-6 text-prosafe-600" />
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-prosafe-900">PROSAFE</span>
+    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <Shield className="h-8 w-8 text-prosafe-600" />
+            <span className="text-xl font-bold text-gray-900">ProSafe</span>
           </Link>
-        </div>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex gap-6 bg-white">
-          {/* Show different navigation based on current page */}
-          {isDashboard ? (
-            // Dashboard navigation - only show "Go to Home" for admins
-            isAdmin && (
-              <Link
-                to="/"
-                className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-              >
-                <Home className="h-4 w-4" />
-                Go to Home
-              </Link>
-            )
-          ) : (
-            // Regular navigation
-            <>
-              <Link
-                to="/"
-                className="text-sm font-medium hover:text-prosafe-600 transition-colors"
-              >
-                Home
-              </Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            {isDashboard ? (
+              // Dashboard navigation
+              isAdmin && (
+                <Link
+                  to="/"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
+                >
+                  <Home className="h-4 w-4" />
+                  {t("navigation.goToHome")}
+                </Link>
+              )
+            ) : (
+              // Regular navigation
+              <>
+                <Link
+                  to="/"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.home")}
+                </Link>
+                <Link
+                  to="/about"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.about")}
+                </Link>
+                <Link
+                  to="/services"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.services")}
+                </Link>
+                <Link
+                  to="/contact"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.contact")}
+                </Link>
+              </>
+            )}
 
-              {/* Admin-only links */}
-              {isAuthenticated && isAdmin && (
-                <>
-                  <Link
-                    to="/dashboard"
-                    className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Link>
-                  {/* Remove this entire Link block for inventory */}
-                </>
-              )}
+            {/* Admin-only inventory link */}
+            {isAdmin && (
               <Link
                 to="/inventory"
                 className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
               >
                 <Box className="h-4 w-4" />
-                Inventaire
+                {t("navigation.inventory")}
               </Link>
-            </>
-          )}
-        </nav>
+            )}
+          </nav>
 
-        <div className="hidden md:flex items-center gap-4">
-          {isAuthenticated ? (
-            <>
-              {/* Access Control Menu */}
-              <div className="relative">
+          <div className="hidden md:flex items-center gap-4">
+            {/* Language Switcher */}
+            <div className="relative group">
+              <button className="flex items-center gap-1 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100">
+                <Globe className="h-4 w-4" />
+                <span className="uppercase">{i18n.language}</span>
+              </button>
+              <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100"
+                  onClick={() => changeLanguage("en")}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <User className="h-4 w-4" />
-                  <span>{user?.firstName}</span>
-                  {isAdmin && (
-                    <span className="text-xs bg-prosafe-100 text-prosafe-800 px-2 py-1 rounded">
-                      Admin
-                    </span>
-                  )}
-                  <ChevronDown className="h-4 w-4" />
+                  🇺🇸 English
                 </button>
+                <button
+                  onClick={() => changeLanguage("fr")}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  🇫🇷 Français
+                </button>
+                <button
+                  onClick={() => changeLanguage("ar")}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  🇩🇿 العربية
+                </button>
+              </div>
+            </div>
 
-                {/* Dropdown Menu */}
-                {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    <div className="py-1">
-                      {/* User Info Section */}
-                      <div className="px-4 py-2 border-b border-gray-100">
+            {isAuthenticated ? (
+              <>
+                {/* User Menu */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>{user?.firstName || "User"}</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="p-2 border-b border-gray-100">
                         <p className="text-sm font-medium text-gray-900">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-sm text-gray-500">{user?.email}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">Role:</span>
-                          {user?.roles.map((role, index) => (
-                            <span
-                              key={index}
-                              className={`text-xs px-2 py-1 rounded ${
-                                role === "admin"
-                                  ? "bg-prosafe-100 text-prosafe-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {role}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
                       </div>
 
-                      {/* Navigation Links */}
                       <div className="py-1">
                         <Link
                           to="/profile"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
-                          <User className="h-4 w-4" />
-                          My Profile
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {t("navigation.myProfile")}
+                          </div>
                         </Link>
 
                         <Link
                           to="/settings"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
-                          <Settings className="h-4 w-4" />
-                          Settings
+                          <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            {t("navigation.settings")}
+                          </div>
                         </Link>
 
-                        {/* User Notifications Section */}
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <div className="px-4 py-1">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                            Notifications
-                          </p>
-                        </div>
-                        
-                        {/* Incidents - for regular users */}
-                        {!isAdmin && (
+                        {/* Dashboard Link for Admin */}
+                        {isAdmin && !isDashboard && (
                           <Link
-                            to="/incidents"
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            to="/dashboard"
+                            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             onClick={() => setIsUserMenuOpen(false)}
                           >
-                            <AlertTriangle className="h-4 w-4" />
-                            Incidents
+                            <div className="flex items-center gap-2">
+                              <LayoutDashboard className="h-4 w-4" />
+                              {t("navigation.dashboard")}
+                            </div>
                           </Link>
                         )}
-                        
-                        {/* Formations - for all authenticated users */}
-                        <Link
-                          to="/training"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          <GraduationCap className="h-4 w-4" />
-                          Formations
-                        </Link>
 
-                        {/* Admin-only access control links */}
-                        {isAdmin && (
-                          <>
-                            <div className="border-t border-gray-100 my-1"></div>
-                            <div className="px-4 py-1">
-                              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                Admin Access
-                              </p>
+                        {/* User Notifications Section */}
+                        <div className="border-t border-gray-100 mt-1 pt-1">
+                          <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            {t("navigation.notifications")}
+                          </div>
+
+                          {/* Incidents - for regular users */}
+                          {!isAdmin && (
+                            <Link
+                              to="/incidents"
+                              className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                {t("navigation.incidents")}
+                              </div>
+                            </Link>
+                          )}
+
+                          {/* Formations - for all authenticated users */}
+                          <Link
+                            to="/training"
+                            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              {t("navigation.training")}
                             </div>
-                            <Link
-                              to="/admin/users"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              <Users className="h-4 w-4" />
-                              User Management
-                            </Link>
-                            <Link
-                              to="/admin/roles"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              <Shield className="h-4 w-4" />
-                              Role Management
-                            </Link>
-                            <Link
-                              to="/admin/permissions"
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              <Settings className="h-4 w-4" />
-                              Permissions
-                            </Link>
-                          </>
-                        )}
-                      </div>
+                          </Link>
 
-                      {/* Logout Section */}
-                      <div className="border-t border-gray-100 py-1">
-                        <button
-                          onClick={() => {
-                            handleLogout();
-                            setIsUserMenuOpen(false);
-                          }}
-                          className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Logout
-                        </button>
+                          {/* Admin-only access control links */}
+                          {isAdmin && (
+                            <>
+                              <Link
+                                to="/admin/users"
+                                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onClick={() => setIsUserMenuOpen(false)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4" />
+                                  {t("navigation.userManagement")}
+                                </div>
+                              </Link>
+
+                              <Link
+                                to="/admin/incidents"
+                                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                onClick={() => setIsUserMenuOpen(false)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4" />
+                                  {t("navigation.incidentManagement")}
+                                </div>
+                              </Link>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="border-t border-gray-100 mt-1 pt-1">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <div className="flex items-center gap-2">
+                              <LogOut className="h-4 w-4" />
+                              {t("auth.logout")}
+                            </div>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/login">{t("auth.login")}</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/register">{t("auth.register")}</Link>
+                </Button>
               </div>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" asChild>
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button className="bg-prosafe-600 hover:bg-prosafe-700" asChild>
-                <Link to="/login">Get Started</Link>
-              </Button>
-            </>
-          )}
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 rounded-md hover:bg-gray-100"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="flex md:hidden bg-white"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="fixed inset-0 top-16 z-30 bg-background animate-in md:hidden">
+        {/* Mobile Navigation */}
+        {isOpen && (
           <nav className="container flex flex-col items-center gap-6 p-6 bg-slate-100 border-slate-400 shadow-md">
+            {/* Mobile Language Switcher */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => changeLanguage("en")}
+                className={`px-3 py-1 rounded text-sm ${
+                  i18n.language === "en"
+                    ? "bg-prosafe-600 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                🇺🇸 EN
+              </button>
+              <button
+                onClick={() => changeLanguage("fr")}
+                className={`px-3 py-1 rounded text-sm ${
+                  i18n.language === "fr"
+                    ? "bg-prosafe-600 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                🇫🇷 FR
+              </button>
+            </div>
+
             {/* Mobile navigation based on current page */}
             {isDashboard ? (
               // Dashboard mobile navigation
@@ -278,7 +330,7 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   <Home className="h-5 w-5" />
-                  Go to Home
+                  {t("navigation.goToHome")}
                 </Link>
               )
             ) : (
@@ -289,59 +341,52 @@ const Navbar = () => {
                   className="text-lg font-medium hover:text-prosafe-600 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Home
+                  {t("navigation.home")}
                 </Link>
-
-                {/* Admin-only mobile links */}
-                {isAuthenticated && isAdmin && (
-                  <>
-                    <Link
-                      to="/dashboard"
-                      className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <LayoutDashboard className="h-5 w-5" />
-                      Dashboard
-                    </Link>
-                    {/* Remove this entire Link block for inventory */}
-                  </>
-                )}
                 <Link
-                  to="/inventory"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
+                  to="/about"
+                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  <Box className="h-5 w-5" />
-                  Gestion d'Inventaire
+                  {t("navigation.about")}
+                </Link>
+                <Link
+                  to="/services"
+                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {t("navigation.services")}
+                </Link>
+                <Link
+                  to="/contact"
+                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {t("navigation.contact")}
                 </Link>
               </>
             )}
 
+            {/* Admin-only mobile inventory link */}
+            {isAdmin && (
+              <Link
+                to="/inventory"
+                className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
+                onClick={() => setIsOpen(false)}
+              >
+                <Box className="h-5 w-5" />
+                {t("navigation.inventory")}
+              </Link>
+            )}
+
             {isAuthenticated ? (
-              <div className="flex flex-col gap-4 mt-4 w-full">
+              <>
                 {/* Mobile User Info */}
-                <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>
-                      {user?.firstName} {user?.lastName}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-500">{user?.email}</span>
-                  <div className="flex items-center gap-2">
-                    {user?.roles.map((role, index) => (
-                      <span
-                        key={index}
-                        className={`text-xs px-2 py-1 rounded ${
-                          role === "admin"
-                            ? "bg-prosafe-100 text-prosafe-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {role}
-                      </span>
-                    ))}
-                  </div>
+                <div className="text-center border-t border-gray-300 pt-4 w-full">
+                  <p className="text-sm font-medium text-gray-900">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
 
                 {/* Mobile Access Control Links */}
@@ -352,7 +397,7 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     <User className="h-4 w-4" />
-                    My Profile
+                    {t("navigation.myProfile")}
                   </Link>
 
                   <Link
@@ -361,14 +406,14 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     <Settings className="h-4 w-4" />
-                    Settings
+                    {t("navigation.settings")}
                   </Link>
 
                   {/* Mobile User Notifications Section */}
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mt-2 mb-1">
-                    Notifications
+                    {t("navigation.notifications")}
                   </div>
-                  
+
                   {/* Mobile Incidents - for regular users */}
                   {!isAdmin && (
                     <Link
@@ -377,10 +422,10 @@ const Navbar = () => {
                       onClick={() => setIsOpen(false)}
                     >
                       <AlertTriangle className="h-4 w-4" />
-                      Incidents
+                      {t("navigation.incidents")}
                     </Link>
                   )}
-                  
+
                   {/* Mobile Formations - for all authenticated users */}
                   <Link
                     to="/training"
@@ -388,86 +433,69 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     <GraduationCap className="h-4 w-4" />
-                    Formations
+                    {t("navigation.training")}
                   </Link>
 
                   {/* Admin-only mobile access control links */}
                   {isAdmin && (
                     <>
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mt-2 mb-1">
-                        Admin Access
-                      </div>
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        {t("navigation.dashboard")}
+                      </Link>
+
                       <Link
                         to="/admin/users"
                         className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
                         onClick={() => setIsOpen(false)}
                       >
                         <Users className="h-4 w-4" />
-                        User Management
+                        {t("navigation.userManagement")}
                       </Link>
+
                       <Link
-                        to="/admin/roles"
+                        to="/admin/incidents"
                         className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
                         onClick={() => setIsOpen(false)}
                       >
-                        <Shield className="h-4 w-4" />
-                        Role Management
-                      </Link>
-                      <Link
-                        to="/admin/permissions"
-                        className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        Permissions
+                        <AlertTriangle className="h-4 w-4" />
+                        {t("navigation.incidentManagement")}
                       </Link>
                     </>
                   )}
                 </div>
 
                 <Button
+                  onClick={handleLogout}
                   variant="outline"
-                  onClick={() => {
-                    logout();
-                    setIsOpen(false);
-                    navigate("/");
-                  }}
-                  className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                  className="w-full flex items-center gap-2"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  <LogOut className="h-4 w-4" />
+                  {t("auth.logout")}
                 </Button>
-              </div>
+              </>
             ) : (
-              <div className="flex flex-col gap-4 mt-4">
-                <Button
-                  variant="outline"
-                  asChild
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Link to="/login">Login</Link>
+              <div className="flex flex-col gap-2 w-full">
+                <Button asChild className="w-full">
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    {t("auth.login")}
+                  </Link>
                 </Button>
-                <Button
-                  className="bg-prosafe-600 hover:bg-prosafe-700"
-                  asChild
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Link to="/login">Get Started</Link>
+                <Button variant="outline" asChild className="w-full">
+                  <Link to="/register" onClick={() => setIsOpen(false)}>
+                    {t("auth.register")}
+                  </Link>
                 </Button>
               </div>
             )}
           </nav>
-        </div>
-      )}
-
-      {/* Click outside to close user menu */}
-      {isUserMenuOpen && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setIsUserMenuOpen(false)}
-        ></div>
-      )}
-    </header>
+        )}
+      </div>
+    </nav>
   );
 };
 
