@@ -15,14 +15,15 @@ async function bootstrap() {
     app.use(helmet());
     app.enableCors({
       // Allow all origins in development, specific origins in production
-      origin: process.env.NODE_ENV === 'production' 
-        ? [
-            'https://prosafe-admin-psi.vercel.app',
-            'https://prosafe-admin.vercel.app', // In case you change the domain
-            'http://localhost:5173', // For local development
-            'http://localhost:3000'  // For local development
-          ]
-        : '*',
+      origin:
+        process.env.NODE_ENV === 'production'
+          ? [
+              'https://prosafe-admin-psi.vercel.app',
+              'https://prosafe-admin.vercel.app', // In case you change the domain
+              'http://localhost:5173', // For local development
+              'http://localhost:3000', // For local development
+            ]
+          : '*',
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: true,
