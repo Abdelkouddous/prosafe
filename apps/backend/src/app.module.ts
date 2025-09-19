@@ -26,14 +26,16 @@ import { InventoryModule } from './inventory/inventory.module';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
-    // TasksModule,
-    // AlertsModule,
     AuthModule,
     UsersModule,
     MessagesModule,
     LoggerModule,
     IncidentsModule,
     InventoryModule,
+    // Fomartions
+    // Conferences
+    // TasksModule,
+    // AlertsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

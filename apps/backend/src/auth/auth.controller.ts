@@ -4,6 +4,8 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './strategy/jwt-auth.guard';
 import { Role } from 'src/users/enums/role.enum';
 
+import { LoggerService } from '../logger/logger.service';
+
 @Controller('auth')
 export class AuthController {
   constructor(

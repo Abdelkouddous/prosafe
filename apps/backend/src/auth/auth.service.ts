@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compareSync, hashSync } from 'bcryptjs';
-import { LoginDTO, UsersDTO } from 'src/users/dto/create-user.dto';
+import { LoginDTO, UsersDTO } from '../users/dto/create-user.dto';
 import { validate } from 'class-validator';
 import { LoggerService } from 'src/logger/logger.service';
 import { UsersService } from 'src/users/users.service';
 import { Role } from 'src/users/enums/role.enum';
 
+// Code
 @Injectable()
 export class AuthService {
   constructor(

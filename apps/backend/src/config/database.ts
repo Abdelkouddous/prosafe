@@ -14,7 +14,9 @@ export const dbConfig: DataSourceOptions = {
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV === 'development',
-  ssl: process.env.POSTGRES_SSL === 'true',
+  ssl: process.env.POSTGRES_SSL === 'true' ? {
+    rejectUnauthorized: false, // This allows self-signed certificates
+  } : false,
 };
 
 // Create DataSource instance using the renamed config

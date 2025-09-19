@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RequestMethod } from '@nestjs/common';
 
 async function bootstrap() {
   try {
@@ -28,7 +29,9 @@ async function bootstrap() {
     });
 
     // Global prefix and pipes
-    app.setGlobalPrefix('api');
+    app.setGlobalPrefix('api', {
+      exclude: [{ path: '/', method: RequestMethod.GET }],
+    });
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
