@@ -1,3 +1,5 @@
+//
+// this is the admin dashboard UI contains all logics necessary for dashboard
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -402,6 +404,8 @@ const Dashboard = () => {
     fetchInventoryStats();
     fetchInventoryData();
   }, []);
+
+  // alert stats fetch
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
