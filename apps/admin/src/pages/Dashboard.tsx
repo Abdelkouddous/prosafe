@@ -390,20 +390,22 @@ const Dashboard = () => {
     }
   };
 
-  // Add to useEffect:
   useEffect(() => {
-    const fetchInventoryStats = async () => {
-      try {
-        const response = await inventoryApi.getStats();
-        setInventoryStats(response.data);
-      } catch (error) {
-        console.error("Error fetching inventory stats:", error);
-      }
-    };
+    // Only fetch data if user is authenticated
+    if (user) {
+      const fetchInventoryStats = async () => {
+        try {
+          const response = await inventoryApi.getStats();
+          setInventoryStats(response.data);
+        } catch (error) {
+          console.error("Error fetching inventory stats:", error);
+        }
+      };
 
-    fetchInventoryStats();
-    fetchInventoryData();
-  }, []);
+      fetchInventoryStats();
+      fetchInventoryData();
+    }
+  }, [user]); // Add user as dependency
 
   // alert stats fetch
   const [passwordData, setPasswordData] = useState({
@@ -453,8 +455,10 @@ const Dashboard = () => {
             alertApi.getAlerts(1, 10), // Get latest 10 alerts for alerts page
             alertApi.getAlertStats(),
           ]);
+          // ////////------------///////
           setRecentAlerts(alertsResponse.data.alerts);
           setAlertStats(statsResponse.data);
+          // //////---------------//////
         } catch (error) {
           console.error("Error fetching alerts:", error);
         }
@@ -465,9 +469,11 @@ const Dashboard = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    // Fetch incidents for dashboard overview
-    fetchIncidents();
-  }, []);
+    // Fetch incidents for dashboard overview only if user is authenticated
+    if (user) {
+      fetchIncidents();
+    }
+  }, [user]);
 
   const fetchIncidents = async () => {
     try {
@@ -499,22 +505,25 @@ const Dashboard = () => {
 
   useEffect(() => {
     // here we fetch the messages received from the users and admins
-    const fetchLatestMessages = async () => {
-      try {
-        const response = await api.get<BackendMessage[]>("/messages");
-        setLatestMessages(response.data);
-      } catch (error) {
-        console.error("Error fetching latest messages:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load latest messages",
-          variant: "destructive",
-        });
-      }
-    };
+    // Only fetch if user is authenticated
+    if (user) {
+      const fetchLatestMessages = async () => {
+        try {
+          const response = await api.get<BackendMessage[]>("/messages");
+          setLatestMessages(response.data);
+        } catch (error) {
+          console.error("Error fetching latest messages:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load latest messages",
+            variant: "destructive",
+          });
+        }
+      };
 
-    fetchLatestMessages();
-  }, [toast]); // Added toast to dependency array as it's used inside
+      fetchLatestMessages();
+    }
+  }, [user, toast]); // Added user to dependency array
 
   useEffect(() => {
     if (activeTab === "users") {

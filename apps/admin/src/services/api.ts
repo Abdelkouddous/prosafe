@@ -13,8 +13,14 @@ api.interceptors.request.use(
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(
+        `Sending ${config.method?.toUpperCase()} to ${config.url} with token: ${token.substring(0, 20)}...`
+      );
+    } else {
+      console.log(
+        `Sending ${config.method?.toUpperCase()} to ${config.url} WITHOUT token`
+      );
     }
-    console.log(`Sending ${config.method?.toUpperCase()} to ${config.url}`);
     return config;
   },
   (error) => {

@@ -55,6 +55,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data.access_token) {
         setToken(data.access_token);
 
+        // Small delay to ensure localStorage is updated and axios interceptor picks up the token
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         let userData;
         // If we have user data in the response, set it
         if (data.user) {
@@ -65,6 +68,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const userResponse = await api.get("/auth/me");
           setUser(userResponse.data.user);
           userData = userResponse.data.user;
+        }
+
+        // Verify token is actually stored before proceeding
+        const storedToken = getToken();
+        if (!storedToken) {
+          throw new Error("Token was not properly stored");
         }
 
         toast({
