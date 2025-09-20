@@ -63,7 +63,7 @@ async function bootstrap() {
 
     const port = configService.get('PORT', 3000);
     await app.listen(port);
-    console.log(`Application is running on: ${configService.get('APP_URL', 'http://localhost')}:${port}`);
+    console.log(`Application is running on: ${await app.getUrl()}`);
   } catch (error) {
     console.error('Error during application bootstrap:', error);
     process.exit(1);
