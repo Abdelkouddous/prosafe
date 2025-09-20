@@ -19,11 +19,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const privateKey = configService.get<string>('keys.privateKey');
     const nodeEnv = configService.get<string>('env');
 
-    // Use public key for production, private key for development (hybrid approach)
-    const secretKey = nodeEnv === 'production' ? publicKey : privateKey;
+    // Always use public key for verification in both environments
+    // The private key is only used for signing tokens
+    const secretKey = publicKey || privateKey; // Fallback to private key if public key is not available
 
     console.log('JWT Strategy - Environment:', nodeEnv);
-    console.log('JWT Strategy - Using key type:', nodeEnv === 'production' ? 'public' : 'private');
+    console.log('JWT Strategy - Using key for verification:', publicKey ? 'public' : 'private');
+    console.log('JWT Strategy - Public key available:', !!publicKey);
+    console.log('JWT Strategy - Private key available:', !!privateKey);
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

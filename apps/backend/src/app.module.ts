@@ -13,6 +13,7 @@ import { LoggerModule } from './logger/logger.module';
 import { AlertsModule } from './alerts/alerts.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { InventoryModule } from './inventory/inventory.module';
+// import { AdminModule } from './~admin/admin.module';
 
 @Module({
   imports: [
@@ -32,10 +33,11 @@ import { InventoryModule } from './inventory/inventory.module';
     LoggerModule,
     IncidentsModule,
     InventoryModule,
+    // AdminModule,
+    // TasksModule,
+    // AlertsModule, // Commented out as it's now part of AdminModule
     // Fomartions
     // Conferences
-    // TasksModule,
-    // AlertsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
