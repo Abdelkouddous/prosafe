@@ -53,18 +53,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Check if we have an access token
       if (data.access_token) {
+        // Store token first
         setToken(data.access_token);
+        
+        // Add a small delay to ensure token is stored
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         let userData;
-        // If we have user data in the response, set it
+        // If we have user data in the response, use it directly
         if (data.user) {
           setUser(data.user);
           userData = data.user;
+          console.log("User data from login response:", userData);
         } else {
-          // Otherwise, fetch user data
-          const userResponse = await api.get("/auth/me");
-          setUser(userResponse.data.user);
-          userData = userResponse.data.user;
+          // Otherwise, fetch user data with the new token
+          try {
+            console.log("Fetching user data from /auth/me...");
+            const userResponse = await api.get("/auth/me");
+            setUser(userResponse.data.user);
+            userData = userResponse.data.user;
+            console.log("User data from /auth/me:", userData);
+          } catch (meError) {
+            console.error("Error fetching user data:", meError);
+            // If /auth/me fails, we can still proceed with basic user info from login
+            if (data.email) {
+              const basicUser = {
+                email: data.email,
+                firstName: data.firstName || '',
+                lastName: data.lastName || '',
+                roles: data.roles || ['standard'],
+                id: data.id || ''
+              };
+              setUser(basicUser);
+              userData = basicUser;
+            }
+          }
         }
 
         toast({

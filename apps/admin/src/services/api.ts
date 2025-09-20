@@ -41,10 +41,10 @@ api.interceptors.response.use(
       console.error("API Error:", error.response.status, error.response.data);
 
       if (error.response.status === 401) {
-        console.log("Unauthorized access, redirecting to login page");
+        console.log("Unauthorized access, redirecting to home page");
         removeToken();
         // Use window.location for a full page refresh to ensure clean state
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     } else if (error.request) {
       // No response received
