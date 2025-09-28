@@ -16,7 +16,7 @@ export default function Index() {
     } else {
       // User is authenticated, redirect to appropriate dashboard based on role
       if (user?.role === "admin") {
-        router.replace("/(tabs)/menu"); // Admin goes to messages
+        router.replace("/dashboard"); // Admin goes to messages
       } else {
         router.replace("/(tabs)/menu"); // Regular user goes to camera
       }

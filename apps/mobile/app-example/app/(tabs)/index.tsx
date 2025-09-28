@@ -97,7 +97,11 @@ export default function HomeScreen() {
                 <ThemedText type="defaultSemiBold">{item.subject}</ThemedText>
                 <ThemedText>{item.content}</ThemedText>
                 <ThemedText style={styles.messageMeta}>
-                  From: {item.sender.firstName} {item.sender.lastName} - {new Date(item.created_at).toLocaleString()}
+                  From: {item.sender.firstName} {item.sender.lastName} - {
+                    item.created_at && !isNaN(new Date(item.created_at).getTime()) 
+                      ? new Date(item.created_at).toLocaleString()
+                      : 'Invalid Date'
+                  }
                 </ThemedText>
                 {item.is_urgent && <ThemedText style={styles.urgentText}>URGENT</ThemedText>}
               </View>

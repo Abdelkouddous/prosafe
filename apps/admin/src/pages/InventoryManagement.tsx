@@ -70,7 +70,7 @@ const InventoryManagement = () => {
   const handleAddEquipment = async () => {
     try {
       await inventoryApi.createItem(newItem);
-      toast.success("Équipement ajouté avec succès");
+      toast.success("Inventory item added successfully");
       setIsAddModalOpen(false);
       fetchInventory(currentPage, selectedCategory);
       fetchLowStockItems();

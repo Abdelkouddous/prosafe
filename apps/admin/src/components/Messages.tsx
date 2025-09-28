@@ -38,12 +38,13 @@ interface Message {
   id: number;
   subject: string;
   content: string;
-  sender: {
+  sender?: {
     id: number;
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
+  system_sender?: string; // For system messages like "Prosafe Admin"
   recipient?: {
     // Added optional recipient
     id: number;
@@ -184,7 +185,15 @@ const Messages: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Invalid Date";
+
     const date = new Date(dateString);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+
     return date.toLocaleString();
   };
 
@@ -231,8 +240,11 @@ const Messages: React.FC = () => {
                       )}
                     </CardTitle>
                     <CardDescription>
-                      From: {message.sender.firstName} {message.sender.lastName}{" "}
-                      ({message.sender.email})
+                      From:{" "}
+                      {message.system_sender ||
+                        (message.sender
+                          ? `${message.sender.firstName} ${message.sender.lastName} (${message.sender.email})`
+                          : "Unknown Sender")}
                       <br />
                       {formatDate(message.created_at)}
                     </CardDescription>

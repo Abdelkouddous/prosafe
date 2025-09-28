@@ -13,9 +13,13 @@ api.interceptors.request.use(
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`Sending ${config.method?.toUpperCase()} to ${config.url} with token: ${token.substring(0, 20)}...`);
+      console.log(
+        `Sending ${config.method?.toUpperCase()} to ${config.url} with token: ${token.substring(0, 20)}...`
+      );
     } else {
-      console.log(`Sending ${config.method?.toUpperCase()} to ${config.url} WITHOUT token`);
+      console.log(
+        `Sending ${config.method?.toUpperCase()} to ${config.url} WITHOUT token`
+      );
     }
     return config;
   },
@@ -44,7 +48,7 @@ api.interceptors.response.use(
         console.log("Unauthorized access, redirecting to home page");
         removeToken();
         // Use window.location for a full page refresh to ensure clean state
-        window.location.href = "/";
+        // window.location.href = "/login";
       }
     } else if (error.request) {
       // No response received

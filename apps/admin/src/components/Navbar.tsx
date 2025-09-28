@@ -38,7 +38,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
     setIsUserMenuOpen(false);
     setIsOpen(false);
   };
@@ -50,22 +50,21 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <Shield className="h-8 w-8 text-prosafe-600" />
-            <span className="text-xl font-bold text-gray-900">ProSafe</span>
+            <span className="text-xl font-bold text-gray-900">PROSAFE</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            {isDashboard ? (
+            {isDashboard && isAdmin ? (
               // Dashboard navigation
-              isAdmin && (
-                <Link
-                  to="/"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-                >
-                  <Home className="h-4 w-4" />
-                  {t("navigation.goToHome")}
-                </Link>
-              )
+
+              <Link
+                to="/"
+                className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
+              >
+                <Home className="h-4 w-4" />
+                {t("navigation.goToHome")}
+              </Link>
             ) : (
               // Regular navigation
               <>
@@ -75,7 +74,7 @@ const Navbar = () => {
                 >
                   {t("navigation.home")}
                 </Link>
-                <Link
+                {/* <Link
                   to="/about"
                   className="text-sm font-medium hover:text-prosafe-600 transition-colors"
                 >
@@ -92,25 +91,25 @@ const Navbar = () => {
                   className="text-sm font-medium hover:text-prosafe-600 transition-colors"
                 >
                   {t("navigation.contact")}
-                </Link>
+                </Link> */}
               </>
             )}
 
             {/* Admin-only inventory link */}
             {isAdmin && (
               <Link
-                to="/inventory"
+                to="/dashboard"
                 className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
               >
                 <Box className="h-4 w-4" />
-                {t("navigation.inventory")}
+                {t("navigation.dashboard")}
               </Link>
             )}
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
             {/* Language Switcher */}
-            <div className="relative group">
+            <div className="relative group flex">
               <button className="flex items-center gap-1 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100">
                 <Globe className="h-4 w-4" />
                 <span className="uppercase">{i18n.language}</span>
@@ -318,6 +317,16 @@ const Navbar = () => {
               >
                 🇫🇷 FR
               </button>
+              <button
+                onClick={() => changeLanguage("ar")}
+                className={`px-3 py-1 rounded text-sm ${
+                  i18n.language === "ar"
+                    ? "bg-prosafe-600 text-white"
+                    : "bg-gray-200"
+                } `}
+              >
+                🇩🇿 AR
+              </button>
             </div>
 
             {/* Mobile navigation based on current page */}
@@ -370,12 +379,12 @@ const Navbar = () => {
             {/* Admin-only mobile inventory link */}
             {isAdmin && (
               <Link
-                to="/inventory"
+                to="/dashboard"
                 className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
                 onClick={() => setIsOpen(false)}
               >
                 <Box className="h-5 w-5" />
-                {t("navigation.inventory")}
+                {t("navigation.dashboard")}
               </Link>
             )}
 

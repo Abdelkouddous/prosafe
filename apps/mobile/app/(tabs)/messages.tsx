@@ -8,14 +8,18 @@ import {
   Alert,
   TouchableOpacity,
   RefreshControl,
-  TextInput, // Added for search input
+  TextInput,
+  Modal,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchMyMessages, fetchMyUser } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 
+const { width } = Dimensions.get("window");
+
 interface Sender {
-  name?: string;
+  id?: number;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -23,12 +27,14 @@ interface Sender {
 
 interface Message {
   id: string;
-  title: string;
+  subject?: string; // Backend uses 'subject' instead of 'title'
   content: string;
-  sender: string | Sender;
-  createdAt: string;
-  read: boolean;
-  priority: "low" | "medium" | "high";
+  sender?: Sender | null; // Can be null for system messages
+  system_sender?: string; // For system messages like "Prosafe Admin"
+  created_at: string;
+  status?: string; // Backend uses 'status' instead of 'read'
+  is_urgent?: boolean; // Backend field
+  priority?: "low" | "medium" | "high"; // Keep for compatibility
 }
 
 export default function MessagesScreen() {
@@ -38,6 +44,8 @@ export default function MessagesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState("");
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -60,8 +68,8 @@ export default function MessagesScreen() {
 
     const query = searchQuery.toLowerCase();
     const filtered = messages.filter((message) => {
-      // Safely check title
-      if (message.title?.toLowerCase().includes(query)) return true;
+      // Safely check title (use subject if title doesn't exist)
+      if (message.subject?.toLowerCase().includes(query)) return true;
 
       // Safely check content
       if (message.content?.toLowerCase().includes(query)) return true;
@@ -80,12 +88,17 @@ export default function MessagesScreen() {
     setFilteredMessages(filtered);
   };
 
-  const formatSenderName = (sender: string | Sender) => {
+  const formatSenderName = (sender: string | Sender | null | undefined) => {
     if (typeof sender === "string") {
       return sender;
     }
 
-    if (sender.name) return sender.name;
+    // Handle null or undefined sender
+    if (!sender) {
+      return "System";
+    }
+
+    // if (sender.name) return sender.name;
     if (sender.firstName || sender.lastName) {
       return `${sender.firstName || ""} ${sender.lastName || ""}`.trim();
     }
@@ -145,12 +158,33 @@ export default function MessagesScreen() {
 
   const markAsRead = (messageId: string) => {
     setMessages((prev) =>
-      prev.map((msg) => (msg.id === messageId ? { ...msg, read: true } : msg))
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, status: "read" } : msg
+      )
     );
   };
 
+  const openMessageModal = (message: Message) => {
+    setSelectedMessage(message);
+    setModalVisible(true);
+    markAsRead(message.id);
+  };
+
+  const closeMessageModal = () => {
+    setModalVisible(false);
+    setSelectedMessage(null);
+  };
+
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Invalid Date";
+
     const date = new Date(dateString);
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid Date";
+    }
+
     const now = new Date();
     const diffInDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
@@ -182,29 +216,33 @@ export default function MessagesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-
-        {/* Search Input */}
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#8E8E8E"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search messages..."
-            placeholderTextColor="#8E8E8E"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            clearButtonMode="while-editing"
-          />
+        <View style={styles.headerContent}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>PROSAFE</Text>
+            <Text style={styles.logoSubtext}>MESSAGES</Text>
+          </View>
         </View>
       </View>
 
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search"
+          size={20}
+          color="#8E8E8E"
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search messages..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#8E8E8E"
+        />
+      </View>
+
       <ScrollView
-        style={styles.scrollContainer}
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -227,13 +265,15 @@ export default function MessagesScreen() {
               <TouchableOpacity
                 key={message.id}
                 style={styles.messageCard}
-                onPress={() => markAsRead(message.id)}
+                onPress={() => openMessageModal(message)}
               >
                 <View style={styles.avatarContainer}>
                   <View style={styles.avatar}>
                     <Text style={styles.avatarText}>MSG</Text>
                   </View>
-                  {!message.read && <View style={styles.unreadDot} />}
+                  {message.status !== "read" && (
+                    <View style={styles.unreadDot} />
+                  )}
                 </View>
 
                 <View style={styles.messageContent}>
@@ -242,12 +282,12 @@ export default function MessagesScreen() {
                   </Text>
                   <View style={styles.messagePreview}>
                     <Text style={styles.messageTitle} numberOfLines={1}>
-                      {message.title}
+                      {message.subject || "No Subject"}
                     </Text>
                     <Text
                       style={[
                         styles.messageText,
-                        !message.read && styles.unreadMessageText,
+                        message.status !== "read" && styles.unreadMessageText,
                       ]}
                       numberOfLines={1}
                     >
@@ -258,7 +298,7 @@ export default function MessagesScreen() {
 
                 <View style={styles.messageTime}>
                   <Text style={styles.timeText}>
-                    {formatDate(message.createdAt)}
+                    {formatDate(message.created_at)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -266,6 +306,38 @@ export default function MessagesScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Message Detail Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeMessageModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={closeMessageModal}>
+                <Ionicons name="close" size={24} color="#374151" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Message Details</Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            {selectedMessage && (
+              <ScrollView style={styles.modalBody}>
+                <Text style={styles.modalSender}>
+                  {selectedMessage.system_sender || formatSenderName(selectedMessage.sender)}
+                </Text>
+                
+                <Text style={styles.modalMessageContent}>
+                  {selectedMessage.content || "No content available"}
+                </Text>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -273,41 +345,53 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F5F5F5",
   },
-  scrollContainer: {
+  scrollContent: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#8E8E8E",
   },
   header: {
-    padding: 16,
+    backgroundColor: "#FFFFFF",
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#EFEFEF",
+    borderBottomColor: "#E5E7EB",
   },
-  headerTitle: {
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+  },
+  logoText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#262626",
-    marginBottom: 12, // Added space for search
+    color: "#1F2937",
+    letterSpacing: 2,
   },
-  // Search styles
+  logoSubtext: {
+    fontSize: 10,
+    color: "#6B7280",
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  searchButton: {
+    padding: 8,
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFEFEF",
+    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   searchIcon: {
     marginRight: 8,
@@ -316,6 +400,17 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#262626",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#8E8E8E",
   },
   emptyContainer: {
     flex: 1,
@@ -342,8 +437,18 @@ const styles = StyleSheet.create({
   messageCard: {
     flexDirection: "row",
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EFEFEF",
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 20,
+    marginVertical: 5,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   avatarContainer: {
     position: "relative",
@@ -353,14 +458,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#EFEFEF",
+    backgroundColor: "#4A90E2",
     justifyContent: "center",
     alignItems: "center",
   },
   avatarText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#262626",
+    color: "#FFFFFF",
   },
   unreadDot: {
     position: "absolute",
@@ -369,7 +474,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#0095F6",
+    backgroundColor: "#DC2626",
     borderWidth: 2,
     borderColor: "#FFFFFF",
   },
@@ -380,7 +485,7 @@ const styles = StyleSheet.create({
   messageSender: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#262626",
+    color: "#1F2937",
     marginBottom: 4,
   },
   messagePreview: {
@@ -390,17 +495,17 @@ const styles = StyleSheet.create({
   messageTitle: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#262626",
+    color: "#1F2937",
     marginRight: 4,
   },
   messageText: {
     fontSize: 14,
-    color: "#8E8E8E",
+    color: "#6B7280",
     flex: 1,
   },
   unreadMessageText: {
     fontWeight: "500",
-    color: "#262626",
+    color: "#1F2937",
   },
   messageTime: {
     minWidth: 50,
@@ -408,6 +513,62 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 12,
-    color: "#8E8E8E",
+    color: "#6B7280",
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    margin: 20,
+    maxHeight: "80%",
+    width: width - 40,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+    flex: 1,
+    textAlign: "center",
+  },
+  modalBody: {
+    flex: 1,
+  },
+  modalSender: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  modalMessageContent: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 22,
   },
 });

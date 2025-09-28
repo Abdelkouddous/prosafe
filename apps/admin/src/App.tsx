@@ -1,4 +1,4 @@
-// src/App.tsx
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,56 +8,33 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import {
   ProtectedRoute,
   AdminRoute,
-  UserRoute,
   AuthRedirect,
 } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/Login";
+
+// Page imports - organized alphabetically
+import About from "./pages/About";
+import Blog from "./pages/Blog";
+import Carreers from "./pages/Carreers";
+import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
+import Features from "./pages/Features";
 import IncidentReport from "./pages/IncidentReport";
+import Index from "./pages/Index";
 import InventoryManagement from "./pages/InventoryManagement";
-import TrainingTracking from "./pages/TrainingTracking";
+import Login from "./pages/Login";
+import NotFound from "./pages/NotFound";
+import Pricing from "./pages/Pricing";
+import Privacy from "./pages/Privacy";
+import Profile from "./pages/Profile";
+import Security from "./pages/Security";
+import Settings from "./pages/Settings";
+import Terms from "./pages/Terms";
+
+import Updates from "./pages/Updates";
+
+// Component imports
 import Messages from "./components/Messages";
-
-// const queryClient = new QueryClient();
-
-// const App = () => (
-//   <QueryClientProvider client={queryClient}>
-//     <TooltipProvider>
-//       <AuthProvider>
-//         <Toaster />
-//         <Sonner />
-//         <BrowserRouter>
-//           <Routes>
-//             {/* Public routes */}
-//             <Route path="/" element={<Index />} />
-//             <Route path="/login" element={<Login />} />
-
-//             {/* Protected routes */}
-//             <Route element={<ProtectedRoute />}>
-//               <Route path="/dashboard" element={<Dashboard />} />
-//               <Route path="/incidents" element={<IncidentReport />} />
-//               <Route path="/training" element={<TrainingTracking />} />
-//             </Route>
-
-//             {/* Admin routes */}
-//             <Route element={<AdminRoute />}>
-//               <Route path="/inventory" element={<InventoryManagement />} />
-//             </Route>
-
-//             {/* Catch-all route */}
-//             <Route path="*" element={<NotFound />} />
-//           </Routes>
-//         </BrowserRouter>
-//       </AuthProvider>
-//     </TooltipProvider>
-//   </QueryClientProvider>
-// );
-
-// export default App;
-// apps/admin/src/App.tsx
-import { useEffect } from "react"; // Import useEffect
+import Services from "./pages/Services";
 
 // Get the API URL from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -96,9 +73,29 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public routes */}
+              {/* Public routes - accessible to all users */}
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<AuthRedirect><Login /></AuthRedirect>} />
+              <Route path="/about" element={<About />} />
+              <Route path="/services" element={<Services />}></Route>
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/careers" element={<Carreers />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/features" element={<Features />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/updates" element={<Updates />} />
+
+              {/* Authentication route - redirects if already logged in */}
+              <Route
+                path="/login"
+                element={
+                  <AuthRedirect>
+                    <Login />
+                  </AuthRedirect>
+                }
+              />
 
               {/* Admin-only routes */}
               <Route element={<AdminRoute />}>
@@ -108,12 +105,13 @@ function App() {
 
               {/* Protected routes for authenticated users */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/incidents" element={<IncidentReport />} />
-                <Route path="/training" element={<TrainingTracking />} />
                 <Route path="/messages" element={<Messages />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
 
-              {/* Catch-all route */}
+              {/* Catch-all route - MUST be last */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

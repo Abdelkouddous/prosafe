@@ -23,9 +23,14 @@ export class MessagesService {
    * @throws Error if sender or recipient (if specified) is not found.
    */
   async create(createMessageDto: CreateMessageDto): Promise<Message | Message[]> {
-    const sender = await this.usersService.findById(createMessageDto.sender_id);
-    if (!sender) {
-      throw new Error('Sender not found');
+    let sender = null;
+    
+    // Only fetch sender if sender_id is provided
+    if (createMessageDto.sender_id) {
+      sender = await this.usersService.findById(createMessageDto.sender_id);
+      if (!sender) {
+        throw new Error('Sender not found');
+      }
     }
 
     if (createMessageDto.send_to_all) {
@@ -60,6 +65,43 @@ export class MessagesService {
       const message = this.messagesRepository.create({
         ...createMessageDto,
         sender,
+      });
+      return this.messagesRepository.save(message);
+    }
+  }
+
+  /**
+   * Creates a system message with a system sender name instead of a user
+   * @param createMessageDto - The data to create the message(s) with system_sender
+   * @returns The created message or an array of created messages
+   */
+  async createSystemMessage(createMessageDto: CreateMessageDto & { system_sender: string }): Promise<Message | Message[]> {
+    if (createMessageDto.send_to_all) {
+      const users = await this.usersService.findAll();
+      const standardUsers = users.filter((user) => user.roles.includes(Role.standard));
+      const messages: Message[] = [];
+      for (const user of standardUsers) {
+        const message = this.messagesRepository.create({
+          subject: createMessageDto.subject,
+          content: createMessageDto.content,
+          system_sender: createMessageDto.system_sender,
+          recipient: user,
+          recipient_id: user.id,
+          is_urgent: createMessageDto.is_urgent || false,
+          status: MessageStatus.UNREAD,
+        });
+        messages.push(await this.messagesRepository.save(message));
+      }
+      return messages;
+    } else {
+      // Handle single system message
+      const message = this.messagesRepository.create({
+        subject: createMessageDto.subject,
+        content: createMessageDto.content,
+        system_sender: createMessageDto.system_sender,
+        recipient_id: createMessageDto.recipient_id,
+        is_urgent: createMessageDto.is_urgent || false,
+        status: MessageStatus.UNREAD,
       });
       return this.messagesRepository.save(message);
     }

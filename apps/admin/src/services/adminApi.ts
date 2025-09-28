@@ -1,4 +1,5 @@
 import api from "./api";
+import type { User } from "./trainingApi";
 
 // ============ INTERFACES ============
 export interface AdminDashboardStats {
@@ -40,10 +41,15 @@ export interface AdminTask {
   description: string;
   status: string;
   priority: string;
-  assigned_to?: AdminUser;
   created_by?: AdminUser;
   created_at: string;
   updated_at: string;
+  dueDate?: string;
+  startDate?: string;
+  location?: string;
+  maxParticipants?: number;
+  currentParticipants?: number;
+  completed?: boolean;
 }
 
 export interface AdminIncident {
@@ -92,13 +98,24 @@ export interface AdminAlert {
   title: string;
   description: string;
   severity: "low" | "medium" | "high" | "critical";
-  status: "monitoring" | "unresolved" | "investigating" | "resolved" | "dismissed";
-  type: "security" | "system" | "network" | "user_activity" | "compliance" | "performance";
+  status:
+    | "monitoring"
+    | "unresolved"
+    | "investigating"
+    | "resolved"
+    | "dismissed";
+  type:
+    | "security"
+    | "system"
+    | "network"
+    | "user_activity"
+    | "compliance"
+    | "performance";
   source_ip?: string;
   affected_user?: AdminUser;
   resolved_by?: AdminUser;
   resolved_at?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -254,7 +271,10 @@ export const adminApi = {
     return api.post<AdminIncident>("/admin/incidents", data);
   },
 
-  updateIncidentStatus: (id: string, data: { status: string; notes?: string }) => {
+  updateIncidentStatus: (
+    id: string,
+    data: { status: string; notes?: string }
+  ) => {
     return api.patch<AdminIncident>(`/admin/incidents/${id}/status`, data);
   },
 
@@ -271,7 +291,10 @@ export const adminApi = {
     title: string;
     description: string;
     priority?: string;
-    assigned_to_id?: number;
+    dueDate?: string;
+    startDate?: string;
+    location?: string;
+    maxParticipants?: number;
   }) => {
     return api.post<AdminTask>("/admin/tasks", data);
   },
@@ -284,7 +307,11 @@ export const adminApi = {
     return api.delete(`/admin/tasks/${id}`);
   },
 
-  // ============ ALERTS MANAGEMENT ============
+  completeTask: (id: number) => {
+    return api.patch<AdminTask>(`/admin/tasks/${id}/complete`);
+  },
+
+  // ============ ALERTS ============
   getAlerts: (page = 1, limit = 10, severity?: string, status?: string) => {
     const params = new URLSearchParams();
     params.append("page", page.toString());
@@ -320,7 +347,7 @@ export const adminApi = {
     type: string;
     source_ip?: string;
     affected_user_id?: number;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
   }) => {
     return api.post<AdminAlert>("/admin/alerts", data);
   },

@@ -30,18 +30,18 @@ export default function MenuScreen() {
 
   const menuOptions: MenuOption[] = [
     {
-      id: "report-situation",
-      title: "Report Situation",
-      icon: "phone-portrait",
-      color: "#4A90E2",
-      onPress: () => handleMenuPress("report-situation"),
+      id: "report-incident",
+      title: "Report Incident",
+      icon: "warning",
+      color: "#DC2626",
+      onPress: () => handleMenuPress("report-incident"),
     },
     {
-      id: "reports",
-      title: "Reports",
-      icon: "notifications",
-      color: "#4A90E2",
-      onPress: () => handleMenuPress("reports"),
+      id: "view-incidents",
+      title: "View Incidents",
+      icon: "list",
+      color: "#3B82F6",
+      onPress: () => handleMenuPress("view-incidents"),
     },
     // {
     //   id: "work-alone",
@@ -54,7 +54,7 @@ export default function MenuScreen() {
       id: "information",
       title: "Information",
       icon: "information-circle",
-      color: "#4A90E2",
+      color: "#06B6D4",
       onPress: () => handleMenuPress("information"),
     },
     // {
@@ -68,7 +68,7 @@ export default function MenuScreen() {
       id: "flashcards",
       title: "Flashcards",
       icon: "card",
-      color: "#4A90E2",
+      color: "#10B981",
       onPress: () => handleMenuPress("flashcards"),
     },
     // {
@@ -81,15 +81,15 @@ export default function MenuScreen() {
     {
       id: "lmra",
       title: "LMRA",
-      icon: "ellipse",
-      color: "#4A90E2",
+      icon: "shield-checkmark",
+      color: "#F59E0B",
       onPress: () => handleMenuPress("lmra"),
     },
     {
       id: "news",
       title: "News",
       icon: "newspaper",
-      color: "#4A90E2",
+      color: "#8B5CF6",
       onPress: () => handleMenuPress("news"),
     },
     {
@@ -103,7 +103,7 @@ export default function MenuScreen() {
       id: "check-stock",
       title: "Stock",
       icon: "bag-add-sharp",
-      color: "#4A90E2",
+      color: "#EF4444",
       onPress: () => handleMenuPress("check-stock"),
     },
   ];
@@ -111,41 +111,40 @@ export default function MenuScreen() {
   const handleMenuPress = (optionId: string) => {
     // TODO: Implement navigation to specific screens
     switch (optionId) {
-      case "report-situation":
-        // Alert.alert("Report Situation", "Navigate to incident reporting");
+      case "report-incident":
         router.push("/(tabs)/incidents");
-        //
         break;
-      case "reports":
-        Alert.alert("Reports", "Navigate to reports dashboard");
+      case "view-incidents":
+        router.push("/(tabs)/get-incidents");
         break;
       // case "work-alone":
       //   Alert.alert("Work Alone", "Navigate to lone worker monitoring");
       //   break;
       case "information":
-        Alert.alert("Information", "Navigate to information center");
+        router.push("/(extra)/information");
         break;
       // case "toolboxes":
       //   Alert.alert("Toolboxes", "Navigate to toolbox talks");
       //   break;
-      // case "flashcards":
-      //   Alert.alert("Flashcards", "Navigate to safety flashcards");
-      //   break;
+      case "flashcards":
+        router.push("/(extra)/flashcards");
+        break;
       // case "inspections":
       //   Alert.alert("Inspections", "Navigate to safety inspections");
       //   break;
       case "lmra":
-        Alert.alert("LMRA", "Navigate to Last Minute Risk Assessment");
+        router.push("/(extra)/lmra");
         break;
       case "news":
-        Alert.alert("News", "Navigate to company news");
+        router.push("/(extra)/news");
         break;
       case "safety-manual":
         // Alert.alert("Safety Manual", "Navigate to safety manual");
-        router.push("../(extra)/safetymanual");
+        router.push("../(extra)/safety-manual");
         break;
-      case "bag-add-sharp":
-        Alert.alert("Stock", "Stock nav");
+      case "check-stock":
+        router.push("/(extra)/stock");
+        break;
       default:
         Alert.alert("Coming Soon", "This feature will be available soon!");
     }

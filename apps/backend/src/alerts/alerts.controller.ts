@@ -26,7 +26,7 @@ export class AlertsController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('severity') severity?: AlertSeverity,
-    @Query('status') status?: AlertStatus
+    @Query('status') status?: AlertStatus,
   ) {
     return this.alertsService.findAll(+page, +limit, severity, status);
   }

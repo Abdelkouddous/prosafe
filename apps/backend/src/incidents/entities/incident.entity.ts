@@ -5,7 +5,6 @@ import { IncidentSeverity } from '../enums/incident-severity.enum';
 import { IncidentStatus } from '../enums/incident-status.enum';
 
 @Entity()
-@Unique(['photoHash', 'reportedBy'])
 @Index(['geoLatitude', 'geoLongitude'])
 @Index(['timestamp'])
 export class Incident {
@@ -16,10 +15,10 @@ export class Incident {
   incidentId: string;
 
   // Fixed: Use bytea for PostgreSQL binary data
-  @Column('bytea')
+  @Column('bytea', { nullable: true })
   photo: Buffer;
 
-  @Column({ length: 64 })
+  @Column({ length: 64, nullable: true })
   photoHash: string;
 
   @Column({ length: 200, nullable: true })

@@ -8,16 +8,15 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../services/api";
-import { ScrollView, RefreshControl } from "react-native-gesture-handler";
 
 // Enums matching backend
-
 enum IncidentType {
   SAFETY = "safety",
   SECURITY = "security",
@@ -44,118 +43,56 @@ interface IncidentForm {
   photo?: ImagePicker.ImagePickerAsset;
 }
 
-interface UserIncident {
-  id: string;
-  description: string;
-  type: IncidentType;
-  severity: IncidentSeverity;
-  status: "pending" | "investigating" | "resolved" | "closed";
-  manualAddress?: string;
-  geoLatitude?: number;
-  geoLongitude?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const Incidences = () => {
+const CreateIncident = () => {
   const [form, setForm] = useState<IncidentForm>({
     description: "",
     type: "",
     severity: "",
-    date: Date.now().toString(),
     location: {
-      lat: undefined,
-      long: undefined,
       manualAddress: "",
     },
-    photo: undefined,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
-  const [userIncidents, setUserIncidents] = useState<UserIncident[]>([]);
-  const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredIncidents, setFilteredIncidents] = useState<UserIncident[]>(
-    []
-  );
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchUserIncidents();
-    setRefreshing(false);
-  };
 
   useEffect(() => {
     requestPermissions();
-    fetchUserIncidents();
   }, []);
 
   const requestPermissions = async () => {
-    const { status: cameraStatus } =
-      await ImagePicker.requestCameraPermissionsAsync();
-    const { status: locationStatus } =
-      await Location.requestForegroundPermissionsAsync();
-
-    if (cameraStatus !== "granted" || locationStatus !== "granted") {
-      Alert.alert(
-        "Permissions Required",
-        "Camera and location permissions are needed for full functionality."
-      );
-    }
-  };
-
-  // const fetchUserIncidents = async () => {
-  //   try {
-  //     setIsLoadingIncidents(true);
-  //     const response = await api.get("/incidents");
-  //     setUserIncidents(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching incidents:", error);
-  //     Alert.alert("Error", "Failed to load your incidents");
-  //   } finally {
-  //     setIsLoadingIncidents(false);
-  //   }
-  // };
-  const fetchUserIncidents = async () => {
     try {
-      setIsLoadingIncidents(true);
-      const response = await api.get("/incidents");
+      const { status: cameraStatus } =
+        await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaStatus } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: locationStatus } =
+        await Location.requestForegroundPermissionsAsync();
 
-      // Ensure response data is in expected format
-      if (Array.isArray(response.data)) {
-        setUserIncidents(response.data);
-        setFilteredIncidents(response.data); // Also update filtered incidents
-      } else {
-        throw new Error("Invalid data format received");
+      if (cameraStatus !== "granted" || mediaStatus !== "granted") {
+        Alert.alert(
+          "Permissions Required",
+          "Camera and photo library access are needed to attach photos to incidents."
+        );
+      }
+
+      if (locationStatus !== "granted") {
+        Alert.alert(
+          "Location Permission",
+          "Location access helps provide accurate incident reporting."
+        );
       }
     } catch (error) {
-      console.error("Error fetching incidents:", error);
-      Alert.alert("Error", "Failed to load your incidents");
-    } finally {
-      setIsLoadingIncidents(false);
+      console.error("Error requesting permissions:", error);
     }
   };
+
   const getGeolocation = async () => {
     try {
       setIsGeolocating(true);
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
-
-      // Validate coordinates
-      if (
-        isNaN(location.coords.latitude) ||
-        location.coords.latitude < -90 ||
-        location.coords.latitude > 90 ||
-        isNaN(location.coords.longitude) ||
-        location.coords.longitude < -180 ||
-        location.coords.longitude > 180
-      ) {
-        throw new Error("Invalid coordinates received");
-      }
 
       setForm((prev) => ({
         ...prev,
@@ -165,241 +102,54 @@ const Incidences = () => {
           long: location.coords.longitude,
         },
       }));
-
-      // Reverse geocoding
-      const address = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-
-      if (address.length > 0) {
-        const addrText = [
-          address[0].street,
-          address[0].city,
-          address[0].region,
-          address[0].country,
-        ]
-          .filter(Boolean)
-          .join(", ");
-
-        setForm((prev) => ({
-          ...prev,
-          location: {
-            ...prev.location,
-            manualAddress: addrText,
-          },
-        }));
-      }
     } catch (error) {
-      console.error("Location error:", error);
-      Alert.alert("Error", "Could not get location");
+      console.error("Error getting location:", error);
+      Alert.alert("Location Error", "Unable to get current location");
     } finally {
       setIsGeolocating(false);
     }
   };
 
-  // const pickImage = async () => {
-  //   try {
-  //     const result = await ImagePicker.launchImageLibraryAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       allowsEditing: true,
-  //       aspect: [4, 3],
-  //       quality: 0.8,
-  //     });
-
-  //     if (!result.canceled && result.assets[0]) {
-  //       setForm((prev) => ({ ...prev, photo: result.assets[0] }));
-  //     }
-  //   } catch (error) {
-  //     console.error("Image picker error:", error);
-  //     Alert.alert("Error", "Failed to select image");
-  //   }
-  // };
   const pickImage = async () => {
     try {
-      Alert.alert("Select Photo", "Choose how you want to add a photo", [
-        {
-          text: "Camera",
-          onPress: async () => {
-            const result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 0.8,
-            });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
 
-            if (!result.canceled && result.assets[0]) {
-              setForm((prev) => ({ ...prev, photo: result.assets[0] }));
-            }
-          },
-        },
-        {
-          text: "Gallery",
-          onPress: async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 0.8,
-            });
-
-            if (!result.canceled && result.assets[0]) {
-              setForm((prev) => ({ ...prev, photo: result.assets[0] }));
-            }
-          },
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-      ]);
+      if (!result.canceled && result.assets[0]) {
+        setForm((prev) => ({ ...prev, photo: result.assets[0] }));
+      }
     } catch (error) {
-      console.error("Image picker error:", error);
-      Alert.alert("Error", "Failed to select image");
+      console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image");
     }
   };
+
   const removePhoto = () => {
     setForm((prev) => ({ ...prev, photo: undefined }));
   };
 
-  const validateForm = () => {
-    if (!form.description || form.description.length < 10) {
-      Alert.alert("Error", "Description must be at least 10 characters");
-      return false;
-    }
-    if (!form.type) {
-      Alert.alert("Error", "Please select an incident type");
-      return false;
-    }
-    if (!form.severity) {
-      Alert.alert("Error", "Please select incident severity");
-      return false;
-    }
-    return true;
-  };
-
-  // const submitIncident = async () => {
-  //   if (!validateForm()) return;
-
-  //   try {
-  //     setIsSubmitting(true);
-
-  //     // Create FormData
-  //     const formData = new FormData();
-
-  //     // Append simple fields
-  //     formData.append("description", form.description);
-  //     formData.append("type", form.type);
-  //     formData.append("severity", form.severity);
-  //     formData.append("date", form.date?.toString() || "Invalid date");
-
-  //     // Append location data properly
-  //     if (form.location.lat !== undefined) {
-  //       formData.append("location[lat]", String(form.location.lat));
-  //     }
-  //     if (form.location.long !== undefined) {
-  //       formData.append("location[long]", String(form.location.long));
-  //     }
-  //     if (form.location.manualAddress) {
-  //       formData.append("location[manualAddress]", form.location.manualAddress);
-  //     }
-  //     if (form.date) {
-  //       formData.append("date", form.date);
-  //     }
-
-  //     if (form.location.lat !== undefined && form.location.long !== undefined) {
-  //       formData.append("location[lat]", String(form.location.lat));
-  //       formData.append("location[long]", String(form.location.long));
-  //     }
-
-  //     // Append photo if available (React Native specific format)
-  //     if (form.photo) {
-  //       const filename = form.photo.uri.split("/").pop();
-  //       const match = /\.(\w+)$/.exec(filename || "");
-  //       const type = match ? `image/${match[1]}` : "image/jpeg";
-
-  //       formData.append("photo", {
-  //         uri: form.photo.uri,
-  //         name: filename || `photo_${Date.now()}.jpg`,
-  //         type,
-  //       } as any);
-  //     }
-
-  //     // Debug: Log the FormData contents
-  //     console.log("FormData contents:");
-  //     for (const [key, value] of formData.entries()) {
-  //       console.log(key, value);
-  //     }
-
-  //     // Make the API call
-  //     const response = await api.post("/incidents", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //       transformRequest: (data) => data, // Important for FormData in React Native
-  //     });
-
-  //     console.log("API Response:", response.data);
-
-  //     if (response.data && response.data.id) {
-  //       Alert.alert("Success", "Incident reported successfully!");
-  //       // Reset form
-  //       setForm({
-  //         description: "",
-  //         type: "",
-  //         severity: "",
-  //         location: {
-  //           lat: undefined,
-  //           long: undefined,
-  //           manualAddress: "",
-  //         },
-  //         photo: undefined,
-  //       });
-  //       // Refresh incidents list
-  //       fetchUserIncidents();
-  //     } else {
-  //       throw new Error("Invalid response from server");
-  //     }
-  //   } catch (error: any) {
-  //     console.error("Submission error:", error);
-  //     console.error("Error details:", error.response?.data);
-
-  //     let errorMessage = "Failed to submit incident";
-  //     if (error.response?.data?.errors) {
-  //       errorMessage = Object.values(error.response.data.errors)
-  //         .flat()
-  //         .join("\n");
-  //     } else if (error.response?.data?.message) {
-  //       errorMessage = error.response.data.message;
-  //     }
-
-  //     Alert.alert("Error", errorMessage);
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
   const submitIncident = async () => {
-    if (!validateForm()) return;
+    if (!form.description.trim() || !form.type || !form.severity) {
+      Alert.alert("Missing Information", "Please fill in all required fields");
+      return;
+    }
 
     try {
       setIsSubmitting(true);
 
       const formData = new FormData();
-
       formData.append("description", form.description);
       formData.append("type", form.type);
       formData.append("severity", form.severity);
-      formData.append("date", form.date?.toString() || "Invalid Date");
-      // ... (your existing formData setup)
-      // Add incident data
-      // Add location fields individually instead of as JSON string
-      // Validate coordinates before sending
-      // Create FormData for multipart/form-data request
-
-      if (form.location.lat !== undefined) {
+      formData.append("date", new Date().toISOString());
+      
+      // Location data needs to be nested under 'location' object
+      if (form.location.lat && form.location.long) {
         formData.append("location[lat]", form.location.lat.toString());
-      }
-      if (form.location.long !== undefined) {
         formData.append("location[long]", form.location.long.toString());
       }
       if (form.location.manualAddress) {
@@ -410,171 +160,73 @@ const Incidences = () => {
         formData.append("photo", {
           uri: form.photo.uri,
           type: "image/jpeg",
-          name: `incident-photo + ${Date.now().toString()} + .jpg`,
+          name: "incident-photo.jpg",
         } as any);
       }
 
-      // Make the API call
       const response = await api.post("/incidents", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-        transformRequest: (data) => data,
       });
 
-      console.log("Full API Response:", response); // Log the entire response
-
-      // More flexible response handling
-      if (response.status >= 200 && response.status < 300) {
-        Alert.alert("Success", "Incident reported successfully!");
-        // Reset form
-        setForm({
-          description: "",
-          type: "",
-          severity: "",
-          location: {
-            lat: undefined,
-            long: undefined,
-            manualAddress: "",
+      if (response.status === 201) {
+        Alert.alert("Success", "Incident reported successfully", [
+          {
+            text: "OK",
+            onPress: () => {
+              // Reset form
+              setForm({
+                description: "",
+                type: "",
+                severity: "",
+                location: {
+                  manualAddress: "",
+                },
+              });
+            },
           },
-          photo: undefined,
-          date: Date.now().toString() || "",
-        });
-        // Force refresh incidents list
-        await fetchUserIncidents();
-      } else {
-        throw new Error(
-          response.data?.message || "Invalid response from server"
-        );
+        ]);
       }
     } catch (error: any) {
-      console.error("Full error object:", error);
+      console.error("Error submitting incident:", error);
       Alert.alert(
         "Error",
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to submit incident"
+        error.response?.data?.message || "Failed to submit incident"
       );
     } finally {
       setIsSubmitting(false);
     }
   };
-  const getTypeLabel = (type: IncidentType | "") => {
-    switch (type) {
-      case IncidentType.SAFETY:
-        return "Safety";
-      case IncidentType.SECURITY:
-        return "Security";
-      case IncidentType.HR_VIOLATION:
-        return "HR Violation";
-      default:
-        return "Select Type";
-    }
-  };
-
-  const getSeverityLabel = (severity: IncidentSeverity | "") => {
-    switch (severity) {
-      case IncidentSeverity.LOW:
-        return "Low";
-      case IncidentSeverity.MEDIUM:
-        return "Medium";
-      case IncidentSeverity.HIGH:
-        return "High";
-      case IncidentSeverity.CRITICAL:
-        return "Critical";
-      default:
-        return "Select Severity";
-    }
-  };
-
-  const getSeverityColor = (severity: IncidentSeverity) => {
-    switch (severity) {
-      case IncidentSeverity.LOW:
-        return "#10B981";
-      case IncidentSeverity.MEDIUM:
-        return "#F59E0B";
-      case IncidentSeverity.HIGH:
-        return "#EF4444";
-      case IncidentSeverity.CRITICAL:
-        return "#DC2626";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  // Filter incidents based on search query
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredIncidents(userIncidents);
-    } else {
-      const filtered = userIncidents.filter(
-        (incident) =>
-          incident.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          incident.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          incident.severity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (incident.manualAddress &&
-            incident.manualAddress
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()))
-      );
-      setFilteredIncidents(filtered);
-    }
-  }, [searchQuery, userIncidents]);
 
   return (
-    // Update your ScrollView component:
-    <ScrollView
+    <ScrollView 
       style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#DC2626"]} // Customize as needed
-        />
-      }
     >
-      {/* Search Component */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#6B7280"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search incidents..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#9CA3AF"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery("")}
-              style={styles.clearButton}
-            >
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          )}
+      <View>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>PROSAFE</Text>
+              <Text style={styles.logoSubtext}>NEW INCIDENT</Text>
+            </View>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.header}>
-        <Ionicons name="warning" size={24} color="#DC2626" />
-        <Text style={styles.headerTitle}>Incident Declaration</Text>
-      </View>
+        <Text style={styles.sectionTitle}>Report New Incident</Text>
 
-      <View style={styles.form}>
+        <View style={styles.form}>
+
         {/* Description */}
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Detailed Description *</Text>
+          <Text style={styles.label}>Description *</Text>
           <TextInput
             style={styles.textArea}
-            placeholder="Describe in detail what happened..."
+            placeholder="Describe the incident in detail..."
             value={form.description}
             onChangeText={(text) =>
               setForm((prev) => ({ ...prev, description: text }))
@@ -701,59 +353,7 @@ const Incidences = () => {
             {isSubmitting ? "Submitting..." : "Report Incident"}
           </Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Recent Incidents */}
-      <View style={styles.recentIncidents}>
-        <Text style={styles.sectionTitle}>
-          {searchQuery
-            ? `Search Results (${filteredIncidents.length})`
-            : "My Recent Incidents"}
-        </Text>
-        {isLoadingIncidents ? (
-          <ActivityIndicator
-            size="large"
-            color="#DC2626"
-            style={styles.loader}
-          />
-        ) : filteredIncidents.length > 0 ? (
-          filteredIncidents.map((incident) => (
-            <View key={incident.id} style={styles.incidentCard}>
-              <View style={styles.incidentHeader}>
-                <Text style={styles.incidentType}>
-                  {getTypeLabel(incident.type)}
-                </Text>
-                <View
-                  style={[
-                    styles.severityBadge,
-                    { backgroundColor: getSeverityColor(incident.severity) },
-                  ]}
-                >
-                  <Text style={styles.severityText}>
-                    {getSeverityLabel(incident.severity)}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.incidentDescription} numberOfLines={2}>
-                {incident.description}
-              </Text>
-              {incident.manualAddress && (
-                <Text style={styles.locationButton} numberOfLines={1}>
-                  📍 {incident.manualAddress}
-                </Text>
-              )}
-              <Text style={styles.incidentDate}>
-                {new Date(incident.createdAt).toLocaleDateString()}
-              </Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.noIncidents}>
-            {searchQuery
-              ? "No incidents found matching your search"
-              : "No incidents reported yet"}
-          </Text>
-        )}
+        </View>
       </View>
     </ScrollView>
   );
@@ -762,21 +362,53 @@ const Incidences = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#F5F5F5",
+  },
+  scrollContent: {
+    paddingBottom: 50,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
     backgroundColor: "#FFFFFF",
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-  headerTitle: {
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+  },
+  logoText: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#1F2937",
-    marginLeft: 10,
+    letterSpacing: 2,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  logoSubtext: {
+    fontSize: 10,
+    color: "#6B7280",
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "white",
+    opacity: 0.9,
   },
   form: {
     padding: 20,
@@ -978,4 +610,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Incidences;
+export default CreateIncident;

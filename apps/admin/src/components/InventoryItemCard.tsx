@@ -80,7 +80,7 @@ const InventoryItemCard = ({
 
         <div className="mt-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Quantité:</span>
+            <span className="text-sm font-medium">Quantity:</span>
             <div className="flex items-center space-x-2">
               <Button
                 type="button"
@@ -115,8 +115,8 @@ const InventoryItemCard = ({
           </div>
 
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-sm">Seuil d'alerte:</span>
-            <span className="text-sm font-medium">{item.threshold} unités</span>
+            <span className="text-sm">Alert threshold:</span>
+            <span className="text-sm font-medium">{item.threshold} units</span>
           </div>
 
           {isLowStock && (

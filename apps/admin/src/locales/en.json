@@ -30,6 +30,7 @@
     "adminAccess": "Admin Access",
     "userManagement": "User Management",
     "roleManagement": "Role Management",
+    "incidentManagement": "Incident Management",
     "permissions": "Permissions",
     "logout": "Logout",
     "about": "About",

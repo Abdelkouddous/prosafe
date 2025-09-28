@@ -15,7 +15,12 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Profile / Profil</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>PROSAFE</Text>
+            <Text style={styles.logoSubtext}>PROFILE</Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -41,13 +46,37 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F5F5F5",
   },
   header: {
-    backgroundColor: "#007AFF",
-    padding: 20,
+    backgroundColor: "#FFFFFE",
+    paddingTop: 50,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
   },
+  logoContainer: {
+    alignItems: "center",
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1F2937",
+    letterSpacing: 2,
+  },
+  logoSubtext: {
+    fontSize: 10,
+    color: "#6B7280",
+    letterSpacing: 1,
+    marginTop: 2,
+  },
+  //
   title: {
     fontSize: 24,
     fontWeight: "bold",

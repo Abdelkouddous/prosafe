@@ -29,7 +29,7 @@ const Login = () => {
       if (isAdmin) {
         navigate("/dashboard");
       } else {
-        navigate("/");
+        navigate("/profile");
       }
     }
   }, [isAuthenticated, isAdmin, navigate]);

@@ -13,6 +13,8 @@ interface User {
   email: string;
   name: string;
   role: "admin" | "user";
+  roles?: string[];
+  isActive?: boolean;
 }
 
 interface AuthContextType {
@@ -127,6 +129,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           `${userInfo.firstName || ""} ${userInfo.lastName || ""}`.trim() ||
           userInfo.email,
         role: userInfo.roles?.includes("admin") ? "admin" : "user",
+        roles: userInfo.roles,
+        isActive: userInfo.isActive,
       };
 
       setUser(transformedUser);
@@ -197,7 +201,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
           userData.email,
         role: userData.roles?.includes("admin") ? "admin" : "user",
+        roles: userData.roles,
+        isActive: userData.isActive,
       };
+
+      // Check if user has pending role (backend uses roles array with 'pending' role)
+      if (userData.roles?.includes("pending")) {
+        throw new Error("ACCOUNT_PENDING_APPROVAL");
+      }
+
+      // Check if user account is inactive
+      if (userData.isActive === false) {
+        throw new Error("ACCOUNT_BLOCKED");
+      }
 
       // Store token and user data
       await AsyncStorage.setItem("authToken", token);

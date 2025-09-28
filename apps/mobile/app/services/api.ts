@@ -72,7 +72,7 @@ export const fetchMyMessages = async () => {
   }
 };
 
-export const fetchMyIncidences = async () => {
+export const fetchMyIncidents = async () => {
   try {
     const response = await api.get("/incidents");
     return response.data;
@@ -93,12 +93,12 @@ export const fetchMyUser = async () => {
 };
 
 // TODO- FORMATIONS LIST FROM BACKEND
-export const fetchMyFormations = async () => {
+export const fetchMyTrainings = async () => {
   try {
-    const response = await api.get("/formations");
+    const response = await api.get("/trainings");
     return response.data;
   } catch (error) {
-    console.error("error fetching my formations", error);
+    console.error("error fetching my trainings", error);
     throw error;
   }
 };

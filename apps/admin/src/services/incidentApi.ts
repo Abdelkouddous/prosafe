@@ -34,7 +34,7 @@ export interface Incident {
     email: string;
   };
   resolved_at?: string;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
 }
 

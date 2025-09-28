@@ -54,8 +54,8 @@ const InventoryManagement: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all-categories");
+  const [statusFilter, setStatusFilter] = useState<string>("all-status");
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -71,8 +71,8 @@ const InventoryManagement: React.FC = () => {
     price: 0,
     quantity: 0,
     min_stock_level: 0,
-    category: InventoryCategory.OTHER, // Use enum value instead of string
-    status: InventoryStatus.ACTIVE, // Use enum value instead of string
+    category: InventoryCategory.OTHER,
+    status: InventoryStatus.ACTIVE,
     supplier: "",
     location: "",
   });
@@ -80,12 +80,8 @@ const InventoryManagement: React.FC = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const response = await inventoryApi.getItems(
-        page,
-        10,
-        categoryFilter,
-        statusFilter
-      );
+      // Fetch all items without backend filtering to enable proper frontend filtering
+      const response = await inventoryApi.getItems(page, 10);
       setItems(response.data.items);
       setTotalPages(response.data.totalPages);
       setTotal(response.data.total);
@@ -122,7 +118,7 @@ const InventoryManagement: React.FC = () => {
 
   useEffect(() => {
     fetchItems();
-  }, [page, categoryFilter, statusFilter]);
+  }, [page]);
 
   const handleCreate = async () => {
     try {
@@ -227,6 +223,7 @@ const InventoryManagement: React.FC = () => {
 
   const getCategoryLabel = (category: string) => {
     const categories = {
+      all: "All",
       electronics: "Electronics",
       office_supplies: "Office Supplies",
       furniture: "Furniture",
@@ -237,13 +234,25 @@ const InventoryManagement: React.FC = () => {
     };
     return categories[category as keyof typeof categories] || category;
   };
-
-  // search function
-  const filteredItems = items.filter(
-    (item) =>
+  // Enhanced filtering function that combines search, category, and status filters
+  const filteredItems = items.filter((item) => {
+    // Search filter - check name, SKU, and description
+    const matchesSearch =
+      searchTerm === "" ||
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.description &&
+        item.description.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    // Category filter
+    const matchesCategory =
+      categoryFilter === "all-categories" || item.category === categoryFilter;
+
+    // Status filter
+    const matchesStatus = statusFilter === "all-status" || item.status === statusFilter;
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
@@ -370,57 +379,66 @@ const InventoryManagement: React.FC = () => {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4 items-center">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+            <div className="flex-1 min-w-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Search by name or SKU..."
+                  placeholder="Search by name, SKU, or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
-            // Update the category filter options in your JSX
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
-                <SelectItem value={InventoryCategory.ELECTRONICS}>
-                  Electronics
-                </SelectItem>
-                <SelectItem value={InventoryCategory.OFFICE_SUPPLIES}>
-                  Office Supplies
-                </SelectItem>
-                <SelectItem value={InventoryCategory.FURNITURE}>
-                  Furniture
-                </SelectItem>
-                <SelectItem value={InventoryCategory.SAFETY_EQUIPMENT}>
-                  Safety Equipment
-                </SelectItem>
-                <SelectItem value={InventoryCategory.TOOLS}>Tools</SelectItem>
-                <SelectItem value={InventoryCategory.CONSUMABLES}>
-                  Consumables
-                </SelectItem>
-                <SelectItem value={InventoryCategory.OTHER}>Other</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="low_stock">Low Stock</SelectItem>
-                <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                <SelectItem value="discontinued">Discontinued</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-categories">All Categories</SelectItem>
+                  <SelectItem value={InventoryCategory.ELECTRONICS}>
+                    Electronics
+                  </SelectItem>
+                  <SelectItem value={InventoryCategory.OFFICE_SUPPLIES}>
+                    Office Supplies
+                  </SelectItem>
+                  <SelectItem value={InventoryCategory.FURNITURE}>
+                    Furniture
+                  </SelectItem>
+                  <SelectItem value={InventoryCategory.SAFETY_EQUIPMENT}>
+                    Safety Equipment
+                  </SelectItem>
+                  <SelectItem value={InventoryCategory.TOOLS}>Tools</SelectItem>
+                  <SelectItem value={InventoryCategory.CONSUMABLES}>
+                    Consumables
+                  </SelectItem>
+                  <SelectItem value={InventoryCategory.OTHER}>Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-status">All Status</SelectItem>
+                  <SelectItem value={InventoryStatus.ACTIVE}>Active</SelectItem>
+                  <SelectItem value={InventoryStatus.INACTIVE}>
+                    Inactive
+                  </SelectItem>
+                  <SelectItem value={InventoryStatus.LOW_STOCK}>
+                    Low Stock
+                  </SelectItem>
+                  <SelectItem value={InventoryStatus.OUT_OF_STOCK}>
+                    Out of Stock
+                  </SelectItem>
+                  <SelectItem value={InventoryStatus.DISCONTINUED}>
+                    Discontinued
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -436,78 +454,92 @@ const InventoryManagement: React.FC = () => {
           {loading ? (
             <div className="text-center py-8">Loading...</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredItems.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.sku}</TableCell>
-                    <TableCell>{getCategoryLabel(item.category)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {item.quantity}
-                        {item.quantity <= item.min_stock_level && (
-                          <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>${item.price.toFixed(2)}</TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(item)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        {user?.roles?.includes("admin") && (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[120px]">Name</TableHead>
+                    <TableHead className="min-w-[100px]">SKU</TableHead>
+                    <TableHead className="min-w-[120px]">Category</TableHead>
+                    <TableHead className="min-w-[80px]">Quantity</TableHead>
+                    <TableHead className="min-w-[80px]">Price</TableHead>
+                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {item.sku}
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {getCategoryLabel(item.category)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.quantity}</span>
+                          {item.quantity <= item.min_stock_level && (
+                            <AlertTriangle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        ${item.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(item.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => handleEdit(item)}
+                            className="h-8 w-8 p-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          {user?.roles?.includes("admin") && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(item.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Pagination */}
-      <div className="flex justify-center gap-2">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
         <Button
           variant="outline"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
+          className="w-full sm:w-auto"
         >
           Previous
         </Button>
-        <span className="flex items-center px-4">
+        <span className="flex items-center px-4 text-sm">
           Page {page} of {totalPages}
         </span>
         <Button
           variant="outline"
           onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           disabled={page === totalPages}
+          className="w-full sm:w-auto"
         >
           Next
         </Button>

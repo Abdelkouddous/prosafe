@@ -13,15 +13,17 @@ const AlertManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [severityFilter, setSeverityFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [severityFilter, setSeverityFilter] = useState<string>('all-severities');
+  const [statusFilter, setStatusFilter] = useState<string>('all-statuses');
   const { toast } = useToast();
   const { user } = useAuth();
 
   const fetchAlerts = async () => {
     try {
       setLoading(true);
-      const response = await alertApi.getAlerts(page, 10, severityFilter, statusFilter);
+      const actualSeverityFilter = severityFilter === 'all-severities' ? '' : severityFilter;
+      const actualStatusFilter = statusFilter === 'all-statuses' ? '' : statusFilter;
+      const response = await alertApi.getAlerts(page, 10, actualSeverityFilter, actualStatusFilter);
       setAlerts(response.data.alerts);
       setTotalPages(response.data.totalPages);
     } catch (error) {
@@ -98,7 +100,16 @@ const AlertManagement: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+    if (!dateString) return 'Invalid Date';
+    
+    const date = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+    
+    return date.toLocaleString();
   };
 
   if (loading) {
@@ -119,7 +130,7 @@ const AlertManagement: React.FC = () => {
               <SelectValue placeholder="Filter by severity" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Severities</SelectItem>
+              <SelectItem value="all-severities">All Severities</SelectItem>
               <SelectItem value="critical">Critical</SelectItem>
               <SelectItem value="high">High</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
@@ -132,7 +143,7 @@ const AlertManagement: React.FC = () => {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all-statuses">All Statuses</SelectItem>
               <SelectItem value="unresolved">Unresolved</SelectItem>
               <SelectItem value="investigating">Investigating</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>

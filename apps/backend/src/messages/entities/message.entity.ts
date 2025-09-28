@@ -13,12 +13,15 @@ export class Message {
   @Column('text')
   content: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true }) // Make sender nullable for system messages
   @JoinColumn({ name: 'sender_id' })
-  sender: User;
+  sender?: User;
 
-  @Column()
-  sender_id: number;
+  @Column({ nullable: true }) // Make sender_id nullable for system messages
+  sender_id?: number;
+
+  @Column({ nullable: true }) // For system messages like "Prosafe Admin"
+  system_sender?: string;
 
   @ManyToOne(() => User, { nullable: true }) // A message might be a broadcast without a single recipient
   @JoinColumn({ name: 'recipient_id' })

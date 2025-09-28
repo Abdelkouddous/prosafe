@@ -766,10 +766,10 @@ interface UserIncident {
   type: IncidentType;
   severity: IncidentSeverity;
   status: "pending" | "investigating" | "resolved" | "closed";
-  manualAddress?: string;  // Direct field, not nested
+  manualAddress?: string; // Direct field, not nested
   geoLatitude?: number;
   geoLongitude?: number;
-  createdAt: string;
+  created_at: string;
   updatedAt: string;
 }
 
@@ -939,16 +939,13 @@ const UserIncidentsTable = () => {
               </TableCell>
               // Fix the table cell rendering (around line 945)
               <TableCell className="max-w-xs">
-                <div
-                  className="truncate"
-                  title={incident.manualAddress}
-                >
+                <div className="truncate" title={incident.manualAddress}>
                   {incident.manualAddress || "Non spécifié"}
                 </div>
               </TableCell>
               n.
               <TableCell>
-                {format(new Date(incident.createdAt), "dd/MM/yyyy HH:mm", {
+                {format(new Date(incident.created_at), "dd/MM/yyyy HH:mm", {
                   locale: fr,
                 })}
               </TableCell>

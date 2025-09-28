@@ -20,24 +20,28 @@ export class IncidentsService {
     photo: any,
     userId: number,
   ): Promise<{ incidentId: string }> {
-    // Validate photo
-    this.validatePhoto(photo);
+    // Validate photo only if provided
+    if (photo) {
+      this.validatePhoto(photo);
+    }
 
     // Validate location
     this.validateLocation(createIncidentDto.location);
 
     // Generate metadata
-    const photoHash = this.generatePhotoHash(photo.buffer);
+    const photoHash = photo ? this.generatePhotoHash(photo.buffer) : null;
     const incidentId = this.generateIncidentId();
     const timestamp = new Date();
 
-    // Check for duplicates
-    await this.checkDuplicates(photoHash, createIncidentDto.location, timestamp, userId);
+    // Check for duplicates (only if photo is provided)
+    if (photo) {
+      await this.checkDuplicates(photoHash, createIncidentDto.location, timestamp, userId);
+    }
 
     // Create incident
     const incident = this.incidentRepository.create({
       incidentId,
-      photo: photo.buffer,
+      photo: photo ? photo.buffer : null,
       photoHash,
       description: createIncidentDto.description,
       type: createIncidentDto.type,
@@ -109,7 +113,7 @@ export class IncidentsService {
 
   private validatePhoto(photo: any): void {
     if (!photo) {
-      throw new BadRequestException('Photo is required');
+      // throw new BadRequestException('Photo is required');
     }
 
     const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];

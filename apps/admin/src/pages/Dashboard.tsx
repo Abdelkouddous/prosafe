@@ -1,4 +1,3 @@
-//
 // this is the admin dashboard UI contains all logics necessary for dashboard
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -57,6 +56,8 @@ import {
   RefreshCw,
   MinusCircle,
   Package,
+  GraduationCap,
+  Send,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -100,6 +101,8 @@ import {
   InventoryStatus,
 } from "@/services/inventoryApi";
 import InventoryManagement from "@/components/InventoryManagement";
+import TrainingManagement from "@/components/TrainingManagement";
+import NotificationSettings from "@/components/NotificationSettings";
 import {
   Dialog,
   DialogTrigger,
@@ -113,7 +116,8 @@ import {
 import { Label } from "@radix-ui/react-label";
 import { t } from "node_modules/i18next";
 import { useTranslation } from "react-i18next";
-import { alertApi } from "@/services/alertApi";
+import { alertApi, Alert, AlertStats } from "@/services/alertApi";
+import AdminNotifications from "@/components/AdminNotifications";
 interface User {
   id: number;
   firstName: string;
@@ -136,9 +140,15 @@ interface User {
 interface BackendMessage {
   id: number;
   content: string;
-  createdAt: string; // ISO date string
+  created_at: string; // ISO date string
   status: string; // e.g., 'UNREAD', 'READ'
-  sender: { id: number; firstName?: string; lastName?: string; email: string };
+  sender?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  } | null;
+  system_sender?: string; // For system messages like "Prosafe Admin"
   recipient?: {
     id: number;
     firstName?: string;
@@ -188,8 +198,8 @@ const getIncidentsByMonth = (incidents: BackendIncident[]) => {
 
   // Count incidents by month
   incidents.forEach((incident) => {
-    if (incident.createdAt) {
-      const date = new Date(incident.createdAt);
+    if (incident.created_at) {
+      const date = new Date(incident.created_at);
       if (!isNaN(date.getTime())) {
         const month = months[date.getMonth()];
         monthlyData[month]++;
@@ -308,8 +318,15 @@ const Dashboard = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [newMessage, setNewMessage] = useState("");
-  // const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
-  // const [alertStats, setAlertStats] = useState<AlertStats | null>(null);
+  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
+  const [alertStats, setAlertStats] = useState<AlertStats>({
+    total: 0,
+    unresolved: 0,
+    resolved: 0,
+    monitoring: 0,
+    critical: 0,
+    high: 0,
+  });
   const [latestMessages, setLatestMessages] = useState<BackendMessage[]>([]);
   const [incidents, setIncidents] = useState<BackendIncident[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -770,6 +787,7 @@ const Dashboard = () => {
       const response = await inventoryApi.updateItem(id, {
         quantity: newQuantity,
       });
+      console.log(response.data);
 
       // Update local state
       setInventory((prevInventory) =>
@@ -1243,7 +1261,7 @@ const Dashboard = () => {
                                 </td>
                                 <td className="px-4 py-2">{incident.status}</td>
                                 <td className="px-4 py-2">
-                                  {formatDate(incident.createdAt)}
+                                  {formatDate(incident.created_at)}
                                 </td>
                                 <td className="px-4 py-2">{incident.type}</td>
                                 <td className="px-4 py-2">
@@ -1363,23 +1381,27 @@ const Dashboard = () => {
         return "User Management";
       case "incidents":
         return "Incident Logs";
-      case "reports":
-        return "Security Reports";
       case "profile":
         return "My Profile";
       case "user-settings":
         return "User Settings";
       case "messages":
-        return "";
+        return "Messages";
       case "inventory":
         return "Inventory Management";
+      case "training":
+        return "Training Management";
+      case "notifications":
+        return "Notification Settings";
+      case "admin-notifications":
+        return "Send Notifications";
       default:
         return "Security Dashboard";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 transform ${
@@ -1457,10 +1479,26 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("reports")}
+            onClick={() => setActiveTab("training")}
           >
-            <FileText className="mr-2 h-5 w-5" />
-            Reports
+            <GraduationCap className="mr-2 h-5 w-5" />
+            Training Management
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
+            onClick={() => setActiveTab("notifications")}
+          >
+            <Bell className="mr-2 h-5 w-5" />
+            Notification Settings
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
+            onClick={() => setActiveTab("admin-notifications")}
+          >
+            <Send className="mr-2 h-5 w-5" />
+            Send Notifications
           </Button>
           <Button
             variant="ghost"
@@ -1650,7 +1688,7 @@ const Dashboard = () => {
         </header>
 
         {/* Dashboard Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 bg-background">
           {activeTab === "users" ? (
             <div className="space-y-6">
               <div>
@@ -1957,7 +1995,7 @@ const Dashboard = () => {
                                 {formatLocation(incident)}
                               </TableCell>
                               <TableCell>
-                                {formatDate(incident.createdAt)}
+                                {formatDate(incident.created_at)}
                               </TableCell>
                               <TableCell>
                                 <div className="flex space-x-2">
@@ -2056,25 +2094,44 @@ const Dashboard = () => {
                           >
                             <Avatar className="h-9 w-9">
                               <AvatarFallback>
-                                {msg.sender.firstName?.[0]?.toUpperCase() ||
-                                  msg.sender.email[0]?.toUpperCase()}
-                                {msg.sender.lastName?.[0]?.toUpperCase()}
+                                {msg.system_sender ? (
+                                  msg.system_sender.charAt(0).toUpperCase()
+                                ) : msg.sender ? (
+                                  <>
+                                    {msg.sender.firstName?.[0]?.toUpperCase() ||
+                                      msg.sender.email[0]?.toUpperCase()}
+                                    {msg.sender.lastName?.[0]?.toUpperCase()}
+                                  </>
+                                ) : (
+                                  "?"
+                                )}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <p className="text-sm font-medium leading-none">
-                                {msg.sender.firstName || msg.sender.email}{" "}
-                                {msg.sender.lastName}
+                                {msg.system_sender ||
+                                  (msg.sender
+                                    ? `${msg.sender.firstName || msg.sender.email.split("@")[0]} ${msg.sender.lastName || ""}`.trim()
+                                    : "Unknown Sender")}
                               </p>
                               <p className="text-sm text-muted-foreground truncate max-w-xs">
                                 {msg.content}
                               </p>
                             </div>
                             <time className="text-xs text-muted-foreground">
-                              {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {(() => {
+                                if (!msg.created_at) return "Invalid Date";
+                                const date = new Date(msg.created_at);
+                                if (isNaN(date.getTime()))
+                                  return "Invalid Date";
+                                return date.toLocaleTimeString([], {
+                                  year: "2-digit",
+                                  month: "2-digit",
+                                  day: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                });
+                              })()}
                             </time>
                           </li>
                         ))}
@@ -2156,33 +2213,46 @@ const Dashboard = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <Input
-                          placeholder="Nom"
-                          value={newItem.name}
-                          onChange={(e) =>
-                            setNewItem({ ...newItem, name: e.target.value })
-                          }
-                        />
-                        <Input
-                          placeholder="Description"
-                          value={newItem.description}
-                          onChange={(e) =>
-                            setNewItem({
-                              ...newItem,
-                              description: e.target.value,
-                            })
-                          }
-                        />
-                        <Input
-                          placeholder="SKU"
-                          value={newItem.sku}
-                          onChange={(e) =>
-                            setNewItem({ ...newItem, sku: e.target.value })
-                          }
-                        />
-                        <Label for="Prix">
+                        <Label htmlFor="nom">
+                          Nom
+                          <Input
+                            id="nom"
+                            placeholder="Nom"
+                            value={newItem.name}
+                            onChange={(e) =>
+                              setNewItem({ ...newItem, name: e.target.value })
+                            }
+                          />
+                        </Label>
+                        <Label htmlFor="description">
+                          Description
+                          <Input
+                            id="description"
+                            placeholder="Description"
+                            value={newItem.description}
+                            onChange={(e) =>
+                              setNewItem({
+                                ...newItem,
+                                description: e.target.value,
+                              })
+                            }
+                          />
+                        </Label>
+                        <Label htmlFor="sku">
+                          SKU
+                          <Input
+                            id="sku"
+                            placeholder="SKU"
+                            value={newItem.sku}
+                            onChange={(e) =>
+                              setNewItem({ ...newItem, sku: e.target.value })
+                            }
+                          />
+                        </Label>
+                        <Label htmlFor="prix">
                           Prix (DZD)
                           <Input
+                            id="prix"
                             type="number"
                             step="5"
                             placeholder="Prix en DZD"
@@ -2196,9 +2266,10 @@ const Dashboard = () => {
                           />
                         </Label>
 
-                        <Label for="Quantité">
+                        <Label htmlFor="quantite">
                           Quantité
                           <Input
+                            id="quantite"
                             type="number"
                             placeholder="Quantité"
                             value={newItem.quantity}
@@ -2211,9 +2282,10 @@ const Dashboard = () => {
                           />
                         </Label>
 
-                        <Label for="Seuil de stock minimum">
+                        <Label htmlFor="seuil-stock">
                           Seuil de stock minimum
                           <Input
+                            id="seuil-stock"
                             type="number"
                             placeholder="Seuil de stock minimum"
                             value={newItem.min_stock_level}
@@ -2225,9 +2297,10 @@ const Dashboard = () => {
                             }
                           />
                         </Label>
-                        <Label for="Catégorie">
-                          Catégorie
+                        <Label htmlFor="category">
+                          Category
                           <select
+                            id="category"
                             value={newItem.category}
                             onChange={(e) =>
                               setNewItem({
@@ -2426,18 +2499,6 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
-            </div>
-          ) : activeTab === "reports" ? (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">
-                  Security Reports
-                </h2>
-                <p className="text-muted-foreground">
-                  Generate and view comprehensive security reports.
-                </p>
-              </div>
-              {renderDashboardContent()}
             </div>
           ) : activeTab === "profile" ? (
             <div className="space-y-6">
@@ -2972,6 +3033,34 @@ const Dashboard = () => {
                 </Card>
               </div>
             </div>
+          ) : activeTab === "training" ? (
+            <div className="space-y-6 ">
+              <TrainingManagement />
+            </div>
+          ) : activeTab === "notifications" ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">
+                  Notification Settings
+                </h2>
+                <p className="text-muted-foreground">
+                  Configure notification rules and manage training reminders.
+                </p>
+              </div>
+              <NotificationSettings />
+            </div>
+          ) : activeTab === "admin-notifications" ? (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">
+                  Send Notifications
+                </h2>
+                <p className="text-muted-foreground">
+                  Send important announcements and notifications to all users.
+                </p>
+              </div>
+              <AdminNotifications />
+            </div>
           ) : (
             renderDashboardContent()
           )}
@@ -2992,8 +3081,8 @@ const Dashboard = () => {
           <DialogHeader>
             <DialogTitle>Change User Role</DialogTitle>
             <DialogDescription>
-              Change role for user: {selectedUser?.firstName}{" "}
-              {selectedUser?.lastName} ({selectedUser?.email})
+              Change role for user: {selectedUser?.firstName || "N/A"}{" "}
+              {selectedUser?.lastName || "N/A"} ({selectedUser?.email || "N/A"})
             </DialogDescription>
           </DialogHeader>
           <Select value={selectedRole} onValueChange={setSelectedRole}>

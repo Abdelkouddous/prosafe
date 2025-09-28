@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
 import { HapticTab } from "../components/HapticTab";
@@ -25,19 +25,15 @@ export default function TabLayout() {
         }),
       }}
     >
-      {/* Incidences */}
+      {/* training  */}
       <Tabs.Screen
-        name="incidents"
+        name="trainings"
         options={{
-          title: " Incidents",
+          title: "Trainings",
           tabBarIcon: ({ color, focused }) => (
             <IconSymbol
               size={28}
-              name={
-                focused
-                  ? "exclamationmark.triangle.fill"
-                  : "exclamationmark.triangle"
-              }
+              name={focused ? "book.fill" : "book"}
               color={color}
             />
           ),
@@ -72,21 +68,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* formations */}
-      <Tabs.Screen
-        name="formations"
-        options={{
-          title: "Formations",
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
-              size={28}
-              name={focused ? "book.fill" : "book"}
-              color={color}
-            />
-          ),
-        }}
-      />
       {/* profile */}
       <Tabs.Screen
         name="profile"
@@ -96,6 +77,38 @@ export default function TabLayout() {
             <IconSymbol
               size={28}
               name={focused ? "person.fill" : "person"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      {/* get incidents */}
+      <Tabs.Screen
+        name="get-incidents"
+        options={{
+          title: "Recent Incidents",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol
+              size={28}
+              name={
+                focused
+                  ? "exclamationmark.triangle.fill"
+                  : "exclamationmark.triangle"
+              }
+              color={color}
+            />
+          ),
+        }}
+      />
+      {/* Add Incident */}
+      <Tabs.Screen
+        name="incidents"
+        options={{
+          title: "Incident",
+          tabBarIcon: ({ color, focused }) => (
+            <IconSymbol
+              size={28}
+              name={focused ? "plus" : "plus"}
               color={color}
             />
           ),

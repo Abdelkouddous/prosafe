@@ -8,6 +8,6 @@ import { Incident } from './entities/incident.entity';
   imports: [TypeOrmModule.forFeature([Incident])],
   controllers: [IncidentsController],
   providers: [IncidentsService],
-  exports: [IncidentsService],
+  exports: [IncidentsService]
 })
 export class IncidentsModule {}

@@ -9,6 +9,7 @@ export interface InventoryItem {
   quantity: number;
   min_stock_level: number;
   category:
+    | "all"
     | "electronics"
     | "office_supplies"
     | "furniture"
@@ -63,6 +64,8 @@ export enum InventoryStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
   DISCONTINUED = "discontinued",
+  LOW_STOCK = "low_stock",
+  OUT_OF_STOCK = "out_of_stock",
 }
 
 export interface CreateInventoryItemDto {

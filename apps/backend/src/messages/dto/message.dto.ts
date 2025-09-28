@@ -10,8 +10,8 @@ export class CreateMessageDto {
   @IsNotEmpty()
   content: string;
 
-  @IsNotEmpty()
-  sender_id: number;
+  @IsOptional()
+  sender_id?: number;
 
   @IsOptional()
   recipient_id?: number;
@@ -23,6 +23,10 @@ export class CreateMessageDto {
   @IsOptional()
   @IsBoolean()
   is_urgent?: boolean;
+
+  @IsOptional()
+  @IsString()
+  system_sender?: string;
 }
 
 export class UpdateMessageDto {
