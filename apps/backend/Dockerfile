@@ -6,12 +6,14 @@ WORKDIR /usr/src/app
 # Install pnpm
 RUN npm install -g pnpm
 
+# Copy package files and lockfile
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
 COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
-# Install all dependencies (including dev dependencies) without frozen lockfile
-RUN pnpm install
+# Install all dependencies (including dev dependencies)
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 RUN pnpm run build
@@ -30,10 +32,12 @@ WORKDIR /usr/src/app
 # Install pnpm
 RUN npm install -g pnpm
 
+# Copy package files and lockfile
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
-# Install only production dependencies without frozen lockfile
-RUN pnpm install --prod
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /usr/src/app/dist ./dist
 
