@@ -1,11 +1,6 @@
 {
   "name": "prosafe",
   "private": true,
-  "workspaces": [
-    "admin",
-    "backend",
-    "mobile"
-  ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

@@ -8,14 +8,13 @@ RUN npm install -g pnpm
 
 # Copy package files and lockfile
 COPY apps/backend/package*.json ./
-COPY apps/backend/pnpm-lock.yaml ./
 COPY apps/backend/tsconfig*.json ./
 COPY apps/backend/nest-cli.json ./
 
 # Install all dependencies (including dev dependencies)
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
-COPY apps/backend/src ./src
+COPY apps/backend/src ./dist
 RUN pnpm run build
 
 # Production stage
@@ -37,7 +36,7 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
 # Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --no-frozen-lockfile
 
 COPY --from=builder /usr/src/app/dist ./dist
 
