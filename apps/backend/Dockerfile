@@ -16,7 +16,6 @@ COPY apps/backend/nest-cli.json ./
 RUN pnpm install --frozen-lockfile
 
 COPY apps/backend/src ./src
-COPY apps/backend/test ./test
 RUN pnpm run build
 
 # Production stage
