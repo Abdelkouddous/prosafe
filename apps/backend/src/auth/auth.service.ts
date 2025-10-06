@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compareSync, hashSync } from 'bcryptjs';
+import { compareSync } from 'bcryptjs';
 import { LoginDTO, UsersDTO } from '../users/dto/create-user.dto';
 import { validate } from 'class-validator';
 import { LoggerService } from 'src/logger/logger.service';
 import { UsersService } from 'src/users/users.service';
 import { Role } from 'src/users/enums/role.enum';
+import { EmailVerificationService } from './email-verification.service';
 
 // Code
 @Injectable()
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly logger: LoggerService = new Logger(AuthService.name),
     private jwtService: JwtService,
     private userservice: UsersService,
+    private emailVerificationService: EmailVerificationService,
   ) {}
   async login(user: any): Promise<Record<string, any>> {
     try {
@@ -85,8 +87,8 @@ export class AuthService {
       userDTO.email = body.email;
       userDTO.firstName = body.firstName;
       userDTO.lastName = body.lastName;
-      // Hash the password before saving
-      userDTO.password = hashSync(body.password, 10);
+      // Pass raw password; UsersService handles hashing
+      userDTO.password = body.password;
 
       // Check if this is the first admin account
       const allUsers = await this.userservice.findAll();
@@ -106,11 +108,19 @@ export class AuthService {
         }
       });
       if (isOk) {
-        await this.userservice.create(userDTO).catch((error) => {
+        const createdUser = await this.userservice.create(userDTO).catch((error) => {
           this.logger.debug(error.message);
           isOk = false;
         });
         if (isOk) {
+          try {
+            if (createdUser) {
+              const tokenEntity = await this.emailVerificationService.createToken(createdUser);
+              await this.emailVerificationService.sendVerificationEmail(createdUser, tokenEntity.token);
+            }
+          } catch (mailErr) {
+            this.logger.debug(`Failed sending verification email: ${mailErr.message}`);
+          }
           return { status: 201, content: { msg: 'User created with success' } };
         } else {
           return { status: 400, content: { msg: 'User already exists' } };

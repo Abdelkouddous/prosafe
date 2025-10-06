@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post, Delete, Req, Res, UseGuards, Param, Put, ForbiddenException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Delete, Req, Res, UseGuards, Param, Put, ForbiddenException, Query } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { AuthService } from './auth.service';
+import { EmailVerificationService } from './email-verification.service';
 import { JwtAuthGuard } from './strategy/jwt-auth.guard';
 import { Role } from 'src/users/enums/role.enum';
 
@@ -11,6 +12,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UsersService,
+    private emailVerificationService: EmailVerificationService,
   ) {}
 
   @Post('login')
@@ -204,5 +206,43 @@ export class AuthController {
       user: result,
       token: req.headers.authorization?.split(' ')[1],
     });
+  }
+
+  @Get('verify-email')
+  async verifyEmail(@Req() req, @Res() res, @Query('token') token: string) {
+    try {
+      if (!token) {
+        return res.status(400).json({ message: 'Missing token' });
+      }
+      const user = await this.emailVerificationService.verifyToken(token);
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+      user.emailVerified = true;
+      user.isActive = true; // Activate upon email verification
+      await this.userService.updateUser(user);
+      return res.status(200).json({ message: 'Email verified successfully' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-verification')
+  async resendVerification(@Req() req, @Res() res) {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      if (user.emailVerified) {
+        return res.status(400).json({ message: 'Email already verified' });
+      }
+      const entityUser = await this.userService.findById(user.id);
+      await this.emailVerificationService.resendForUser(entityUser);
+      return res.status(200).json({ message: 'Verification email resent' });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
   }
 }

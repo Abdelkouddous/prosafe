@@ -31,6 +31,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: false })
+  emailVerified: boolean;
+
   @Column({
     type: 'simple-array',
     default: Role.pending,

@@ -21,6 +21,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskStatus } from './enum/task-status.enum';
 import { Role } from '../users/enums/role.enum';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 
 /**
  * Tasks Controller
@@ -40,7 +41,7 @@ export class TasksController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
     const userId = req.user?.id;
     const userRoles = req.user?.roles || [];
@@ -84,7 +85,7 @@ export class TasksController {
    * @returns Tasks created by admin
    */
   @Get('created-by-me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async getTasksCreatedByMe(@Request() req) {
     const adminId = req.user?.id;
     const userRoles = req.user?.roles || [];
@@ -113,7 +114,7 @@ export class TasksController {
    * @returns User's trainings
    */
   @Get('user/me')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async getUserTrainings(@Request() req) {
     const userId = req.user?.id;
     if (!userId) {
@@ -136,6 +137,7 @@ export class TasksController {
    * @returns Task statistics
    */
   @Get('stats')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async getTaskStats(@Request() req) {
     const userRoles = req.user?.roles || [];
 
@@ -158,6 +160,7 @@ export class TasksController {
    * @returns Expiring training announcements
    */
   @Get('expiring')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async getExpiringTasks(@Request() req) {
     const expiringTasks = await this.tasksService.getExpiringTasks();
 
@@ -175,6 +178,7 @@ export class TasksController {
    * @returns Training announcement details
    */
   @Get(':id')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const task = await this.tasksService.findOne(id);
 
@@ -193,6 +197,7 @@ export class TasksController {
    * @returns Updated training announcement
    */
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async update(@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
     const userId = req.user?.id;
     const userRoles = req.user?.roles || [];
@@ -219,7 +224,7 @@ export class TasksController {
    * @returns Success message
    */
   @Patch(':id/complete')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async completeTask(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const userId = req.user?.id;
     if (!userId) {
@@ -241,6 +246,7 @@ export class TasksController {
    * @returns Success message
    */
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const userId = req.user?.id;
     const userRoles = req.user?.roles || [];

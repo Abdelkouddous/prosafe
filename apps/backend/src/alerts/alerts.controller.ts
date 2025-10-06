@@ -3,12 +3,13 @@ import { AlertsService } from './alerts.service';
 import { CreateAlertDto } from './dto/create-alert.dto';
 import { UpdateAlertDto } from './dto/update-alert.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
+import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
 import { Role } from '../users/enums/role.enum';
 import { AlertSeverity } from './enums/alert-severity.enum';
 import { AlertStatus } from './enums/alert-status.enum';
 
 @Controller('alerts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, EmailVerifiedGuard)
 export class AlertsController {
   constructor(private readonly alertsService: AlertsService) {}
 
