@@ -6,6 +6,10 @@ import { UsersDTO } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto, ChangeRoleDto, AdminUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Role } from './enums/role.enum';
+import { Message } from '../messages/entities/message.entity';
+import { Incident } from '../incidents/entities/incident.entity';
+import { Alert } from '../alerts/entities/alert.entity';
+import { InventoryItem } from '../inventory/entities/inventory.entity';
 
 @Injectable()
 export class UsersService {
@@ -219,7 +223,7 @@ export class UsersService {
    */
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findOne(email);
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
     return null;
@@ -255,5 +259,75 @@ export class UsersService {
    */
   async updateUser(user: User): Promise<User> {
     return this.usersRepository.save(user);
+  }
+
+  /**
+   * Permanently delete a user and his related data in a transaction.
+   * This removes messages and incidents he reported, and nullifies user references elsewhere.
+   * @param userId - User ID
+   */
+  async hardDeleteById(userId: number): Promise<void> {
+    await this.usersRepository.manager.transaction(async (trx) => {
+      const userRepo = trx.getRepository(User);
+      const messageRepo = trx.getRepository(Message);
+      const incidentRepo = trx.getRepository(Incident);
+      const alertRepo = trx.getRepository(Alert);
+      const inventoryRepo = trx.getRepository(InventoryItem);
+
+      const user = await userRepo.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // 1) Delete messages where the user is sender or recipient
+      await messageRepo.delete({ sender_id: userId });
+      await messageRepo.delete({ recipient_id: userId });
+
+      // 2) Delete incidents reported by this user
+      await incidentRepo.delete({ reportedBy: userId });
+
+      // 3) Nullify resolvedBy for incidents resolved by this user
+      await incidentRepo
+        .createQueryBuilder()
+        .update(Incident)
+        .set({ resolvedBy: null })
+        .where('resolvedBy = :userId', { userId })
+        .execute();
+
+      // 4) Nullify alert references to this user (keep alerts)
+      await alertRepo
+        .createQueryBuilder()
+        .update(Alert)
+        .set({ affected_user_id: null })
+        .where('affected_user_id = :userId', { userId })
+        .execute();
+
+      await alertRepo
+        .createQueryBuilder()
+        .update(Alert)
+        .set({ resolved_by_id: null })
+        .where('resolved_by_id = :userId', { userId })
+        .execute();
+
+      // 5) Nullify inventory references to this user (keep inventory items)
+      await inventoryRepo
+        .createQueryBuilder()
+        .update(InventoryItem)
+        .set({ created_by_id: null })
+        .where('created_by_id = :userId', { userId })
+        .execute();
+
+      await inventoryRepo
+        .createQueryBuilder()
+        .update(InventoryItem)
+        .set({ updated_by_id: null })
+        .where('updated_by_id = :userId', { userId })
+        .execute();
+
+      // Rewards and email verifications are configured to cascade on user delete.
+
+      // 6) Finally, delete the user
+      await userRepo.delete({ id: userId });
+    });
   }
 }

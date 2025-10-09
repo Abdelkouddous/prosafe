@@ -61,7 +61,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDTO) {
     const user = await this.usersService.validateUser(loginDto.email, loginDto.password);
-    
+
     if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -87,7 +87,7 @@ export class UsersController {
   @Get()
   async findAll(@Query('role') role?: Role) {
     let users;
-    
+
     if (role) {
       // Validate role enum
       if (!Object.values(Role).includes(role)) {
@@ -99,7 +99,7 @@ export class UsersController {
     }
 
     // Remove passwords from response
-    return users.map(user => {
+    return users.map((user) => {
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });
@@ -113,9 +113,9 @@ export class UsersController {
   @Get('pending')
   async getPendingUsers() {
     const pendingUsers = await this.usersService.getPendingUsers();
-    
+
     // Remove passwords from response
-    return pendingUsers.map(user => {
+    return pendingUsers.map((user) => {
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });
@@ -170,7 +170,7 @@ export class UsersController {
 
     const updatedUser = await this.usersService.updateProfile(userId, updateUserDto);
     const { password, ...userWithoutPassword } = updatedUser;
-    
+
     return {
       message: 'Profile updated successfully',
       user: userWithoutPassword,
@@ -192,7 +192,7 @@ export class UsersController {
     }
 
     await this.usersService.changePassword(userId, changePasswordDto);
-    
+
     return {
       message: 'Password changed successfully',
     };
@@ -208,7 +208,7 @@ export class UsersController {
   async approveUser(@Param('id', ParseIntPipe) id: number) {
     const approvedUser = await this.usersService.approveUser(id);
     const { password, ...userWithoutPassword } = approvedUser;
-    
+
     return {
       message: 'User approved successfully',
       user: userWithoutPassword,
@@ -225,7 +225,7 @@ export class UsersController {
   async deactivateUser(@Param('id', ParseIntPipe) id: number) {
     const deactivatedUser = await this.usersService.deactivateUser(id);
     const { password, ...userWithoutPassword } = deactivatedUser;
-    
+
     return {
       message: 'User deactivated successfully',
       user: userWithoutPassword,
@@ -240,13 +240,10 @@ export class UsersController {
    * @returns Updated user data
    */
   @Patch(':id/role')
-  async changeUserRole(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() changeRoleDto: ChangeRoleDto,
-  ) {
+  async changeUserRole(@Param('id', ParseIntPipe) id: number, @Body() changeRoleDto: ChangeRoleDto) {
     const updatedUser = await this.usersService.changeRole(id, changeRoleDto);
     const { password, ...userWithoutPassword } = updatedUser;
-    
+
     return {
       message: 'User role updated successfully',
       user: userWithoutPassword,
@@ -261,13 +258,10 @@ export class UsersController {
    * @returns Updated user data
    */
   @Patch(':id/admin-update')
-  async adminUpdateUser(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() adminUpdateDto: AdminUpdateUserDto,
-  ) {
+  async adminUpdateUser(@Param('id', ParseIntPipe) id: number, @Body() adminUpdateDto: AdminUpdateUserDto) {
     const updatedUser = await this.usersService.adminUpdateUser(id, adminUpdateDto);
     const { password, ...userWithoutPassword } = updatedUser;
-    
+
     return {
       message: 'User updated successfully by admin',
       user: userWithoutPassword,
@@ -284,9 +278,30 @@ export class UsersController {
   async remove(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findById(id);
     await this.usersService.remove(user.email);
-    
+
     return {
       message: 'User deleted successfully',
+    };
+  }
+
+  /**
+   * Permanently delete user and related data (admin only)
+   * DELETE /users/:id/hard
+   * @param id - User ID to hard delete
+   * @returns Success message
+   */
+  @Delete(':id/hard')
+  async hardDelete(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const requester = req.user;
+    if (!requester?.roles?.includes(Role.admin)) {
+      throw new ForbiddenException('Only admins can permanently delete users');
+    }
+
+    await this.usersService.hardDeleteById(id);
+
+    return {
+      message: 'User and related data permanently deleted',
+      deletedUserId: id,
     };
   }
 
@@ -302,9 +317,9 @@ export class UsersController {
     const adminUsers = await this.usersService.getUsersByRole(Role.admin);
     const standardUsers = await this.usersService.getUsersByRole(Role.standard);
     const premiumUsers = await this.usersService.getUsersByRole(Role.premium);
-    
-    const activeUsers = allUsers.filter(user => user.isActive);
-    const inactiveUsers = allUsers.filter(user => !user.isActive);
+
+    const activeUsers = allUsers.filter((user) => user.isActive);
+    const inactiveUsers = allUsers.filter((user) => !user.isActive);
 
     return {
       total: allUsers.length,

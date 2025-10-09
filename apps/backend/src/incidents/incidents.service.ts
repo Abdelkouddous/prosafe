@@ -6,12 +6,14 @@ import { Incident } from './entities/incident.entity';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentStatusDto } from './dto/update-incident-status.dto';
 import { IncidentStatus } from './enums/incident-status.enum';
+import { RewardsService } from '../rewards/rewards.service';
 
 @Injectable()
 export class IncidentsService {
   constructor(
     @InjectRepository(Incident)
     private incidentRepository: Repository<Incident>,
+    private readonly rewardsService: RewardsService,
   ) {}
 
   async create(
@@ -19,7 +21,7 @@ export class IncidentsService {
     // photo: Express.Multer.File,
     photo: any,
     userId: number,
-  ): Promise<{ incidentId: string }> {
+  ): Promise<{ incidentId: string; reward?: { pointsAwarded: number; totalPoints: number } }> {
     // Validate photo only if provided
     if (photo) {
       this.validatePhoto(photo);
@@ -55,7 +57,14 @@ export class IncidentsService {
     });
 
     await this.incidentRepository.save(incident);
-    return { incidentId };
+
+    const reward = await this.rewardsService.awardForIncident(userId, incidentId, {
+      severity: createIncidentDto.severity,
+      hasPhoto: !!photo,
+      hasLocation: !!createIncidentDto.location?.lat || !!createIncidentDto.location?.manualAddress,
+    });
+
+    return { incidentId, reward };
   }
   //
   async updateStatus(incidentId: string, updateStatusDto: UpdateIncidentStatusDto, userId: number): Promise<Incident> {

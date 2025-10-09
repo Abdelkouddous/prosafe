@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
+import { ToastAndroid } from "react-native";
 
 interface User {
   id: string;
@@ -145,6 +146,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If token is invalid (401), logout the user
       if (error.response?.status === 401) {
         console.warn("Token expired or invalid, logging out...");
+        setIsAuthenticated(false);
+        const toast = ToastAndroid.show; // Assuming you have a toast notification setup
+        toast("Session expired. Please log in again.", ToastAndroid.SHORT);
         await logout();
       }
       throw error;

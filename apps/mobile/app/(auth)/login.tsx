@@ -48,20 +48,20 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       // Remove the manual redirect - RouteGuard will handle it based on user role
     } catch (error: any) {
-      console.error("Login failed:", error?.response?.data?.message || error);
-      
       // Check if the error is for pending account approval
-      if (error.message === "ACCOUNT_PENDING_APPROVAL") {
+      if (error?.message === "ACCOUNT_PENDING_APPROVAL") {
         Alert.alert(t("error"), t("accountPendingApproval"));
         return;
       }
-      
+
       // Check if the error is for blocked account
-      if (error.message === "ACCOUNT_BLOCKED") {
+      if (error?.message === "ACCOUNT_BLOCKED") {
         Alert.alert(t("error"), t("accountBlocked"));
         return;
       }
-      
+
+      console.error("Error:", error?.message);
+
       const errorMessage = error?.response?.data?.message || t("loginFailed");
       Alert.alert(t("loginFailed"), errorMessage);
     } finally {

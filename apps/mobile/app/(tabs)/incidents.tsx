@@ -9,8 +9,8 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,6 +43,7 @@ interface IncidentForm {
   photo?: ImagePicker.ImagePickerAsset;
 }
 
+// function CreateIncident() component
 const CreateIncident = () => {
   const [form, setForm] = useState<IncidentForm>({
     description: "",
@@ -55,6 +56,9 @@ const CreateIncident = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
+
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isSeverityOpen, setIsSeverityOpen] = useState(false);
 
   useEffect(() => {
     requestPermissions();
@@ -87,21 +91,53 @@ const CreateIncident = () => {
     }
   };
 
+  const formatAddress = (a: Location.LocationGeocodedAddress) => {
+    const parts = [a.name || a.street, a.city, a.region, a.postalCode, a.country].filter(Boolean);
+    return parts.join(", ");
+  };
+
   const getGeolocation = async () => {
     try {
       setIsGeolocating(true);
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+
+      // Ensure permission is granted before requesting location
+      let perm = await Location.getForegroundPermissionsAsync();
+      if (!perm.granted) {
+        perm = await Location.requestForegroundPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert("Location Permission", "Please allow location access to use current location.");
+          return;
+        }
+      }
+
+      const current = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
+
+      const { latitude, longitude } = current.coords;
 
       setForm((prev) => ({
         ...prev,
         location: {
           ...prev.location,
-          lat: location.coords.latitude,
-          long: location.coords.longitude,
+          lat: latitude,
+          long: longitude,
         },
       }));
+
+      // Reverse geocode to auto-fill the address text input
+      try {
+        const res = await Location.reverseGeocodeAsync({ latitude, longitude });
+        const addr = res && res[0] ? formatAddress(res[0]) : "";
+        if (addr) {
+          setForm((prev) => ({
+            ...prev,
+            location: { ...prev.location, manualAddress: addr },
+          }));
+        }
+      } catch {
+        // If reverse geocoding fails, leave the address empty; coordinates still set
+      }
     } catch (error) {
       console.error("Error getting location:", error);
       Alert.alert("Location Error", "Unable to get current location");
@@ -146,7 +182,7 @@ const CreateIncident = () => {
       formData.append("type", form.type);
       formData.append("severity", form.severity);
       formData.append("date", new Date().toISOString());
-      
+
       // Location data needs to be nested under 'location' object
       if (form.location.lat && form.location.long) {
         formData.append("location[lat]", form.location.lat.toString());
@@ -165,28 +201,35 @@ const CreateIncident = () => {
       }
 
       const response = await api.post("/incidents", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (response.status === 201) {
-        Alert.alert("Success", "Incident reported successfully", [
-          {
-            text: "OK",
-            onPress: () => {
-              // Reset form
-              setForm({
-                description: "",
-                type: "",
-                severity: "",
-                location: {
-                  manualAddress: "",
-                },
-              });
+        const reward = response.data?.reward;
+        const pointsMsg =
+          reward && reward.pointsAwarded > 0
+            ? `You earned ${reward.pointsAwarded} points! Total: ${reward.totalPoints}.`
+            : undefined;
+
+        Alert.alert(
+          "Success",
+          pointsMsg
+            ? `Incident reported successfully.\n${pointsMsg}`
+            : "Incident reported successfully",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setForm({
+                  description: "",
+                  type: "",
+                  severity: "",
+                  location: { manualAddress: "" },
+                });
+              },
             },
-          },
-        ]);
+          ]
+        );
       }
     } catch (error: any) {
       console.error("Error submitting incident:", error);
@@ -200,7 +243,7 @@ const CreateIncident = () => {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
@@ -220,145 +263,209 @@ const CreateIncident = () => {
         <Text style={styles.sectionTitle}>Report New Incident</Text>
 
         <View style={styles.form}>
-
-        {/* Description */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Description *</Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="Describe the incident in detail..."
-            value={form.description}
-            onChangeText={(text) =>
-              setForm((prev) => ({ ...prev, description: text }))
-            }
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* Type */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Incident Type *</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={form.type}
-              onValueChange={(value) =>
-                setForm((prev) => ({ ...prev, type: value }))
+          {/* Description */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Description *</Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="Describe the incident in detail..."
+              value={form.description}
+              onChangeText={(text) =>
+                setForm((prev) => ({ ...prev, description: text }))
               }
-              style={styles.picker}
-            >
-              <Picker.Item label="Select Type" value="" />
-              <Picker.Item label="Safety" value={IncidentType.SAFETY} />
-              <Picker.Item label="Security" value={IncidentType.SECURITY} />
-              <Picker.Item
-                label="HR Violation"
-                value={IncidentType.HR_VIOLATION}
-              />
-            </Picker>
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
           </View>
-        </View>
 
-        {/* Severity */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Severity *</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={form.severity}
-              onValueChange={(value) =>
-                setForm((prev) => ({ ...prev, severity: value }))
+          {/* Type */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Incident Type *</Text>
+            <TouchableOpacity
+              style={styles.selectInput}
+              onPress={() => {
+                setIsSeverityOpen(false);
+                setIsTypeOpen(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.selectText,
+                  !form.type && styles.selectPlaceholder,
+                ]}
+              >
+                {getTypeLabel(form.type)}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Severity */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Severity *</Text>
+            <TouchableOpacity
+              style={styles.selectInput}
+              onPress={() => {
+                setIsTypeOpen(false);
+                setIsSeverityOpen(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.selectText,
+                  !form.severity && styles.selectPlaceholder,
+                ]}
+              >
+                {getSeverityLabel(form.severity)}
+              </Text>
+              <Ionicons name="chevron-down" size={16} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Type Selector Modal */}
+          <Modal transparent animationType="fade" visible={isTypeOpen}>
+            <TouchableOpacity
+              style={styles.dropdownOverlay}
+              activeOpacity={1}
+              onPress={() => setIsTypeOpen(false)}
+            >
+              <View style={styles.dropdownSheet}>
+                <Text style={styles.dropdownTitle}>Select Incident Type</Text>
+                {[
+                  { label: "Safety", value: IncidentType.SAFETY },
+                  { label: "Security", value: IncidentType.SECURITY },
+                  { label: "HR Violation", value: IncidentType.HR_VIOLATION },
+                ].map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={styles.dropdownOption}
+                    onPress={() => {
+                      setForm((prev) => ({ ...prev, type: opt.value }));
+                      setIsTypeOpen(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownOptionText}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Severity Selector Modal */}
+          <Modal transparent animationType="fade" visible={isSeverityOpen}>
+            <TouchableOpacity
+              style={styles.dropdownOverlay}
+              activeOpacity={1}
+              onPress={() => setIsSeverityOpen(false)}
+            >
+              <View style={styles.dropdownSheet}>
+                <Text style={styles.dropdownTitle}>Select Severity</Text>
+                {[
+                  { label: "Low", value: IncidentSeverity.LOW },
+                  { label: "Medium", value: IncidentSeverity.MEDIUM },
+                  { label: "High", value: IncidentSeverity.HIGH },
+                  { label: "Critical", value: IncidentSeverity.CRITICAL },
+                ].map((opt) => (
+                  <TouchableOpacity
+                    key={opt.value}
+                    style={styles.dropdownOption}
+                    onPress={() => {
+                      setForm((prev) => ({ ...prev, severity: opt.value }));
+                      setIsSeverityOpen(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownOptionText}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Location */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Location</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Incident address"
+              value={form.location.manualAddress}
+              onChangeText={(text) =>
+                setForm((prev) => ({
+                  ...prev,
+                  location: { ...prev.location, manualAddress: text },
+                }))
               }
-              style={styles.picker}
+            />
+            <TouchableOpacity
+              style={styles.locationButton}
+              onPress={getGeolocation}
+              disabled={isGeolocating}
             >
-              <Picker.Item label="Select Severity" value="" />
-              <Picker.Item label="Low" value={IncidentSeverity.LOW} />
-              <Picker.Item label="Medium" value={IncidentSeverity.MEDIUM} />
-              <Picker.Item label="High" value={IncidentSeverity.HIGH} />
-              <Picker.Item label="Critical" value={IncidentSeverity.CRITICAL} />
-            </Picker>
+              {isGeolocating ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="location" size={20} color="#FFFFFF" />
+              )}
+              <Text style={styles.locationButtonText}>
+                {isGeolocating ? "Getting Location..." : "Use Current Location"}
+              </Text>
+            </TouchableOpacity>
+            {form.location.lat && form.location.long && (
+              <Text style={styles.coordinates}>
+                📍 {form.location.lat.toFixed(6)},{" "}
+                {form.location.long.toFixed(6)}
+              </Text>
+            )}
           </View>
-        </View>
 
-        {/* Location */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Location</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Incident address"
-            value={form.location.manualAddress}
-            onChangeText={(text) =>
-              setForm((prev) => ({
-                ...prev,
-                location: { ...prev.location, manualAddress: text },
-              }))
-            }
-          />
+          {/* Photo */}
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Photo (Optional)</Text>
+            {form.photo ? (
+              <View style={styles.photoContainer}>
+                <Image source={{ uri: form.photo.uri }} style={styles.photo} />
+                <TouchableOpacity
+                  style={styles.removePhotoButton}
+                  onPress={removePhoto}
+                >
+                  <Ionicons name="close-circle" size={24} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
+                <Ionicons name="camera" size={24} color="#6B7280" />
+                <Text style={styles.photoButtonText}>Add Photo</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Submit Button */}
           <TouchableOpacity
-            style={styles.locationButton}
-            onPress={getGeolocation}
-            disabled={isGeolocating}
+            style={[
+              styles.submitButton,
+              isSubmitting && styles.submitButtonDisabled,
+            ]}
+            onPress={submitIncident}
+            disabled={isSubmitting}
           >
-            {isGeolocating ? (
+            {isSubmitting ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Ionicons name="location" size={20} color="#FFFFFF" />
+              <Ionicons name="send" size={20} color="#FFFFFF" />
             )}
-            <Text style={styles.locationButtonText}>
-              {isGeolocating ? "Getting Location..." : "Use Current Location"}
+            <Text style={styles.submitButtonText}>
+              {isSubmitting ? "Submitting..." : "Report Incident"}
             </Text>
           </TouchableOpacity>
-          {form.location.lat && form.location.long && (
-            <Text style={styles.coordinates}>
-              📍 {form.location.lat.toFixed(6)}, {form.location.long.toFixed(6)}
-            </Text>
-          )}
-        </View>
-
-        {/* Photo */}
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Photo (Optional)</Text>
-          {form.photo ? (
-            <View style={styles.photoContainer}>
-              <Image source={{ uri: form.photo.uri }} style={styles.photo} />
-              <TouchableOpacity
-                style={styles.removePhotoButton}
-                onPress={removePhoto}
-              >
-                <Ionicons name="close-circle" size={24} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-              <Ionicons name="camera" size={24} color="#6B7280" />
-              <Text style={styles.photoButtonText}>Add Photo</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            isSubmitting && styles.submitButtonDisabled,
-          ]}
-          onPress={submitIncident}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Ionicons name="send" size={20} color="#FFFFFF" />
-          )}
-          <Text style={styles.submitButtonText}>
-            {isSubmitting ? "Submitting..." : "Report Incident"}
-          </Text>
-        </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
   );
 };
 
+// styles object
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -439,14 +546,52 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     minHeight: 100,
   },
-  pickerContainer: {
+  selectInput: {
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 8,
     backgroundColor: "#FFFFFF",
-  },
-  picker: {
+    paddingHorizontal: 12,
     height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  selectText: {
+    fontSize: 16,
+    color: "#1F2937",
+  },
+  selectPlaceholder: {
+    color: "#9CA3AF",
+  },
+  dropdownOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  dropdownSheet: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+  },
+  dropdownTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 8,
+  },
+  dropdownOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: "#374151",
   },
   locationButton: {
     flexDirection: "row",
@@ -611,3 +756,33 @@ const styles = StyleSheet.create({
 });
 
 export default CreateIncident;
+
+// function CreateIncident() component
+
+const getTypeLabel = (type: IncidentType | "") => {
+  switch (type) {
+    case IncidentType.SAFETY:
+      return "Safety";
+    case IncidentType.SECURITY:
+      return "Security";
+    case IncidentType.HR_VIOLATION:
+      return "HR Violation";
+    default:
+      return "Select Type";
+  }
+};
+
+const getSeverityLabel = (severity: IncidentSeverity | "") => {
+  switch (severity) {
+    case IncidentSeverity.LOW:
+      return "Low";
+    case IncidentSeverity.MEDIUM:
+      return "Medium";
+    case IncidentSeverity.HIGH:
+      return "High";
+    case IncidentSeverity.CRITICAL:
+      return "Critical";
+    default:
+      return "Select Severity";
+  }
+};

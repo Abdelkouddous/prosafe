@@ -11,20 +11,39 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import api from "../services/api";
+
+enum InventoryCategory {
+  ELECTRONICS = "electronics",
+  OFFICE_SUPPLIES = "office_supplies",
+  FURNITURE = "furniture",
+  SAFETY_EQUIPMENT = "safety_equipment",
+  TOOLS = "tools",
+  CONSUMABLES = "consumables",
+  OTHER = "other",
+}
+
+enum InventoryStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  OUT_OF_STOCK = "out_of_stock",
+  DISCONTINUED = "discontinued",
+  LOW_STOCK = "low_stock",
+}
 
 interface StockItem {
-  id: string;
+  id: string | number;
   name: string;
-  category: "ppe" | "tools" | "chemicals" | "equipment" | "supplies";
+  category: InventoryCategory;
   currentStock: number;
   minStock: number;
-  maxStock: number;
-  unit: string;
-  location: string;
-  lastUpdated: string;
-  status: "in_stock" | "low_stock" | "out_of_stock" | "overstocked";
+  maxStock?: number;
+  unit?: string;
+  location?: string;
+  lastUpdated?: string;
+  status: InventoryStatus;
   supplier?: string;
-  cost: number;
+  cost?: number;
   description: string;
 }
 
@@ -49,395 +68,551 @@ const Stock = () => {
   const [transactionQuantity, setTransactionQuantity] = useState("");
   const [transactionReason, setTransactionReason] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedStatus, setSelectedStatus] = useState<InventoryStatus | "all">(
+    "all"
+  );
+
   const categories = [
     { id: "all", name: "All", icon: "cube", color: "#6B7280" },
-    { id: "ppe", name: "PPE", icon: "shield-checkmark", color: "#10B981" },
-    { id: "tools", name: "Tools", icon: "hammer", color: "#F59E0B" },
-    { id: "chemicals", name: "Chemicals", icon: "flask", color: "#EF4444" },
-    { id: "equipment", name: "Equipment", icon: "construct", color: "#3B82F6" },
-    { id: "supplies", name: "Supplies", icon: "archive", color: "#8B5CF6" },
+    {
+      id: InventoryCategory.ELECTRONICS,
+      name: "Electronics",
+      icon: "hardware-chip",
+      color: "#3B82F6",
+    },
+    {
+      id: InventoryCategory.OFFICE_SUPPLIES,
+      name: "Office Supplies",
+      icon: "archive",
+      color: "#8B5CF6",
+    },
+    {
+      id: InventoryCategory.FURNITURE,
+      name: "Furniture",
+      icon: "bed",
+      color: "#F59E0B",
+    },
+    {
+      id: InventoryCategory.SAFETY_EQUIPMENT,
+      name: "Safety Equipment",
+      icon: "shield-checkmark",
+      color: "#10B981",
+    },
+    {
+      id: InventoryCategory.TOOLS,
+      name: "Tools",
+      icon: "hammer",
+      color: "#F97316",
+    },
+    {
+      id: InventoryCategory.CONSUMABLES,
+      name: "Consumables",
+      icon: "beaker",
+      color: "#EF4444",
+    },
+    {
+      id: InventoryCategory.OTHER,
+      name: "Other",
+      icon: "apps",
+      color: "#6B7280",
+    },
   ];
 
   const statusColors = {
-    in_stock: "#10B981",
+    active: "#10B981",
     low_stock: "#F59E0B",
     out_of_stock: "#EF4444",
-    overstocked: "#8B5CF6",
+    inactive: "#6B7280",
+    discontinued: "#9CA3AF",
+  } as const;
+
+  // const mockStockItems: StockItem[] = [
+  //   {
+  //     id: "1",
+  //     name: "Safety Helmets",
+  //     category: "ppe",
+  //     currentStock: 45,
+  //     minStock: 20,
+  //     maxStock: 100,
+  //     unit: "pieces",
+  //     location: "Storage Room A",
+  //     lastUpdated: "2024-01-15T10:30:00Z",
+  //     status: "in_stock",
+  //     supplier: "SafetyFirst Corp",
+  //     cost: 25.99,
+  //     description: "Hard hats with adjustable suspension system",
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Safety Goggles",
+  //     category: "ppe",
+  //     currentStock: 8,
+  //     minStock: 15,
+  //     maxStock: 50,
+  //     unit: "pieces",
+  //     location: "Storage Room A",
+  //     lastUpdated: "2024-01-14T14:20:00Z",
+  //     status: "low_stock",
+  //     supplier: "VisionProtect Ltd",
+  //     cost: 12.5,
+  //     description: "Anti-fog safety goggles with UV protection",
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Drill Bits Set",
+  //     category: "tools",
+  //     currentStock: 0,
+  //     minStock: 5,
+  //     maxStock: 25,
+  //     unit: "sets",
+  //     location: "Tool Room",
+  //     lastUpdated: "2024-01-12T09:15:00Z",
+  //     status: "out_of_stock",
+  //     supplier: "ToolMaster Inc",
+  //     cost: 89.99,
+  //     description: "Professional grade HSS drill bit set",
+  //   },
+  //   {
+  //     id: "4",
+  //     name: "Cleaning Solvent",
+  //     category: "chemicals",
+  //     currentStock: 12,
+  //     minStock: 8,
+  //     maxStock: 30,
+  //     unit: "liters",
+  //     location: "Chemical Storage",
+  //     lastUpdated: "2024-01-13T16:45:00Z",
+  //     status: "in_stock",
+  //     supplier: "ChemClean Solutions",
+  //     cost: 15.75,
+  //     description: "Industrial degreasing solvent",
+  //   },
+  //   {
+  //     id: "5",
+  //     name: "Fire Extinguishers",
+  //     category: "equipment",
+  //     currentStock: 25,
+  //     minStock: 20,
+  //     maxStock: 40,
+  //     unit: "pieces",
+  //     location: "Equipment Bay",
+  //     lastUpdated: "2024-01-10T11:30:00Z",
+  //     status: "in_stock",
+  //     supplier: "FireSafe Equipment",
+  //     cost: 45.0,
+  //     description: "ABC dry chemical fire extinguishers",
+  //   },
+  //   {
+  //     id: "6",
+  //     name: "First Aid Kits",
+  //     category: "supplies",
+  //     currentStock: 3,
+  //     minStock: 10,
+  //     maxStock: 25,
+  //     unit: "kits",
+  //     location: "Medical Supply Room",
+  //     lastUpdated: "2024-01-11T13:20:00Z",
+  //     status: "low_stock",
+  //     supplier: "MedSupply Co",
+  //     cost: 35.99,
+  //     description: "Complete workplace first aid kits",
+  //   },
+  // ];
+
+  const mapInventoryToStock = (item: any): StockItem => ({
+    id: item?.id ?? "",
+    name: item?.name ?? "Unnamed Item",
+    category: (item?.category as InventoryCategory) ?? InventoryCategory.OTHER,
+    currentStock: Number(item?.quantity ?? 0),
+    minStock: Number(item?.min_stock_level ?? 0),
+    maxStock: Number(item?.min_stock_level ?? 0) * 2,
+    unit: "units",
+    location: item?.location ?? "",
+    lastUpdated: item?.updated_at ?? item?.created_at ?? "",
+    status: (item?.status as InventoryStatus) ?? InventoryStatus.ACTIVE,
+    supplier: item?.supplier ?? "",
+    cost: Number(item?.price ?? 0),
+    description: item?.description ?? "",
+  });
+
+  const fetchItems = async () => {
+    try {
+      setIsLoading(true);
+      const params: any = { page, limit };
+      if (selectedCategory !== "all") params.category = selectedCategory;
+      if (selectedStatus !== "all") params.status = selectedStatus;
+      const res = await api.get("/inventory", { params });
+      const { items, totalPages: tp } = res.data;
+      setStockItems(items.map(mapInventoryToStock));
+      setTotalPages(tp);
+    } catch (error) {
+      console.error("Failed to load inventory", error);
+      Alert.alert("Error", "Failed to load inventory");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const mockStockItems: StockItem[] = [
-    {
-      id: "1",
-      name: "Safety Helmets",
-      category: "ppe",
-      currentStock: 45,
-      minStock: 20,
-      maxStock: 100,
-      unit: "pieces",
-      location: "Storage Room A",
-      lastUpdated: "2024-01-15T10:30:00Z",
-      status: "in_stock",
-      supplier: "SafetyFirst Corp",
-      cost: 25.99,
-      description: "Hard hats with adjustable suspension system",
-    },
-    {
-      id: "2",
-      name: "Safety Goggles",
-      category: "ppe",
-      currentStock: 8,
-      minStock: 15,
-      maxStock: 50,
-      unit: "pieces",
-      location: "Storage Room A",
-      lastUpdated: "2024-01-14T14:20:00Z",
-      status: "low_stock",
-      supplier: "VisionProtect Ltd",
-      cost: 12.50,
-      description: "Anti-fog safety goggles with UV protection",
-    },
-    {
-      id: "3",
-      name: "Drill Bits Set",
-      category: "tools",
-      currentStock: 0,
-      minStock: 5,
-      maxStock: 25,
-      unit: "sets",
-      location: "Tool Room",
-      lastUpdated: "2024-01-12T09:15:00Z",
-      status: "out_of_stock",
-      supplier: "ToolMaster Inc",
-      cost: 89.99,
-      description: "Professional grade HSS drill bit set",
-    },
-    {
-      id: "4",
-      name: "Cleaning Solvent",
-      category: "chemicals",
-      currentStock: 12,
-      minStock: 8,
-      maxStock: 30,
-      unit: "liters",
-      location: "Chemical Storage",
-      lastUpdated: "2024-01-13T16:45:00Z",
-      status: "in_stock",
-      supplier: "ChemClean Solutions",
-      cost: 15.75,
-      description: "Industrial degreasing solvent",
-    },
-    {
-      id: "5",
-      name: "Fire Extinguishers",
-      category: "equipment",
-      currentStock: 25,
-      minStock: 20,
-      maxStock: 40,
-      unit: "pieces",
-      location: "Equipment Bay",
-      lastUpdated: "2024-01-10T11:30:00Z",
-      status: "in_stock",
-      supplier: "FireSafe Equipment",
-      cost: 45.00,
-      description: "ABC dry chemical fire extinguishers",
-    },
-    {
-      id: "6",
-      name: "First Aid Kits",
-      category: "supplies",
-      currentStock: 3,
-      minStock: 10,
-      maxStock: 25,
-      unit: "kits",
-      location: "Medical Supply Room",
-      lastUpdated: "2024-01-11T13:20:00Z",
-      status: "low_stock",
-      supplier: "MedSupply Co",
-      cost: 35.99,
-      description: "Complete workplace first aid kits",
-    },
-  ];
-
   useEffect(() => {
-    setStockItems(mockStockItems);
-    setFilteredItems(mockStockItems);
-  }, []);
+    fetchItems();
+  }, [selectedCategory, selectedStatus, page, limit]);
 
   useEffect(() => {
     filterItems();
   }, [selectedCategory, searchQuery, stockItems]);
 
   const filterItems = () => {
-    let filtered = stockItems;
+    let filtered = stockItems.filter(Boolean);
 
     if (selectedCategory !== "all") {
-      filtered = filtered.filter(item => item.category === selectedCategory);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item && item.category === (selectedCategory as InventoryCategory)
       );
     }
 
-    // Sort by status priority (out of stock first, then low stock)
-    filtered.sort((a, b) => {
-      const statusPriority = { out_of_stock: 4, low_stock: 3, overstocked: 2, in_stock: 1 };
-      return statusPriority[b.status] - statusPriority[a.status];
-    });
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (item) =>
+          item &&
+          (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (item.location || "")
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
+            item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    const statusPriority: Record<InventoryStatus, number> = {
+      out_of_stock: 5,
+      low_stock: 4,
+      discontinued: 3,
+      inactive: 2,
+      active: 1,
+    };
+    filtered.sort(
+      (a, b) => statusPriority[b.status] - statusPriority[a.status]
+    );
 
     setFilteredItems(filtered);
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: InventoryStatus) => {
     switch (status) {
-      case "in_stock": return "In Stock";
-      case "low_stock": return "Low Stock";
-      case "out_of_stock": return "Out of Stock";
-      case "overstocked": return "Overstocked";
-      default: return "Unknown";
+      case "active":
+        return "Active";
+      case "inactive":
+        return "Inactive";
+      case "low_stock":
+        return "Low Stock";
+      case "out_of_stock":
+        return "Out of Stock";
+      case "discontinued":
+        return "Discontinued";
+      default:
+        return "Unknown";
     }
   };
 
-  const handleTransaction = () => {
+  const handleTransaction = async () => {
     if (!selectedItem || !transactionQuantity || !transactionReason) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    const quantity = parseInt(transactionQuantity);
-    if (isNaN(quantity) || quantity <= 0) {
+    const quantityDelta = parseInt(transactionQuantity, 10);
+    if (isNaN(quantityDelta) || quantityDelta <= 0) {
       Alert.alert("Error", "Please enter a valid quantity");
       return;
     }
 
-    const newStock = transactionType === "in" 
-      ? selectedItem.currentStock + quantity
-      : selectedItem.currentStock - quantity;
+    const newQuantity =
+      transactionType === "in"
+        ? selectedItem.currentStock + quantityDelta
+        : selectedItem.currentStock - quantityDelta;
 
-    if (newStock < 0) {
+    if (newQuantity < 0) {
       Alert.alert("Error", "Insufficient stock for this transaction");
       return;
     }
 
-    // Update stock
-    setStockItems(prev =>
-      prev.map(item =>
-        item.id === selectedItem.id
-          ? {
-              ...item,
-              currentStock: newStock,
-              status: getStockStatus(newStock, item.minStock, item.maxStock),
-              lastUpdated: new Date().toISOString(),
-            }
-          : item
-      )
-    );
-
-    // Reset form
-    setTransactionQuantity("");
-    setTransactionReason("");
-    setShowTransactionModal(false);
-    setSelectedItem(null);
-
-    Alert.alert("Success", "Stock transaction completed successfully");
+    try {
+      await api.patch(`/inventory/${selectedItem.id}`, {
+        quantity: newQuantity,
+      });
+      setStockItems((prev) =>
+        prev.map((item) =>
+          item.id === selectedItem.id
+            ? {
+                ...item,
+                currentStock: newQuantity,
+                status: getStockStatus(newQuantity, item.minStock),
+                lastUpdated: new Date().toISOString(),
+              }
+            : item
+        )
+      );
+      setShowTransactionModal(false);
+      setTransactionQuantity("");
+      setTransactionReason("");
+    } catch (error) {
+      console.error("Failed to update inventory", error);
+      Alert.alert("Error", "Failed to update inventory");
+    }
   };
 
-  const getStockStatus = (current: number, min: number, max: number): StockItem["status"] => {
-    if (current === 0) return "out_of_stock";
-    if (current <= min) return "low_stock";
-    if (current > max) return "overstocked";
-    return "in_stock";
+  const getStockStatus = (
+    quantity: number,
+    minStock: number
+  ): InventoryStatus => {
+    if (quantity === 0) return InventoryStatus.OUT_OF_STOCK;
+    if (quantity <= minStock) return InventoryStatus.LOW_STOCK;
+    return InventoryStatus.ACTIVE;
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return (
+      date.toLocaleDateString() +
+      " " +
+      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    );
   };
 
   const getStockPercentage = (current: number, max: number) => {
     return Math.min((current / max) * 100, 100);
   };
 
-  const renderStockCard = (item: StockItem) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[styles.stockCard, item.status === "out_of_stock" && styles.outOfStockCard]}
-      onPress={() => setSelectedItem(item)}
-    >
-      <View style={styles.cardHeader}>
-        <View style={styles.itemInfo}>
-          <View style={[
-            styles.categoryIcon,
-            { backgroundColor: categories.find(c => c.id === item.category)?.color || "#6B7280" }
-          ]}>
-            <Ionicons
-              name={categories.find(c => c.id === item.category)?.icon as any || "cube"}
-              size={16}
-              color="#FFFFFF"
-            />
-          </View>
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemName}>{item.name}</Text>
-            <Text style={styles.itemLocation}>{item.location}</Text>
-          </View>
-        </View>
-        
-        <View style={[
-          styles.statusBadge,
-          { backgroundColor: statusColors[item.status] }
-        ]}>
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
-      </View>
+  const renderStockCard = (item: StockItem) => {
+    const categoryMeta = categories.find((c) => c.id === item?.category) || {
+      color: "#6B7280",
+      icon: "cube",
+      name: "Unknown",
+    };
 
-      <View style={styles.stockInfo}>
-        <View style={styles.stockNumbers}>
-          <Text style={styles.currentStock}>
-            {item.currentStock} {item.unit}
-          </Text>
-          <Text style={styles.stockRange}>
-            Min: {item.minStock} | Max: {item.maxStock}
-          </Text>
-        </View>
-        
-        <View style={styles.stockBar}>
+    return (
+      <TouchableOpacity
+        key={item.id}
+        style={[
+          styles.stockCard,
+          item.status === "out_of_stock" && styles.outOfStockCard,
+        ]}
+        onPress={() => setSelectedItem(item)}
+      >
+        <View style={styles.cardHeader}>
+          <View style={styles.itemInfo}>
+            <View
+              style={[
+                styles.categoryIcon,
+                { backgroundColor: categoryMeta.color },
+              ]}
+            >
+              <Ionicons
+                name={categoryMeta.icon as any}
+                size={16}
+                color="#FFFFFF"
+              />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemLocation}>{item.location || ""}</Text>
+            </View>
+          </View>
+
           <View
             style={[
-              styles.stockFill,
-              {
-                width: `${getStockPercentage(item.currentStock, item.maxStock)}%`,
-                backgroundColor: statusColors[item.status],
-              }
+              styles.statusBadge,
+              { backgroundColor: statusColors[item.status] },
             ]}
-          />
-        </View>
-      </View>
-
-      <View style={styles.cardFooter}>
-        <Text style={styles.lastUpdated}>
-          Updated: {formatDate(item.lastUpdated)}
-        </Text>
-        <Text style={styles.itemCost}>${item.cost.toFixed(2)}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderItemDetail = () => (
-    <Modal
-      visible={selectedItem !== null}
-      animationType="slide"
-      presentationStyle="pageSheet"
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setSelectedItem(null)}
           >
-            <Ionicons name="close" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Stock Details</Text>
-          <View style={styles.placeholder} />
+            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+          </View>
         </View>
 
-        <ScrollView style={styles.modalContent}>
-          <View style={styles.itemDetailCard}>
-            <View style={styles.itemDetailHeader}>
-              <View style={[
-                styles.categoryIcon,
-                { backgroundColor: categories.find(c => c.id === selectedItem!.category)?.color || "#6B7280" }
-              ]}>
-                <Ionicons
-                  name={categories.find(c => c.id === selectedItem!.category)?.icon as any || "cube"}
-                  size={24}
-                  color="#FFFFFF"
-                />
+        <View style={styles.stockInfo}>
+          <View style={styles.stockNumbers}>
+            <Text style={styles.currentStock}>
+              {item.currentStock} {item.unit}
+            </Text>
+            <Text style={styles.stockRange}>
+              Min: {item.minStock} | Max: {item.maxStock}
+            </Text>
+          </View>
+
+          <View style={styles.stockBar}>
+            <View
+              style={[
+                styles.stockFill,
+                {
+                  width: `${getStockPercentage(item.currentStock, item.maxStock || 1)}%`,
+                  backgroundColor: statusColors[item.status],
+                },
+              ]}
+            />
+          </View>
+        </View>
+
+        <View style={styles.cardFooter}>
+          <Text style={styles.lastUpdated}>
+            Updated: {formatDate(item.lastUpdated || "")}
+          </Text>
+          <Text style={styles.itemCost}>
+            ${item.cost ? item.cost.toFixed(2) : "N/A"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderItemDetail = () => {
+    if (!selectedItem) return null;
+
+    const categoryMeta = categories.find(
+      (c) => c.id === selectedItem.category
+    ) || {
+      color: "#6B7280",
+      icon: "cube",
+      name: "Unknown",
+    };
+
+    return (
+      <Modal
+        visible={!!selectedItem}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setSelectedItem(null)}
+            >
+              <Ionicons name="close" size={24} color="#1F2937" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Stock Details</Text>
+            <View style={styles.placeholder} />
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <View style={styles.itemDetailCard}>
+              <View style={styles.itemDetailHeader}>
+                <View
+                  style={[
+                    styles.categoryIcon,
+                    { backgroundColor: categoryMeta.color },
+                  ]}
+                >
+                  <Ionicons
+                    name={categoryMeta.icon as any}
+                    size={24}
+                    color="#FFFFFF"
+                  />
+                </View>
+                <View style={styles.itemDetailInfo}>
+                  <Text style={styles.itemDetailName}>{selectedItem.name}</Text>
+                  <Text style={styles.itemDetailCategory}>
+                    {categoryMeta.name}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.itemDetailInfo}>
-                <Text style={styles.itemDetailName}>{selectedItem!.name}</Text>
-                <Text style={styles.itemDetailCategory}>
-                  {categories.find(c => c.id === selectedItem!.category)?.name}
+
+              <Text style={styles.itemDescription}>
+                {selectedItem!.description}
+              </Text>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Current Stock:</Text>
+                <Text
+                  style={[
+                    styles.detailValue,
+                    { color: statusColors[selectedItem!.status] },
+                  ]}
+                >
+                  {selectedItem!.currentStock} {selectedItem!.unit}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Status:</Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: statusColors[selectedItem!.status] },
+                  ]}
+                >
+                  <Text style={styles.statusText}>
+                    {getStatusText(selectedItem!.status)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Location:</Text>
+                <Text style={styles.detailValue}>{selectedItem!.location}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Supplier:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedItem!.supplier || "N/A"}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Unit Cost:</Text>
+                <Text style={styles.detailValue}>
+                  ${selectedItem!.cost?.toFixed(2) || "N/A"}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Stock Range:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedItem!.minStock} - {selectedItem!.maxStock}{" "}
+                  {selectedItem!.unit}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Last Updated:</Text>
+                <Text style={styles.detailValue}>
+                  {formatDate(selectedItem!.lastUpdated || "")}
                 </Text>
               </View>
             </View>
 
-            <Text style={styles.itemDescription}>{selectedItem!.description}</Text>
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.stockInButton]}
+                onPress={() => {
+                  setTransactionType("in");
+                  setShowTransactionModal(true);
+                }}
+              >
+                <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Stock In</Text>
+              </TouchableOpacity>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Current Stock:</Text>
-              <Text style={[styles.detailValue, { color: statusColors[selectedItem!.status] }]}>
-                {selectedItem!.currentStock} {selectedItem!.unit}
-              </Text>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.stockOutButton]}
+                onPress={() => {
+                  setTransactionType("out");
+                  setShowTransactionModal(true);
+                }}
+              >
+                <Ionicons name="remove-circle" size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Stock Out</Text>
+              </TouchableOpacity>
             </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Status:</Text>
-              <View style={[
-                styles.statusBadge,
-                { backgroundColor: statusColors[selectedItem!.status] }
-              ]}>
-                <Text style={styles.statusText}>{getStatusText(selectedItem!.status)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Location:</Text>
-              <Text style={styles.detailValue}>{selectedItem!.location}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Supplier:</Text>
-              <Text style={styles.detailValue}>{selectedItem!.supplier || "N/A"}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Unit Cost:</Text>
-              <Text style={styles.detailValue}>${selectedItem!.cost.toFixed(2)}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Stock Range:</Text>
-              <Text style={styles.detailValue}>
-                {selectedItem!.minStock} - {selectedItem!.maxStock} {selectedItem!.unit}
-              </Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Last Updated:</Text>
-              <Text style={styles.detailValue}>{formatDate(selectedItem!.lastUpdated)}</Text>
-            </View>
-          </View>
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.stockInButton]}
-              onPress={() => {
-                setTransactionType("in");
-                setShowTransactionModal(true);
-              }}
-            >
-              <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>Stock In</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.stockOutButton]}
-              onPress={() => {
-                setTransactionType("out");
-                setShowTransactionModal(true);
-              }}
-            >
-              <Ionicons name="remove-circle" size={20} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>Stock Out</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </View>
-    </Modal>
-  );
+          </ScrollView>
+        </View>
+      </Modal>
+    );
+  };
 
   const renderTransactionModal = () => (
     <Modal
@@ -451,9 +626,7 @@ const Stock = () => {
             <Text style={styles.transactionTitle}>
               {transactionType === "in" ? "Stock In" : "Stock Out"}
             </Text>
-            <TouchableOpacity
-              onPress={() => setShowTransactionModal(false)}
-            >
+            <TouchableOpacity onPress={() => setShowTransactionModal(false)}>
               <Ionicons name="close" size={24} color="#1F2937" />
             </TouchableOpacity>
           </View>
@@ -493,7 +666,9 @@ const Stock = () => {
               <TouchableOpacity
                 style={[
                   styles.confirmButton,
-                  transactionType === "in" ? styles.stockInButton : styles.stockOutButton
+                  transactionType === "in"
+                    ? styles.stockInButton
+                    : styles.stockOutButton,
                 ]}
                 onPress={handleTransaction}
               >
@@ -521,7 +696,13 @@ const Stock = () => {
           <Ionicons name="alert-circle" size={24} color="#EF4444" />
           <View style={styles.alertBadge}>
             <Text style={styles.alertCount}>
-              {stockItems.filter(item => item.status === "out_of_stock" || item.status === "low_stock").length}
+              {
+                stockItems.filter(
+                  (item) =>
+                    item.status === "out_of_stock" ||
+                    item.status === "low_stock"
+                ).length
+              }
             </Text>
           </View>
         </TouchableOpacity>
@@ -557,19 +738,24 @@ const Stock = () => {
             key={category.id}
             style={[
               styles.categoryButton,
-              selectedCategory === category.id && styles.categoryButtonActive
+              selectedCategory === category.id && styles.categoryButtonActive,
             ]}
             onPress={() => setSelectedCategory(category.id)}
           >
             <Ionicons
               name={category.icon as any}
               size={16}
-              color={selectedCategory === category.id ? "#FFFFFF" : category.color}
+              color={
+                selectedCategory === category.id ? "#FFFFFF" : category.color
+              }
             />
-            <Text style={[
-              styles.categoryButtonText,
-              selectedCategory === category.id && styles.categoryButtonTextActive
-            ]}>
+            <Text
+              style={[
+                styles.categoryButtonText,
+                selectedCategory === category.id &&
+                  styles.categoryButtonTextActive,
+              ]}
+            >
               {category.name}
             </Text>
           </TouchableOpacity>
@@ -668,21 +854,22 @@ const styles = StyleSheet.create({
     color: "#1F2937",
   },
   categoriesContainer: {
+    maxHeight: 60,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
   categoriesContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    gap: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
   },
   categoryButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     backgroundColor: "#FFFFFF",
@@ -692,10 +879,10 @@ const styles = StyleSheet.create({
     borderColor: "#3B82F6",
   },
   categoryButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
     color: "#6B7280",
-    marginLeft: 6,
+    marginLeft: 4,
   },
   categoryButtonTextActive: {
     color: "#FFFFFF",

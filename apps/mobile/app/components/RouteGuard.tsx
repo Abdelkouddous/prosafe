@@ -23,9 +23,9 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
       if (inAuthGroup) {
         // If in auth group, redirect to appropriate dashboard based on role
         if (user?.role === "admin") {
-          router.replace("/(tabs)/messages"); // Admin goes to messages
+          router.replace("/dashboard"); // Admin goes to admin dashboard
         } else {
-          router.replace("/(tabs)/menu"); // Regular user goes to camera
+          router.replace("/(tabs)/menu"); // Regular user goes to main menu
         }
       } else if (inTabsGroup && user) {
         // Check if user is trying to access a route they shouldn't

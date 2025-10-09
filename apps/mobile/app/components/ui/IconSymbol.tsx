@@ -12,6 +12,9 @@ const MAPPING = {
   person: "person-outline",
   "book.fill": "book",
   book: "book",
+  // Logout / Power icon mapping
+  "power.fill": "power-settings-new",
+  power: "power-settings-new",
 } as Partial<
   Record<string, React.ComponentProps<typeof MaterialIcons>["name"]>
 >;

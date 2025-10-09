@@ -7,6 +7,8 @@ import TabBarBackground from "../components/ui/TabBarBackground";
 import { Colors } from "../constants/Colors";
 import { useColorScheme } from "../hooks/useColorScheme";
 
+type TabIconProps = { color: string; focused: boolean };
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
@@ -30,7 +32,7 @@ export default function TabLayout() {
         name="trainings"
         options={{
           title: "Trainings",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={focused ? "book.fill" : "book"}
@@ -45,7 +47,7 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: "Messages",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={focused ? "message.fill" : "message"}
@@ -59,7 +61,7 @@ export default function TabLayout() {
         name="menu"
         options={{
           title: "Menu",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={focused ? "list.bullet" : "list.bullet"}
@@ -73,7 +75,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={focused ? "person.fill" : "person"}
@@ -87,7 +89,7 @@ export default function TabLayout() {
         name="get-incidents"
         options={{
           title: "Recent Incidents",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={
@@ -105,10 +107,25 @@ export default function TabLayout() {
         name="incidents"
         options={{
           title: "Incident",
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
             <IconSymbol
               size={28}
               name={focused ? "plus" : "plus"}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      {/* Logout */}
+      <Tabs.Screen
+        name="logout"
+        options={{
+          title: "Logout",
+          tabBarIcon: ({ color, focused }: TabIconProps) => (
+            <IconSymbol
+              size={28}
+              name={focused ? "power.fill" : "power"}
               color={color}
             />
           ),

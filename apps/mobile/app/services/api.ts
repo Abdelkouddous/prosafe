@@ -102,3 +102,13 @@ export const fetchMyTrainings = async () => {
     throw error;
   }
 };
+
+export const fetchMyRewardsSummary = async () => {
+  try {
+    const response = await api.get("/rewards/me/summary");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching rewards summary:", error);
+    throw error;
+  }
+};

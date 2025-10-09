@@ -14,6 +14,8 @@ import {
 } from "react-native";
 
 import { API_BASE_URL } from "./services/api";
+const GestureRoot = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(GestureHandlerRootView as any, { style: styles.container }, children);
 export default function RootLayout() {
   // Test backend connection on component mount
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function RootLayout() {
     testBackendConnection();
   }, []);
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureRoot>
       <LanguageProvider>
         <AuthProvider>
           <RouteGuard>
@@ -78,14 +80,18 @@ export default function RootLayout() {
                 name="(auth)/register"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen name="dashboard" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(extra)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="+not-found"
+                options={{ headerShown: false }}
+              />
             </Stack>
           </RouteGuard>
         </AuthProvider>
       </LanguageProvider>
-    </GestureHandlerRootView>
+    </GestureRoot>
   );
 }
 

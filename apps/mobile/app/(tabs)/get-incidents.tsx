@@ -9,8 +9,9 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../services/api";
+import api, { fetchMyRewardsSummary } from "../services/api";
 import { RefreshControl } from "react-native-gesture-handler";
+import * as Location from "expo-location";
 
 interface UserIncident {
   id: string;
@@ -47,7 +48,62 @@ const GetIncidents = () => {
   );
   const [refreshing, setRefreshing] = useState(false);
 
+  const [totalPoints, setTotalPoints] = useState<number>(0);
+  const [addressCache, setAddressCache] = useState<Record<string, string>>({});
+  const formatAddress = (a: Location.LocationGeocodedAddress) => {
+    const parts = [
+      a.name || a.street,
+      a.city,
+      a.region,
+      a.postalCode,
+      a.country,
+    ].filter(Boolean);
+    return parts.join(", ");
+  };
+
   useEffect(() => {
+    const loadAddresses = async () => {
+      const toFetch = userIncidents.filter(
+        (i) =>
+          i.geoLatitude &&
+          i.geoLongitude &&
+          !i.manualAddress &&
+          !addressCache[i.id]
+      );
+
+      for (const incident of toFetch) {
+        try {
+          const res = await Location.reverseGeocodeAsync({
+            latitude: incident.geoLatitude as number,
+            longitude: incident.geoLongitude as number,
+          });
+          const addr =
+            res && res[0]
+              ? formatAddress(res[0])
+              : `${incident.geoLatitude?.toFixed(6)}, ${incident.geoLongitude?.toFixed(6)}`;
+
+          setAddressCache((prev) => ({ ...prev, [incident.id]: addr }));
+        } catch {
+          // silent fail; keep coordinates if reverse geocode fails
+        }
+      }
+    };
+
+    loadAddresses();
+  }, [userIncidents]);
+  useEffect(() => {
+    const loadRewards = async () => {
+      try {
+        const summary = await fetchMyRewardsSummary();
+        if (summary && typeof summary.totalPoints === "number") {
+          setTotalPoints(summary.totalPoints);
+        }
+      } catch (e) {
+        // silent fail for UI
+      }
+    };
+
+    loadRewards();
     fetchUserIncidents();
   }, []);
 
@@ -208,15 +264,17 @@ const GetIncidents = () => {
         {item.description}
       </Text>
 
-      {item.manualAddress && (
+      {item.manualAddress ? (
         <Text style={styles.incidentLocation}>📍 {item.manualAddress}</Text>
-      )}
+      ) : addressCache[item.id] ? (
+        <Text style={styles.incidentLocation}>📍 {addressCache[item.id]}</Text>
+      ) : null}
 
-      {item.geoLatitude && item.geoLongitude && (
+      {/* {item.geoLatitude && item.geoLongitude && (
         <Text style={styles.incidentCoordinates}>
           🌍 {item.geoLatitude.toFixed(6)}, {item.geoLongitude.toFixed(6)}
         </Text>
-      )}
+      )} */}
 
       <View style={styles.incidentFooter}>
         <Text style={styles.incidentDate}>
@@ -240,6 +298,27 @@ const GetIncidents = () => {
             <Text style={styles.logoText}>PROSAFE</Text>
             <Text style={styles.logoSubtext}>RECENT INCIDENTS</Text>
           </View>
+        </View>
+      </View>
+
+      {/* Rewards Summary */}
+      <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
+        <View
+          style={{
+            backgroundColor: "#F3F4F6",
+            borderRadius: 12,
+            padding: 12,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "600", color: "#111827" }}>
+            Points
+          </Text>
+          <Text style={{ fontSize: 16, fontWeight: "700", color: "#DC2626" }}>
+            {totalPoints} pts
+          </Text>
         </View>
       </View>
 

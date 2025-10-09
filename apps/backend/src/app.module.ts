@@ -15,6 +15,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { AdminModule } from './admin/admin.module';
+import { RewardsModule } from './rewards/rewards.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { AdminModule } from './admin/admin.module';
     TasksModule,
     AlertsModule,
     AdminModule,
+    RewardsModule,
     // Training
     // Conferences
   ],

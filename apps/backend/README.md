@@ -222,8 +222,8 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 [![Star History Chart](https://api.star-history.com/svg?repos=josephgoksu/prime-nestjs&type=Timeline)](https://star-history.com/#josephgoksu/prime-nestjs&Timeline)
 
-
 ### admin/admin.module.ts
+
 ```typescript:
 import { Module } from '@nestjs/common';
 import { AdminController } from './admin.controller';
@@ -251,8 +251,8 @@ import { AlertsModule } from '../alerts/alerts.module';
 export class AdminModule {}
 ```
 
-
 ### admin/admin.service.ts
+
 ```typescript:
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -314,21 +314,11 @@ export class AdminService {
   }
 }
 ```
+
 ### prosafe/apps/backend/src/admin/admin.controller.ts
+
 ```typescript
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  ParseIntPipe,
-  HttpStatus,
-  HttpCode,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, HttpStatus, HttpCode } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
@@ -384,10 +374,7 @@ export class AdminController {
   }
 
   @Patch('users/:email')
-  async updateUser(
-    @Param('email') email: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async updateUser(@Param('email') email: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(email, updateUserDto);
   }
 
@@ -415,10 +402,7 @@ export class AdminController {
   }
 
   @Patch('tasks/:id')
-  async updateTask(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateTaskDto: UpdateTaskDto,
-  ) {
+  async updateTask(@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(id, updateTaskDto);
   }
 
@@ -434,10 +418,7 @@ export class AdminController {
   }
 
   @Patch('tasks/:taskId/assign/:userId')
-  async assignTask(
-    @Param('taskId', ParseIntPipe) taskId: number,
-    @Param('userId', ParseIntPipe) userId: number,
-  ) {
+  async assignTask(@Param('taskId', ParseIntPipe) taskId: number, @Param('userId', ParseIntPipe) userId: number) {
     return this.tasksService.assign(taskId, userId);
   }
 
@@ -469,10 +450,7 @@ export class AdminController {
   }
 
   @Patch('messages/:id')
-  async updateMessage(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateMessageDto: UpdateMessageDto,
-  ) {
+  async updateMessage(@Param('id', ParseIntPipe) id: number, @Body() updateMessageDto: UpdateMessageDto) {
     return this.messagesService.update(id, updateMessageDto);
   }
 
@@ -525,10 +503,7 @@ export class AdminController {
   }
 
   @Patch('inventory/:id')
-  async updateInventoryItem(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateInventoryDto: UpdateInventoryDto,
-  ) {
+  async updateInventoryItem(@Param('id', ParseIntPipe) id: number, @Body() updateInventoryDto: UpdateInventoryDto) {
     return this.inventoryService.update(id, updateInventoryDto);
   }
 
@@ -556,10 +531,7 @@ export class AdminController {
   }
 
   @Patch('incidents/:id/status')
-  async updateIncidentStatus(
-    @Param('id') id: string,
-    @Body() data: { status: string; notes?: string },
-  ) {
+  async updateIncidentStatus(@Param('id') id: string, @Body() data: { status: string; notes?: string }) {
     return this.incidentsService.updateStatus(id, data.status, data.notes);
   }
 
@@ -591,10 +563,7 @@ export class AdminController {
   }
 
   @Patch('alerts/:id')
-  async updateAlert(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateAlertDto: UpdateAlertDto,
-  ) {
+  async updateAlert(@Param('id', ParseIntPipe) id: number, @Body() updateAlertDto: UpdateAlertDto) {
     return this.alertsService.update(id, updateAlertDto);
   }
 
@@ -607,26 +576,21 @@ export class AdminController {
 ```
 
 Now I need to update the services to include the missing methods that the admin controller expects:
-        
-            
+
 toolName: view_files
-            
+
 status: success
-          
-            
+
 filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts
-          
+
 I need to create the admin module and controller to handle all the `/admin/*` routes that the frontend is calling. Let me create the necessary files:
-        
-            
+
 toolName: show_diff_fc
-            
+
 status: failed
-          
-            
+
 filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.module.ts
-          
-          
+
 I need to create the admin directory and files first. Let me create the admin module structure:
 
 ```typescript:/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.module.ts
@@ -1012,17 +976,15 @@ export class AdminController {
 ```
 
 Now I need to update the app module to include the admin module:
-        
-            
+
 toolName: show_diff_fc
-            
+
 status: success
-          
-            
+
 filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/app.module.ts
-          
+
 changes: undefined
-          
+
 Now I'll create the admin module and controller files:
 
 ```typescript:/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.module.ts
@@ -1412,49 +1374,35 @@ export class AdminController {
 ```
 
 Now I need to add the missing methods to the services. Let me check what methods are missing:
-        
-            
+
 toolName: view_files
-            
-status: success
-          
-            
-filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts
-          
 
-        
-            
+status: success
+
+filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts
+
 toolName: show_diff_fc
-            
-status: success
-          
-            
-filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts
-          
-changes: undefined
-          
 
-        
-            
+status: success
+
+filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts
+
+changes: undefined
+
 toolName: view_files
-            
-status: success
-          
-            
-filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.controller.ts
-          
 
-        
-            
-toolName: show_diff_fc
-            
 status: success
-          
-            
+
 filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.controller.ts
-          
+
+toolName: show_diff_fc
+
+status: success
+
+filePath: /Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.controller.ts
+
 changes: undefined
-          
+
 Now I need to create the admin controller and service to handle all the admin API routes:
 
 ```typescript:/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.controller.ts
@@ -2156,6 +2104,7 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 ## 🎯 **Admin API Routes Created**
 
 ### **1. Admin Module Structure**
+
 - <mcfile name="admin.module.ts" path="/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.module.ts"></mcfile> - Organizes all admin functionality
 - <mcfile name="admin.controller.ts" path="/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.controller.ts"></mcfile> - Handles all `/admin/*` routes
 - <mcfile name="admin.service.ts" path="/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/admin/admin.service.ts"></mcfile> - Business logic for admin operations
@@ -2163,9 +2112,11 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 ### **2. API Endpoints Implemented**
 
 #### **Dashboard & Stats**
+
 - `GET /admin/dashboard/stats` - Dashboard statistics
 
 #### **User Management**
+
 - `GET /admin/users` - Get all users
 - `GET /admin/users/:email` - Get specific user
 - `POST /admin/users` - Create new user
@@ -2173,6 +2124,7 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 - `DELETE /admin/users/:email` - Delete user
 
 #### **Task Management (Training)**
+
 - `GET /admin/tasks` - Get all tasks/trainings
 - `GET /admin/tasks/:id` - Get specific task
 - `POST /admin/tasks` - Create new task
@@ -2182,6 +2134,7 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 - `PATCH /admin/tasks/:taskId/assign/:userId` - Assign task to user
 
 #### **Message Management**
+
 - `GET /admin/messages` - Get all messages
 - `GET /admin/messages/unread` - Get unread messages
 - `GET /admin/messages/latest-received` - Get latest messages
@@ -2193,6 +2146,7 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 - `DELETE /admin/messages/:id` - Delete message
 
 #### **Inventory Management**
+
 - `GET /admin/inventory` - Get inventory items (with pagination)
 - `GET /admin/inventory/stats` - Get inventory statistics
 - `GET /admin/inventory/low-stock` - Get low stock items
@@ -2202,12 +2156,14 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 - `DELETE /admin/inventory/:id` - Delete inventory item
 
 #### **Incident Management**
+
 - `GET /admin/incidents` - Get all incidents
 - `GET /admin/incidents/:id` - Get specific incident
 - `POST /admin/incidents` - Create incident
 - `PATCH /admin/incidents/:id/status` - Update incident status
 
 #### **Alert Management**
+
 - `GET /admin/alerts` - Get alerts (with pagination)
 - `GET /admin/alerts/stats` - Get alert statistics
 - `GET /admin/alerts/:id` - Get specific alert
@@ -2215,12 +2171,125 @@ I've successfully created the complete admin API backend infrastructure! Here's 
 - `PATCH /admin/alerts/:id` - Update alert
 - `DELETE /admin/alerts/:id` - Delete alert
 
+### **Rewards System**
+
+- Encourages and recognizes users for declaring incidents.
+- Awards points per incident based on severity and evidence (photo/location).
+- Prevents duplicate awards per incident via unique `incidentId`.
+- Exposes endpoints for reward history and total points.
+- Integrates seamlessly with incident creation flow.
+
+**Data Model**
+
+- Entity: `Reward`
+  - `id`: auto-generated
+  - `user_id`: number; foreign key to `User`
+  - `incidentId`: string; unique per incident to prevent duplicate awards
+  - `points`: number; points granted
+  - `reason`: string; e.g., `incident_report`
+  - `created_at`: timestamp
+- Location: `apps/backend/src/rewards/entities/reward.entity.ts`
+- Uses TypeORM; dev environment auto-creates table when `synchronize` is true.
+
+**Awarding Rules**
+
+- Base points by severity:
+  - `LOW`: 5, `MEDIUM`: 8, `HIGH`: 12, `CRITICAL`: 15
+- Bonuses:
+  - `+3` if a photo is attached
+  - `+2` if location (geo or manual address) is provided
+- No double-award for the same `incidentId` (unique constraint).
+- Configurable in `RewardsService` to tune motivation.
+
+**Backend Integration**
+
+- Module: `RewardsModule` provides `RewardsService` and `RewardsController`.
+- Import `RewardsModule` in `AppModule`.
+- Import `RewardsModule` in `IncidentsModule` and inject `RewardsService`.
+- In `IncidentsService.create(...)`:
+  - After saving the incident, call `RewardsService.awardForIncident(userId, incidentId, { severity, hasPhoto, hasLocation })`.
+  - Return `{ incidentId, reward: { pointsAwarded, totalPoints } }` in the response.
+
+**API Endpoints**
+
+- Authentication: all endpoints require JWT (`Authorization: Bearer <token>`).
+- Reward history:
+  - Path: `GET /rewards/me`
+  - Returns the user’s reward entries sorted by `created_at` desc.
+- Reward summary:
+  - Path: `GET /rewards/me/summary`
+  - Returns `{ totalPoints: number }`.
+- Incident creation (existing):
+  - Path: `POST /incidents`
+  - On success, includes `reward` in response body: `{ incidentId, reward: { pointsAwarded, totalPoints } }`.
+- If you use a global prefix (e.g., `/api`), endpoints become `/api/rewards/me`, `/api/rewards/me/summary`, `/api/incidents`.
+
+**Examples**
+
+- Fetch reward summary:
+
+```bash
+curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/api/rewards/me/summary
+```
+
+- Fetch reward history:
+
+```bash
+curl -H "Authorization: Bearer <TOKEN>" http://localhost:3000/api/rewards/me
+```
+
+- Incident creation (multipart):
+
+```bash
+curl -X POST http://localhost:3000/api/incidents \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: multipart/form-data" \
+  -F "description=Forklift near collision" \
+  -F "type=safety" \
+  -F "severity=high" \
+  -F "location[manualAddress]=Bay A - North Dock" \
+  -F "photo=@/path/to/photo.jpg"
+```
+
+- Sample `POST /incidents` success response (reward included):
+
+```plaintext
+{
+  "incidentId": "INC-20241007-ABC123",
+  "reward": {
+    "pointsAwarded": 17,
+    "totalPoints": 48
+  }
+}
+```
+
+**Setup Steps**
+
+- Add module files:
+  - `apps/backend/src/rewards/entities/reward.entity.ts`
+  - `apps/backend/src/rewards/rewards.service.ts`
+  - `apps/backend/src/rewards/rewards.controller.ts`
+  - `apps/backend/src/rewards/rewards.module.ts`
+- Wire modules:
+  - Import `RewardsModule` in `apps/backend/src/app.module.ts`.
+  - Import `RewardsModule` in `apps/backend/src/incidents/incidents.module.ts`.
+- Inject and use `RewardsService` in `IncidentsService` after saving the incident.
+
+**Security and Performance**
+
+- All endpoints are protected by `JwtAuthGuard`.
+- Indexing via unique `incidentId` prevents duplicate awards.
+- Aggregate total points via SQL `SUM` for performance.
+- Keep reward logic independent; only references `user_id` and `incidentId`.
+
 ### **3. Enhanced Task Service**
+
 - Added <mcsymbol name="completeTask" filename="tasks.service.ts" path="/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts" startline="253" type="function"></mcsymbol> method
 - Added <mcsymbol name="assignTask" filename="tasks.service.ts" path="/Users/morsistoredz/Desktop/Aymen HML/Informatique/Business/00-project-SST/Prosafe/prosafe/apps/backend/src/tasks/tasks.service.ts" startline="284" type="function"></mcsymbol> method
 - Enhanced task controller with complete and assign endpoints
 
 ### **4. Security Features**
+
 - All admin routes require authentication
 - Admin role verification for sensitive operations
 - Proper error handling and validation
@@ -2235,4 +2304,3 @@ Your frontend should now be able to successfully call all the admin API routes. 
 4. **Error handling** with appropriate HTTP status codes
 
 The training management system and notification features should now work seamlessly with the backend API!
-        
