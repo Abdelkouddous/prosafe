@@ -90,14 +90,36 @@ export const unregisterFromPush = async (): Promise<void> => {
   }
 };
 
-const openFromData = (data: Record<string, unknown> | undefined) => {
+/**
+ * Navigate from a notification (push tap or list tap) based on its payload/type.
+ * Returns true when it navigated to a specific target.
+ */
+export const routeForNotification = (
+  type: string | undefined | null,
+  data: Record<string, unknown> | undefined | null
+): boolean => {
   const incidentId = data?.incidentId;
   if (incidentId !== undefined && incidentId !== null && incidentId !== "") {
     router.push({
       pathname: "/incident/[id]",
       params: { id: String(incidentId) },
     });
-  } else {
+    return true;
+  }
+  const kind = type ?? (typeof data?.type === "string" ? data.type : undefined);
+  if (kind === "training") {
+    router.push("/(tabs)/trainings");
+    return true;
+  }
+  if (kind === "inventory" || kind === "maintenance") {
+    router.push("/(extra)/stock");
+    return true;
+  }
+  return false;
+};
+
+const openFromData = (data: Record<string, unknown> | undefined) => {
+  if (!routeForNotification(undefined, data)) {
     router.push("/(extra)/notifications");
   }
 };

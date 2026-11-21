@@ -1,4 +1,8 @@
 import {
+  EQUIPMENT_TRANSLATIONS,
+  EquipmentTranslationKey,
+} from "./EquipmentTranslations";
+import {
   INCIDENT_TRANSLATIONS,
   IncidentTranslationKey,
 } from "./IncidentTranslations";
@@ -49,7 +53,8 @@ export type TranslationKey =
   | "adminDashboard"
   | "pageNotFound"
   | "goHome"
-  | IncidentTranslationKey;
+  | IncidentTranslationKey
+  | EquipmentTranslationKey;
 
 export const LANGUAGES: Language[] = [
   {
@@ -227,7 +232,19 @@ const BASE_TRANSLATIONS = {
 };
 
 export const TRANSLATIONS = {
-  "ar-DZ": { ...BASE_TRANSLATIONS["ar-DZ"], ...INCIDENT_TRANSLATIONS["ar-DZ"] },
-  fr: { ...BASE_TRANSLATIONS.fr, ...INCIDENT_TRANSLATIONS.fr },
-  en: { ...BASE_TRANSLATIONS.en, ...INCIDENT_TRANSLATIONS.en },
+  "ar-DZ": {
+    ...BASE_TRANSLATIONS["ar-DZ"],
+    ...INCIDENT_TRANSLATIONS["ar-DZ"],
+    ...EQUIPMENT_TRANSLATIONS["ar-DZ"],
+  },
+  fr: {
+    ...BASE_TRANSLATIONS.fr,
+    ...INCIDENT_TRANSLATIONS.fr,
+    ...EQUIPMENT_TRANSLATIONS.fr,
+  },
+  en: {
+    ...BASE_TRANSLATIONS.en,
+    ...INCIDENT_TRANSLATIONS.en,
+    ...EQUIPMENT_TRANSLATIONS.en,
+  },
 } as Record<LanguageCode, Record<TranslationKey, string>>;
