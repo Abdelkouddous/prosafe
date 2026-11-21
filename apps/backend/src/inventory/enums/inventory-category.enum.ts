@@ -1,9 +1,10 @@
 export enum InventoryCategory {
-  ELECTRONICS = 'electronics',
-  OFFICE_SUPPLIES = 'office_supplies',
-  FURNITURE = 'furniture',
-  SAFETY_EQUIPMENT = 'safety_equipment',
+  PPE = 'ppe',
+  FIRE_EXTINGUISHER = 'fire_extinguisher',
+  FIRST_AID = 'first_aid',
+  DETECTION = 'detection',
+  SIGNAGE = 'signage',
   TOOLS = 'tools',
   CONSUMABLES = 'consumables',
-  OTHER = 'other'
+  OTHER = 'other',
 }

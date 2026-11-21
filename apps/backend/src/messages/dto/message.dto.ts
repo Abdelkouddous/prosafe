@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsEnum } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsEnum, IsInt } from 'class-validator';
 import { MessageStatus } from '../enums/message-status.enum';
 
 export class CreateMessageDto {
@@ -15,10 +16,14 @@ export class CreateMessageDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
+  @Type(() => Number)
   sender_id?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
+  @Type(() => Number)
   recipient_id?: number;
 
   @ApiPropertyOptional()

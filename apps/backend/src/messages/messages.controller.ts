@@ -97,6 +97,8 @@ export class MessagesController {
   async update(@Param('id', ParseIntPipe) id: number, @Body() updateMessageDto: UpdateMessageDto, @Req() req) {
     const message = await this.messagesService.findOne(id);
     if (message.sender_id === req.user.id || isManager(req.user)) {
+      // Status transitions (read/archive) are reserved to managers; recipients use PATCH :id/read|archive.
+      if (!isManager(req.user)) delete updateMessageDto.status;
       return this.messagesService.update(id, updateMessageDto);
     }
     throw new ForbiddenException('You do not have permission to update this message');

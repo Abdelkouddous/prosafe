@@ -39,7 +39,7 @@ export class MessagesService {
       const messages: Message[] = [];
       for (const user of employees) {
         const message = this.messagesRepository.create({
-          ...createMessageDto,
+          ...this.pickFields(createMessageDto),
           sender,
           recipient: user,
           recipient_id: user.id,
@@ -53,7 +53,7 @@ export class MessagesService {
         throw new NotFoundException('Recipient not found');
       }
       const message = this.messagesRepository.create({
-        ...createMessageDto,
+        ...this.pickFields(createMessageDto),
         sender,
         recipient,
         recipient_id: recipient.id,
@@ -63,11 +63,21 @@ export class MessagesService {
       // Handle messages without a specific recipient or send_to_all (e.g. general announcements not tied to users)
       // This part might need further clarification based on requirements for messages without recipients
       const message = this.messagesRepository.create({
-        ...createMessageDto,
+        ...this.pickFields(createMessageDto),
         sender,
       });
       return this.messagesRepository.save(message);
     }
+  }
+
+  /** Whitelist of client-provided fields copied to the entity (no id/status/etc. injection). */
+  private pickFields(dto: CreateMessageDto) {
+    return {
+      subject: dto.subject,
+      content: dto.content,
+      is_urgent: dto.is_urgent ?? false,
+      system_sender: dto.system_sender,
+    };
   }
 
   /**

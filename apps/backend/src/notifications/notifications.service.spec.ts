@@ -102,4 +102,40 @@ describe('NotificationsService', () => {
     await service.notifyRoles([Role.ADMIN, Role.SST_MANAGER], payload);
     expect(saved()).toEqual([1, 3]);
   });
+
+  describe('notifyUsersOnce (dedupe)', () => {
+    const once = { type: NotificationType.INVENTORY, title: 't', body: 'b', data: { key: 'stock:1:low_stock' } };
+    const qb = (rows: any[]) => {
+      const b: any = {};
+      ['select', 'where', 'andWhere'].forEach((m) => (b[m] = jest.fn(() => b)));
+      b.getRawMany = jest.fn().mockResolvedValue(rows);
+      return b;
+    };
+
+    it('skips users already notified with the same key in the window', async () => {
+      notifRepo.createQueryBuilder = jest.fn(() => qb([{ userId: 1 }]));
+      const sent = await service.notifyUsersOnce([1, 2], once);
+      expect(sent).toEqual([2]);
+      expect(saved()).toEqual([2]);
+    });
+
+    it('sends nothing when everyone was already notified', async () => {
+      notifRepo.createQueryBuilder = jest.fn(() => qb([{ userId: 1 }, { userId: 2 }]));
+      expect(await service.notifyUsersOnce([1, 2], once)).toEqual([]);
+      expect(notifRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('notifyRolesOnce resolves managers then dedupes', async () => {
+      userRepo.find.mockResolvedValue([{ id: 1, roles: [Role.ADMIN] }, { id: 2, roles: [Role.EMPLOYEE] }]);
+      notifRepo.createQueryBuilder = jest.fn(() => qb([]));
+      expect(await service.notifyRolesOnce([Role.ADMIN], once)).toEqual([1]);
+    });
+
+    it('never throws', async () => {
+      notifRepo.createQueryBuilder = jest.fn(() => {
+        throw new Error('db');
+      });
+      await expect(service.notifyUsersOnce([1], once)).resolves.toEqual([]);
+    });
+  });
 });

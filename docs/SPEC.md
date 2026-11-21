@@ -12,10 +12,10 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 |---|---|---|---|---|
 | E1.1 | Employees report incidents with description, **photos, videos**, etc. | B M | partial | Backend done (Phase 2A): multipart `media[]` up to 5 images/videos on disk (`stored_file`, `incident_media`), notes/date/zone/department honoured. Mobile still sends a single photo; no video/camera yet; Mobile done: report form with photo/video capture, gallery multi-select (max 5, size/type checks), upload progress, reward points shown, full reset |
 | E1.2 | Precise geolocation of incident | B M | partial | Backend stores latitude/longitude or manualAddress (flat multipart fields) and filters by radius. Mobile: `app.json` lacks location/image-picker permission plugins; Mobile done: auto GPS + reverse geocode with manual address fallback; location plugins already in app.json |
-| E2.1 | Track available safety equipment | B M A | partial | Inventory CRUD works; categories are generic (electronics, furniture…) |
-| E2.2 | Notification when equipment out of stock | B M A | missing | Status recomputed on update only; no notification, no cron |
-| E3.1 | Manage employee SST trainings | B M A | partial | Implemented on top of `tasks`; no per-user enrollment |
-| E3.2 | Notifications for upcoming trainings and renewals | B M | missing | No renewal date, no push/email reminders (admin "send reminders" is fake) |
+| E2.1 | Track available safety equipment | B M A | partial | Backend done (Phase 2B): new OHS categories, condition, expiryDate, inspection dates, report-defect, totalValue, search/condition filters. Admin/mobile UI pending |
+| E2.2 | Notification when equipment out of stock | B M A | partial | Backend done: managers notified on low/out-of-stock transition + daily 07:00 cron (low stock, expiry <= 30d, deduped). UI pending |
+| E3.1 | Manage employee SST trainings | B M A | partial | Backend done: `trainings` module (catalogue, sessions, enrollments, capacity 409). Legacy `tasks` kept until clients migrate. UI pending |
+| E3.2 | Notifications for upcoming trainings and renewals | B M | partial | Backend done: daily cron reminders J-7/J-1 to enrolled users, certification expiry <= 30d to user + managers (deduped); `/trainings/me` returns expiresAt/isExpired/expiresSoon. UI pending |
 
 ## 2. Fonctionnalités avancées
 
@@ -40,9 +40,9 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | C3.1 | Internal & external audit management | B A | missing | |
 | C3.2 | Continuous ISO 45001 compliance checks | B A | missing | |
 | C3.3 | History of corrective actions after audits | B A | missing | |
-| C4.1 | Automated SST training planning | B A | missing | |
+| C4.1 | Automated SST training planning | B A | partial | Backend done: `POST /trainings/auto-plan` lists users lacking valid mandatory trainings (+ next session) and notifies them. UI pending |
 | C4.2 | Individual employee progress tracking | B M A | missing | |
-| C4.3 | Reports on acquired skills and future needs | B A | missing | |
+| C4.3 | Reports on acquired skills and future needs | B A | partial | Backend done: `GET /trainings/skills-report?department` (acquired / expiring / missing). UI pending |
 | C5.1 | Predefined emergency response scenarios | B M A | missing | Only static text in mobile Information/Safety manual |
 | C5.2 | Real-time notifications to all parties on major incident | B M | partial | Backend push + in-app notifications done (Phase 2A); emergency trigger pending (Phase 4). Mobile client side done (expo-notifications, device registration, emergency channel, tap routing); needs EAS projectId + prebuild; backend trigger exists |
 | C5.3 | Evacuation drill planning & simulation | B A | missing | |
@@ -59,18 +59,18 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | M2.1 | Catalogue des risques (description, gravity, recommended solutions) | B M A | missing | |
 | M2.2 | Évaluation des risques (by employees or managers) | B M A | missing | |
 | M2.3 | Plans d'action (in progress / validated) | B A | missing | |
-| M3.1 | Inventaire: equipment, state (functional / non-functional), location | B M A | partial | No functional state field |
-| M3.2 | Maintenance & vérifications schedule | B A | missing | |
-| M3.3 | Maintenance history | B A | missing | |
+| M3.1 | Inventaire: equipment, state (functional / non-functional), location | B M A | partial | Backend done: `condition` functional/non_functional. UI pending |
+| M3.2 | Maintenance & vérifications schedule | B A | partial | Backend done: `/maintenance` (planned/overdue, complete updates item). UI pending |
+| M3.3 | Maintenance history | B A | partial | Backend done: history = `GET /maintenance?status=done`. UI pending |
 | M4.1 | Interactive charts: incident frequency, risk types, most affected zones | B A | partial | Only incidents by month |
 | M4.2 | Automatic reports PDF/Excel by period, incident type, department | B A | missing | No department field yet |
 | M4.3 | Statistical alerts on thresholds (e.g. sudden rise of an incident type) | B A | missing | |
 | M5.1 | Audit planning calendar (internal/external) | B A | missing | |
 | M5.2 | Checklists (ISO 45001…) | B A | missing | |
 | M5.3 | Compliance documents storage (audit reports, certifications) | B A | missing | |
-| M6.1 | Training catalogue with description and schedule | B M A | partial | |
-| M6.2 | Employee enrollment | B M | missing | `currentParticipants` never incremented |
-| M6.3 | Evaluations & participant progress | B M A | missing | |
+| M6.1 | Training catalogue with description and schedule | B M A | partial | Backend done: trainings + sessions with schedule. UI pending |
+| M6.2 | Employee enrollment | B M | partial | Backend done: enroll / cancel with capacity check. Mobile UI pending |
+| M6.3 | Evaluations & participant progress | B M A | partial | Backend done: `PATCH /trainings/enrollments/:id` status/score/progress, passed => expiresAt. UI pending |
 | M7.1 | User profile: personal info, role, preferences | B M A | partial | Mobile profile read-only |
 | M7.2 | Notification settings (incidents, trainings, audits) | B M A | partial | Backend done: `GET/PUT /notifications/preferences`, devices, list/read, Expo push + email dispatch (`NotificationsService`); admin UI done (header bell with 60s unread polling, Settings/Dashboard preferences via `/notifications/preferences`); mobile UI pending; Mobile done: preferences switches in Profil |
 | M7.3 | Language & accessibility (text size, high contrast) | M A | partial | i18n set up (fr/en/ar) but barely applied; no accessibility options; Arabic RTL not applied in admin |

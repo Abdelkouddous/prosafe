@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { AppThrottlerGuard } from './common/auth-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -20,6 +21,8 @@ import { AdminModule } from './admin/admin.module';
 import { RewardsModule } from './rewards/rewards.module';
 import { FilesModule } from './files/files.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
+import { TrainingsModule } from './trainings/trainings.module';
 
 @Module({
   imports: [
@@ -65,10 +68,12 @@ import { NotificationsModule } from './notifications/notifications.module';
     RewardsModule,
     FilesModule,
     NotificationsModule,
+    MaintenanceModule,
+    TrainingsModule,
     // Training
     // Conferences
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [AppService, { provide: APP_GUARD, useClass: AppThrottlerGuard }],
 })
 export class AppModule {}

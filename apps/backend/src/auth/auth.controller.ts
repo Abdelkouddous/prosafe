@@ -157,10 +157,7 @@ export class AuthController {
   async getCurrentUser(@Req() req) {
     // The user entity is attached to the request by JwtAuthGuard
     const { password, ...result } = req.user as User;
-    return {
-      user: result,
-      token: req.headers.authorization?.split(' ')[1],
-    };
+    return { user: result };
   }
 
   @Get('verify-email')
@@ -172,11 +169,8 @@ export class AuthController {
     if (!user) {
       throw new BadRequestException('Invalid or expired token');
     }
+    // Only marks the email as verified; activation remains an admin approval (never touches isActive).
     user.emailVerified = true;
-    // Verification only activates accounts that were already approved (not pending)
-    if (!user.roles.includes(Role.PENDING)) {
-      user.isActive = true;
-    }
     await this.userService.updateUser(user);
     return { message: 'Email verified successfully' };
   }
