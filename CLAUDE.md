@@ -69,7 +69,7 @@ cd apps/backend && docker compose up -d postgres   # local DB
 Check actual package names with `cat apps/*/package.json | grep '"name"'` if a filter fails.
 
 ## Never
-- Add AI attribution to commits or PRs: no `Co-Authored-By: Claude`, no `Claude-Session:` line, no "Generated with Claude Code" footer. The repository owner is the sole author.
+- Add AI attribution to commits or PRs: no `Co-Authored-By: Claude`, no `Claude-Session:` line, no "Generated with Claude Code" footer. The repository owner is the sole author: commit as `Abdelkouddous <58855794+Abdelkouddous@users.noreply.github.com>` (already set in the local git config), never as Claude.
 - Commit `.env*`, backups of env files, private keys or credentials. Never log tokens or passwords.
 - Add a dependency without a clear need; prefer what is already installed.
 - Mix package managers: pnpm only (no npm/bun lockfiles).
