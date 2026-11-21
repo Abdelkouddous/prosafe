@@ -1,174 +1,47 @@
-# PROSAFE - Workplace Safety & Security Management System
+# PROSAFE — Sécurité et Santé au Travail (SST)
 
-PROSAFE is a comprehensive enterprise-grade safety and security management platform designed for modern workplaces. The system provides real-time monitoring, incident management, training tracking, and compliance tools to ensure workplace safety and security.
+PROSAFE is an Occupational Health & Safety application for organizations (companies, workshops, administrations):
+employees report incidents from their phone, and SST managers analyse, act and prove compliance from a web back-office.
 
-## 🏗️ Project Structure
+## Features
+- **Incidents** — declaration with up to 5 photos/videos, GPS location, status tracking and history, severity evaluation (gravity × probability), corrective actions.
+- **Safety equipment** — inventory, functional state, stock and expiry alerts, inspection/maintenance planning and history.
+- **Trainings** — catalogue, sessions and enrollment, results and certificate expiry, renewal reminders, skills report and automatic planning.
+- **Rewards** — points and badges for reporting, leaderboard.
+- **Messaging** — realtime conversations between employees and SST managers, announcements.
+- **Reports & KPIs** — interactive dashboard, trends, forecasts, threshold alerts, PDF/Excel exports.
+- **Risk management** — risk catalogue, 5×5 matrix, action plans, LMRA (last-minute risk analysis).
+- **Audits & compliance** — audit calendar, ISO 45001:2018 checklist, compliance documents.
+- **Emergency response** — scenarios with procedures and contacts, emergency broadcast to all users, evacuation drills.
+- **Notifications** — push, in-app and email with per-user preferences; French, English and Arabic (RTL); text size and high-contrast options; in-app feedback.
 
-This is a monorepo built with Turborepo containing three main applications:
-
+## Repository
 ```
-prosafe/
-├── apps/
-│   ├── admin/          # React admin dashboard (Vite + TypeScript)
-│   ├── backend/        # NestJS API server
-│   └── mobile/         # React Native mobile app (Expo)
-├── packages/
-│   ├── eslint-config/  # Shared ESLint configurations
-│   ├── typescript-config/ # Shared TypeScript configurations
-│   └── ui/             # Shared UI components
-```
-
-## 🚀 Features
-
-### 🔐 Security Management
-
-- **Real-time Security Monitoring** - Continuous surveillance with automated threat detection
-- **Alert System** - Instant notifications with smart filtering to reduce alert fatigue
-- **Incident Management** - Automated and manual intervention capabilities
-- **Access Control** - Role-based permissions and security policies
-
-### 👥 Workplace Safety (SST)
-
-- **Training Tracking** - Manage and track employee safety training programs
-- **Incident Reporting** - Easy-to-use incident declaration system
-- **Inventory Management** - Track safety equipment with low-stock alerts
-- **Compliance Monitoring** - Ensure adherence to safety regulations
-
-### 📊 Analytics & Reporting
-
-- **Security Dashboard** - Comprehensive overview of security posture
-- **Incident Analytics** - Trend analysis and reporting
-- **Training Reports** - Track completion rates and compliance
-- **Real-time Metrics** - Live security score and threat monitoring
-
-## 🛠️ Technology Stack
-
-### Backend
-
-- **NestJS** - Enterprise-grade Node.js framework
-- **TypeORM** - Database ORM with PostgreSQL
-- **JWT Authentication** - Secure authentication with RSA256
-- **Role-Based Access Control (RBAC)**
-- **Docker** - Containerized deployment
-
-### Frontend (Admin)
-
-- **React 18** with TypeScript
-- **Vite** - Fast build tool
-- **Tailwind CSS** - Utility-first CSS framework
-- **Shadcn/ui** - Modern UI component library
-- **React Hook Form** - Form management
-- **Recharts** - Data visualization
-
-### Mobile
-
-- **React Native** with Expo
-- **TypeScript** support
-- Cross-platform iOS/Android compatibility
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js >= 18
-- pnpm (recommended package manager)
-- PostgreSQL database
-- Docker (optional)
-
-### Installation
-
-1. **Clone the repository**
-
-```bash
-git clone <repository-url>
-cd prosafe
+apps/backend   NestJS API (PostgreSQL, JWT, Swagger at /api/docs, Socket.IO)
+apps/admin     React web back-office for admins and SST managers
+apps/mobile    Expo React Native app for employees
+docs/          Specification, API contract, technical doc, user guide, deployment checklist
 ```
 
-2. **Install dependencies**
-
+## Quick start
 ```bash
 pnpm install
+cd apps/backend && docker compose up -d postgres && cp .env.example .env && cd ../..   # then fill .env (DB, RSA keys)
+pnpm --filter backend start:dev     # API on http://localhost:3000/api — docs at /api/docs
+pnpm --filter admin dev             # web on http://localhost:5173
+pnpm --filter mobile start          # Expo
 ```
+The first account registered becomes the administrator.
 
-3. **Environment Setup**
+## Documentation
+| Document | Content |
+|---|---|
+| [`docs/SPEC.md`](docs/SPEC.md) | Client requirements checklist and status |
+| [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) | Endpoint contract shared by the three apps |
+| [`docs/TECHNICAL.md`](docs/TECHNICAL.md) | Architecture, modules, security, environment, tests, deployment |
+| [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) | Guide utilisateur (FR) — mobile app and web back-office |
+| [`docs/DEPLOY_CHECKLIST.md`](docs/DEPLOY_CHECKLIST.md) | Step-by-step production release |
+| [`apps/backend/README.md`](apps/backend/README.md) | Backend setup, scripts and migrations |
 
-```bash
-# Backend environment
-cp apps/backend/.env.example apps/backend/.env
-# Configure your database and other settings
-```
-
-4. **Database Setup**
-
-```bash
-cd apps/backend
-npm run migration:run
-```
-
-5. **Start Development Servers**
-
-```bash
-# Start all applications
-pnpm dev
-
-# Or start individually
-pnpm --filter backend dev
-pnpm --filter admin dev
-pnpm --filter mobile dev
-```
-
-## 📱 Applications
-
-### Admin Dashboard
-
-- **URL**: `http://localhost:5173` (development)
-- **Purpose**: Web-based administration interface
-- **Features**: User management, incident tracking, analytics, system configuration
-
-### Backend API
-
-- **URL**: `http://localhost:3000` (development)
-- **Purpose**: RESTful API server
-- **Documentation**: Available at `/api/docs` (Swagger)
-
-### Mobile App
-
-- **Purpose**: Field incident reporting and safety management
-- **Platforms**: iOS and Android
-- **Features**: Incident reporting, training access, emergency contacts
-
-## 🔧 Development Commands
-
-```bash
-# Build all applications
-pnpm build
-
-# Run linting
-pnpm lint
-
-# Format code
-pnpm format
-
-# Type checking
-pnpm check-types
-```
-
-## 🏢 Use Cases
-
-- **Manufacturing** - Equipment safety monitoring and incident tracking
-- **Healthcare** - Compliance management and safety training
-- **Construction** - Site safety management and worker training
-- **Corporate** - Office security and emergency preparedness
-- **Education** - Campus safety and incident response
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines and submit pull requests for any improvements.
-
----
-
-**PROSAFE** - Advanced Security Management for Modern Enterprises
+## License
+MIT
