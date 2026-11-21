@@ -15,7 +15,7 @@ import { REPORT_KINDS, ReportKind, ReportQueryDto } from './reports.types';
 export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 
-  /** PDF or XLSX download. `risks` and `audits` return 400 until Phase 4. */
+  /** PDF or XLSX download. */
   @Get(':kind')
   @ApiParam({ name: 'kind', enum: REPORT_KINDS })
   @ApiOkResponse({ description: 'application/pdf or xlsx file (Content-Disposition: attachment)' })

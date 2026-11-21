@@ -13,7 +13,7 @@ const makeQb = (data: any[] = []) => {
 
 describe('CorrectiveActionsService', () => {
   let service: CorrectiveActionsService;
-  let repo: any, incidentRepo: any, userRepo: any, notifications: any;
+  let repo: any, incidentRepo: any, riskRepo: any, auditRepo: any, userRepo: any, notifications: any;
   const manager = { id: 1, roles: [Role.SST_MANAGER] };
   const owner = { id: 7, roles: [Role.EMPLOYEE] };
   const stranger = { id: 8, roles: [Role.EMPLOYEE] };
@@ -28,9 +28,11 @@ describe('CorrectiveActionsService', () => {
       createQueryBuilder: jest.fn(),
     };
     incidentRepo = { count: jest.fn().mockResolvedValue(1) };
+    riskRepo = { count: jest.fn().mockResolvedValue(1) };
+    auditRepo = { count: jest.fn().mockResolvedValue(1) };
     userRepo = { findOne: jest.fn().mockResolvedValue({ id: 7, roles: [Role.EMPLOYEE], isActive: true }) };
     notifications = { notifyUsers: jest.fn(), notifyUsersOnce: jest.fn(), notifyRolesOnce: jest.fn() };
-    service = new CorrectiveActionsService(repo, incidentRepo, userRepo, notifications);
+    service = new CorrectiveActionsService(repo, incidentRepo, riskRepo, auditRepo, userRepo, notifications);
   });
 
   describe('create', () => {
@@ -41,11 +43,15 @@ describe('CorrectiveActionsService', () => {
       expect(notifications.notifyUsers).toHaveBeenCalledWith([7], expect.objectContaining({ data: expect.objectContaining({ correctiveActionId: 3 }) }));
     });
 
-    it('validates incident existence but not risk / audit sources', async () => {
+    it('validates incident, risk and audit existence', async () => {
       incidentRepo.count.mockResolvedValue(0);
       await expect(service.create(dto, manager)).rejects.toBeInstanceOf(NotFoundException);
-      await expect(service.create({ ...dto, sourceType: CorrectiveActionSource.RISK, sourceId: 999 }, manager)).resolves.toBeDefined();
-      expect(incidentRepo.count).toHaveBeenCalledTimes(1);
+      riskRepo.count.mockResolvedValue(0);
+      await expect(service.create({ ...dto, sourceType: CorrectiveActionSource.RISK, sourceId: 999 }, manager)).rejects.toBeInstanceOf(NotFoundException);
+      auditRepo.count.mockResolvedValue(0);
+      await expect(service.create({ ...dto, sourceType: CorrectiveActionSource.AUDIT, sourceId: 999 }, manager)).rejects.toBeInstanceOf(NotFoundException);
+      riskRepo.count.mockResolvedValue(1);
+      await expect(service.create({ ...dto, sourceType: CorrectiveActionSource.RISK, sourceId: 5 }, manager)).resolves.toBeDefined();
     });
 
     it('rejects an inactive / pending owner', async () => {

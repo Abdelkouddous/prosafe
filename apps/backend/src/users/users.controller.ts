@@ -1,8 +1,12 @@
-import { Controller, Get, Body, Patch, UseGuards, Request, ValidationPipe, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Request, ValidationPipe, UnauthorizedException, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto, ChangePasswordDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
+import { RolesGuard } from '../auth/strategy/roles.guard';
+import { Roles } from '../custom.decorator';
+import { Role } from './enums/role.enum';
+import { ListUsersQueryDto } from './dto/list-users.dto';
 
 /**
  * Self-service profile endpoints for the authenticated user.
@@ -10,7 +14,7 @@ import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
  */
 @ApiTags('users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -19,6 +23,13 @@ export class UsersController {
     const id = req.user?.id;
     if (!id) throw new UnauthorizedException();
     return id;
+  }
+
+  /** GET /users - paginated directory for pickers (managers only). */
+  @Get()
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
+  list(@Query() q: ListUsersQueryDto) {
+    return this.usersService.list(q);
   }
 
   /** GET /users/profile - current user profile (without password) */

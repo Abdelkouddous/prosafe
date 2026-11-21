@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Alert } from '../alerts/entities/alert.entity';
 import { AlertStatus } from '../alerts/enums/alert-status.enum';
+import { Audit } from '../audits/entities/audit.entity';
+import { AuditStatus } from '../audits/enums/audit.enums';
 import { CorrectiveActionsService } from '../corrective-actions/corrective-actions.service';
 import { Incident } from '../incidents/entities/incident.entity';
 import { IncidentSeverity } from '../incidents/enums/incident-severity.enum';
@@ -43,6 +45,7 @@ export class StatsService {
     @InjectRepository(Enrollment) private readonly enrollmentRepo: Repository<Enrollment>,
     private readonly trainings: TrainingsService,
     private readonly correctiveActions: CorrectiveActionsService,
+    @InjectRepository(Audit) private readonly auditRepo: Repository<Audit>,
   ) {}
 
   private applyPeriod(qb: SelectQueryBuilder<Incident>, q: PeriodQueryDto): void {
@@ -121,6 +124,24 @@ export class StatsService {
     return rows.map((r) => ({ key: r.key, count: Number(r.count) }));
   }
 
+  /** Average score (0-100, 1 decimal) of completed audits in the period (completion date, else planned date); null when none. */
+  private async auditComplianceRate(q: PeriodQueryDto): Promise<number | null> {
+    const qb = this.auditRepo
+      .createQueryBuilder('a')
+      .select('AVG(a.score)', 'avg')
+      .where('a.status = :status AND a.score IS NOT NULL', { status: AuditStatus.COMPLETED });
+    if (q.from) qb.andWhere('COALESCE(a.completedAt, a.scheduledAt) >= :afrom', { afrom: new Date(q.from) });
+    if (q.to) {
+      const to = new Date(q.to);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(q.to)) {
+        to.setUTCDate(to.getUTCDate() + 1);
+        qb.andWhere('COALESCE(a.completedAt, a.scheduledAt) < :ato', { ato: to });
+      } else qb.andWhere('COALESCE(a.completedAt, a.scheduledAt) <= :ato', { ato: to });
+    }
+    const row = await qb.getRawOne();
+    return row?.avg === null || row?.avg === undefined ? null : Math.round(Number(row.avg) * 10) / 10;
+  }
+
   async kpis(q: PeriodQueryDto, now = new Date()) {
     // Incidents per month: requested period, default = last 12 months
     const perMonthQuery: PeriodQueryDto = q.from || q.to ? q : { from: new Date(now.getTime() - 365 * DAY).toISOString() };
@@ -158,7 +179,7 @@ export class StatsService {
       equipmentComplianceRate,
       trainingComplianceRate,
       correctiveActionsOverdue: await this.correctiveActions.countOverdue(now),
-      auditComplianceRate: null as number | null, // Phase 4 (audits)
+      auditComplianceRate: await this.auditComplianceRate(q),
     };
   }
 

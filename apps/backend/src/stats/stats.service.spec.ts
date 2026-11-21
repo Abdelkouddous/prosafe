@@ -10,14 +10,15 @@ const rawQb = (raw: any) => {
 };
 
 describe('StatsService', () => {
-  let incidentRepo: any, itemRepo: any, trainings: any, corrective: any, service: StatsService;
+  let incidentRepo: any, auditRepo: any, itemRepo: any, trainings: any, corrective: any, service: StatsService;
 
   beforeEach(() => {
     incidentRepo = { createQueryBuilder: jest.fn() };
     itemRepo = { createQueryBuilder: jest.fn() };
+    auditRepo = { createQueryBuilder: jest.fn().mockReturnValue(rawQb({ avg: '82.34' })) };
     trainings = { computeSkills: jest.fn() };
     corrective = { countOverdue: jest.fn().mockResolvedValue(4) };
-    service = new StatsService(incidentRepo, {} as any, itemRepo, {} as any, {} as any, trainings, corrective);
+    service = new StatsService(incidentRepo, {} as any, itemRepo, {} as any, {} as any, trainings, corrective, auditRepo);
   });
 
   it('percentage rounds to 1 decimal and is null on an empty population', () => {
@@ -40,7 +41,7 @@ describe('StatsService', () => {
       equipmentComplianceRate: 75,
       trainingComplianceRate: 75,
       correctiveActionsOverdue: 4,
-      auditComplianceRate: null,
+      auditComplianceRate: 82.3,
     });
   });
 
@@ -48,8 +49,9 @@ describe('StatsService', () => {
     incidentRepo.createQueryBuilder.mockReturnValueOnce(rawQb([])).mockReturnValueOnce(rawQb({ hours: null }));
     itemRepo.createQueryBuilder.mockReturnValue(rawQb({ total: '0', ok: '0' }));
     trainings.computeSkills.mockResolvedValue([]);
+    auditRepo.createQueryBuilder.mockReturnValue(rawQb({ avg: null }));
     const k = await service.kpis({});
-    expect(k).toMatchObject({ incidentsPerMonth: [], meanResolutionHours: null, equipmentComplianceRate: null, trainingComplianceRate: null });
+    expect(k).toMatchObject({ auditComplianceRate: null, incidentsPerMonth: [], meanResolutionHours: null, equipmentComplianceRate: null, trainingComplianceRate: null });
   });
 
   it('incidentsBy maps zone/department nulls to N/A in SQL and casts counts', async () => {

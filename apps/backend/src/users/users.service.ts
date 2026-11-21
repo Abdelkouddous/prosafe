@@ -6,6 +6,7 @@ import { UsersDTO } from './dto/create-user.dto';
 import { UpdateUserDto, ChangePasswordDto, ChangeRoleDto, AdminUpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Role } from './enums/role.enum';
+import { ListUsersQueryDto } from './dto/list-users.dto';
 import { Message } from '../messages/entities/message.entity';
 import { Incident } from '../incidents/entities/incident.entity';
 import { Alert } from '../alerts/entities/alert.entity';
@@ -44,6 +45,31 @@ export class UsersService {
    */
   async findAll(): Promise<User[]> {
     return this.usersRepository.find();
+  }
+
+  /**
+   * Paginated directory for managers (pickers): id, names, email, roles, department, zone, isActive.
+   * The password hash is never selected.
+   */
+  async list(q: ListUsersQueryDto) {
+    const page = q.page ?? 1;
+    const limit = q.limit ?? 20;
+    const qb = this.usersRepository
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.firstName', 'u.lastName', 'u.email', 'u.roles', 'u.department', 'u.zone', 'u.isActive'])
+      .orderBy('u.lastName', 'ASC', 'NULLS LAST')
+      .addOrderBy('u.firstName', 'ASC', 'NULLS LAST')
+      .addOrderBy('u.id', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+    if (q.role) qb.andWhere(":role = ANY(string_to_array(u.roles, ','))", { role: q.role });
+    if (q.department) qb.andWhere('u.department = :department', { department: q.department });
+    if (q.isActive !== undefined) qb.andWhere('u.isActive = :isActive', { isActive: q.isActive });
+    if (q.search) {
+      qb.andWhere('(u.firstName ILIKE :s OR u.lastName ILIKE :s OR u.email ILIKE :s)', { s: `%${q.search.replace(/[%_]/g, '\\$&')}%` });
+    }
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit };
   }
 
   /** Total number of users (used for the first-user-is-admin bootstrap) */

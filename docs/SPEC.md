@@ -21,67 +21,67 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 
 | ID | Requirement | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| A1 | Rewards for reporting incidents | B M | partial | Points on creation (severity + photo + location); no revocation, leaderboard or rewards screen. Backend done (Phase 3): `GET /rewards/me/summary` (totalPoints, rank, badge, nextBadgeAt), `GET /rewards/leaderboard?period=month|year|all`, points revoked (row kept, points=0) when status `closed` + `rejected:true`. UI pending |
-| A2 | Integrated messaging employees ↔ SST managers | B M A | partial | Admin broadcast inbox only; no employee→manager, no replies, no real-time; `GET /messages` leaks all messages; `my-messages` route shadowed. Backend done (Phase 3): `/conversations` (participants, lastReadAt/unreadCount, access limited to participants), notifications type `message`, Socket.IO `/ws` (`message:new`, `notification:new`). Legacy `/messages` untouched. UI pending |
-| A3 | Detailed incident reports for analysis | B A | partial | Backend done (Phase 3): `GET /reports/incidents?format=pdf|xlsx` (period/type/department). UI pending |
-| A4 | Evaluate incident severity and set corrective actions | B A | partial | Severity is reporter-chosen only; no corrective actions. Backend done (Phase 3): `PATCH /incidents/:id/evaluation` (gravity x probability -> riskScore, rootCause, evaluatedSeverity), `corrective-actions` module (owner notified, daily overdue cron), incident detail returns `evaluation` + `correctiveActions`. UI pending |
+| A1 | Rewards for reporting incidents | B M | done | Points on creation (severity + photo + location); no revocation, leaderboard or rewards screen. Backend done (Phase 3): `GET /rewards/me/summary` (totalPoints, rank, badge, nextBadgeAt), `GET /rewards/leaderboard?period=month|year|all`, points revoked (row kept, points=0) when status `closed` + `rejected:true`. Mobile done: `app/(extra)/rewards.tsx` (points, badge icon/color, progress, history, leaderboard month/year/all), linked from Home grid and Reports points card. Admin done: `/rewards` leaderboard (period tabs, badges); incident detail "Rejeter (clôturer)" = status closed + `rejected:true` with confirm dialog (points revoked) |
+| A2 | Integrated messaging employees ↔ SST managers | B M A | partial | Admin broadcast inbox only; no employee→manager, no replies, no real-time; `GET /messages` leaks all messages; `my-messages` route shadowed. Backend done (Phase 3): `/conversations` (participants, lastReadAt/unreadCount, access limited to participants), notifications type `message`, Socket.IO `/ws` (`message:new`, `notification:new`). Legacy `/messages` untouched. Mobile done: `(tabs)/messages.tsx` segments Conversations / Annonces (legacy `/messages/my-messages`, mark read), `conversation/[id].tsx` thread, `src/services/realtime.ts` socket (polling 15 s fallback), notification tap -> thread; employees only can start a conversation (managers need a recipient lookup endpoint that does not exist for them: `GET /users?search` missing). Admin done: `/messages` (conversation list + unread badges, thread, composer, new conversation, Socket.IO `message:new` + 15 s polling, mark read); unread total in manager sub-nav; legacy broadcast stays in AdminNotifications |
+| A3 | Detailed incident reports for analysis | B A | done | Backend done (Phase 3): `GET /reports/incidents?format=pdf|xlsx` (period/type/department). Admin done: `/reports` period presets + type/department filters, PDF/Excel download for incidents/equipment/trainings (+ risks/audits, 400 handled with a toast) |
+| A4 | Evaluate incident severity and set corrective actions | B A | done | Severity is reporter-chosen only; no corrective actions. Backend done (Phase 3): `PATCH /incidents/:id/evaluation` (gravity x probability -> riskScore, rootCause, evaluatedSeverity), `corrective-actions` module (owner notified, daily overdue cron), incident detail returns `evaluation` + `correctiveActions`. Mobile done (read-only): incident detail shows evaluation (risk score colored), corrective actions, and "Rejeté" for closed+rejected (derived from the reporter's `/rewards/me` row `incident_rejected`; not visible to other viewers). Admin done: incident detail sheet (evaluation form gravity x probability, root cause, evaluated severity; corrective actions list/add/status) + `/corrective-actions` board |
 
 ## 3. Fonctionnalités avancées complémentaires
 
 | ID | Requirement | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| C1.1 | Proactive identification of SST risks | B M A | missing | Mobile LMRA screen is fake (nothing submitted) |
-| C1.2 | Risk evaluation & prioritization (severity × probability) | B A | missing | |
-| C1.3 | Action plans to reduce/eliminate risks | B A | missing | |
-| C1.4 | Risk matrix visualization | A M | missing | |
-| C2.1 | Incident trend analysis over periods | B A | partial | Admin builds a by-month chart client-side (merges years, capped at 100). Backend done (Phase 3): `GET /stats/incidents?groupBy=month|type|severity|zone|department|status&from&to`. Admin UI pending |
-| C2.2 | Interactive KPI dashboard (incidents/month, mean resolution time, equipment compliance rate) | B A | partial | Most admin KPI cards are hardcoded. Backend done (Phase 3): `GET /stats/kpis` (incidentsPerMonth, meanResolutionHours, equipmentComplianceRate, trainingComplianceRate, correctiveActionsOverdue; auditComplianceRate null until Phase 4). Admin UI pending |
-| C2.3 | Forecasts from historical data | B A | partial | Backend done (Phase 3): `GET /stats/forecast?months=` (linear regression + 3-month moving average over 12 months). Admin UI pending |
-| C3.1 | Internal & external audit management | B A | missing | |
-| C3.2 | Continuous ISO 45001 compliance checks | B A | missing | |
-| C3.3 | History of corrective actions after audits | B A | missing | |
+| C1.1 | Proactive identification of SST risks | B M A | partial | Backend done (Phase 4): `/risks`, `POST/GET /risks/lmra` (uncontrolled hazards -> proposed risks, STOP notifies managers). Mobile LMRA screen still fake; admin UI pending |
+| C1.2 | Risk evaluation & prioritization (severity × probability) | B A | partial | Backend done: score = gravity x probability, level low/medium/high/critical, `PATCH /risks/:id/evaluate`, critical validated risk -> alert `risk` + managers. Admin UI pending |
+| C1.3 | Action plans to reduce/eliminate risks | B A | partial | Backend done: `/action-plans` + corrective actions with sourceType risk (daily overdue reminder). Admin UI pending |
+| C1.4 | Risk matrix visualization | A M | partial | Backend done: `GET /risks/matrix` (25 cells). Admin/mobile UI pending |
+| C2.1 | Incident trend analysis over periods | B A | done | Admin builds a by-month chart client-side (merges years, capped at 100). Backend done (Phase 3): `GET /stats/incidents?groupBy=month|type|severity|zone|department|status&from&to`. Admin done: `/reports` monthly trend from `/stats/incidents?groupBy=month` + by type/zone/severity |
+| C2.2 | Interactive KPI dashboard (incidents/month, mean resolution time, equipment compliance rate) | B A | done | Most admin KPI cards are hardcoded. Backend done (Phase 3): `GET /stats/kpis` (incidentsPerMonth, meanResolutionHours, equipmentComplianceRate, trainingComplianceRate, correctiveActionsOverdue; auditComplianceRate null until Phase 4). Admin done: dashboard overview rebuilt on `/stats/overview` + `/stats/kpis` (all mock data removed) |
+| C2.3 | Forecasts from historical data | B A | done | Backend done (Phase 3): `GET /stats/forecast?months=` (linear regression + 3-month moving average over 12 months). Admin done: dashed forecast series on `/reports` (`/stats/forecast`) |
+| C3.1 | Internal & external audit management | B A | partial | Backend done: `/audits` (calendar filters, 7d/1d reminders). Admin UI pending |
+| C3.2 | Continuous ISO 45001 compliance checks | B A | partial | Backend done: ISO 45001:2018 checklist template seeded (24 items), `PUT /audits/:id/responses` scoring, `auditComplianceRate` KPI. Admin UI pending |
+| C3.3 | History of corrective actions after audits | B A | partial | Backend done: `createActions` -> corrective actions (sourceType audit), listed in `GET /audits/:id`. Admin UI pending |
 | C4.1 | Automated SST training planning | B A | done | Backend done: `POST /trainings/auto-plan` lists users lacking valid mandatory trainings (+ next session) and notifies them. Admin: `/trainings/compliance` "Planifier automatiquement" (dryRun preview then confirm). |
 | C4.2 | Individual employee progress tracking | B M A | partial | Mobile: employee progress in "Mes formations" with expiry badges. |
 | C4.3 | Reports on acquired skills and future needs | B A | done | Backend done: `GET /trainings/skills-report?department` (acquired / expiring / missing). Admin: `/trainings/compliance` skills report table + department filter + summary cards. |
-| C5.1 | Predefined emergency response scenarios | B M A | missing | Only static text in mobile Information/Safety manual |
-| C5.2 | Real-time notifications to all parties on major incident | B M | partial | Backend push + in-app notifications done (Phase 2A); emergency trigger pending (Phase 4). Mobile client side done (expo-notifications, device registration, emergency channel, tap routing); needs EAS projectId + prebuild; backend trigger exists |
-| C5.3 | Evacuation drill planning & simulation | B A | missing | |
+| C5.1 | Predefined emergency response scenarios | B M A | partial | Backend done: `/emergency/scenarios` seeded with 4 FR scenarios. Mobile/admin UI pending |
+| C5.2 | Real-time notifications to all parties on major incident | B M | partial | Backend push + in-app notifications done (Phase 2A); emergency trigger done (`POST /emergency/trigger`, push channel `emergency`, Phase 4). Mobile client side done (expo-notifications, device registration, emergency channel, tap routing); needs EAS projectId + prebuild;  |
+| C5.3 | Evacuation drill planning & simulation | B A | partial | Backend done: `/emergency/drills`. Admin UI pending |
 
 ## 4. Interface — menus & sub-menus
 
 | ID | Menu / item | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| M0.1 | Home dashboard: total incidents, by status (pending / in progress / resolved), active alerts | M A | partial | Mobile employee home is a static grid; admin KPIs mostly hardcoded. Backend done (Phase 3): `GET /stats/overview` (role-aware). Clients pending |
-| M0.2 | Quick access: "Signaler un incident", "Voir les risques", "Accéder aux rapports" | M | partial | Only report/view incidents |
+| M0.1 | Home dashboard: total incidents, by status (pending / in progress / resolved), active alerts | M A | partial | Mobile done: Accueil shows greeting, my incidents total + by status and unread notifications (`GET /incidents?limit=1&status=`, `GET /notifications?unread=true&limit=1`); Phase 3: now one `GET /stats/overview` call, active-alerts card (red when > 0) and manager cards (critical open, low stock, overdue maintenance, expiring trainings). Admin done: overview cards incl. active alerts (`/stats/overview`) |
+| M0.2 | Quick access: "Signaler un incident", "Voir les risques", "Accéder aux rapports" | M | done | Mobile: Accueil quick-access buttons (report incident, risks placeholder `/(extra)/risks` until Phase 4, reports tab) + module grid + manager dashboard button |
 | M1.1 | Déclarer un incident (type, description, photos/videos, geolocation) | M A | partial | Backend done (see E1); admin/mobile UI pending; Mobile done (see E1.1); admin UI pending |
 | M1.2 | Incidents signalés by status + filters (date, location, type) | B M A | partial | Backend done: paginated `GET /incidents` with status/type/severity/from/to/zone/department/search/reporterId/lat,lng,radiusKm; admin UI done (`/incidents/manage`: filters, paginated table, map toggle); mobile UI pending; Mobile done: paginated list, status/type/period filters, search, pull-to-refresh |
 | M1.3 | Historique des incidents with resolution | B M A | partial | Backend done: `GET /incidents/:id` (numeric or INC- code) with media, ordered `incident_history`, reporter; `PATCH /incidents/:id/status {status, comment?}`; admin UI done (detail sheet: media via blob URLs, map, history timeline, status change with comment); mobile UI pending; Mobile done: `app/incident/[id].tsx` detail with media viewer, maps link, history timeline; admin UI pending |
-| M2.1 | Catalogue des risques (description, gravity, recommended solutions) | B M A | missing | |
-| M2.2 | Évaluation des risques (by employees or managers) | B M A | missing | |
-| M2.3 | Plans d'action (in progress / validated) | B A | missing | |
+| M2.1 | Catalogue des risques (description, gravity, recommended solutions) | B M A | partial | Backend done: `GET /risks` filters (status, level, zone, hazardCategory, search). Mobile/admin UI pending |
+| M2.2 | Évaluation des risques (by employees or managers) | B M A | partial | Backend done: employees propose (`proposed`), managers validate/evaluate. Mobile/admin UI pending |
+| M2.3 | Plans d'action (in progress / validated) | B A | partial | Backend done: `/action-plans` (planned / in_progress / completed / validated, progress). Admin UI pending |
 | M3.1 | Inventaire: equipment, state (functional / non-functional), location | B M A | done | Backend done: `condition` functional/non_functional.  Mobile: condition/location shown in list + detail. Admin: condition badge + location in `/equipment`. |
 | M3.2 | Maintenance & vérifications schedule | B A | done | Backend done: `/maintenance` (planned/overdue, complete updates item). Admin: `/equipment/maintenance` (overdue in red, planned grouped by week, create + complete dialogs, cancel). |
 | M3.3 | Maintenance history | B A | done | Backend done: history = `GET /maintenance?status=done`. Admin: `/equipment/history` (done maintenances, filter by item / dates). |
-| M4.1 | Interactive charts: incident frequency, risk types, most affected zones | B A | partial | Only incidents by month. Backend done (Phase 3): `GET /stats/incidents` groupBy month/type/zone/department. Admin charts pending |
-| M4.2 | Automatic reports PDF/Excel by period, incident type, department | B A | partial | No department field yet. Backend done (Phase 3): `GET /reports/{incidents|equipment|trainings}` PDF + XLSX (risks/audits -> 400 until Phase 4). Admin UI pending |
-| M4.3 | Statistical alerts on thresholds (e.g. sudden rise of an incident type) | B A | partial | Backend done (Phase 3): alert types are OHS values; daily 06:30 `incident_spike` rule + `critical_incident` alert on critical incident creation, managers notified (deduped). UI pending |
-| M5.1 | Audit planning calendar (internal/external) | B A | missing | |
-| M5.2 | Checklists (ISO 45001…) | B A | missing | |
-| M5.3 | Compliance documents storage (audit reports, certifications) | B A | missing | |
+| M4.1 | Interactive charts: incident frequency, risk types, most affected zones | B A | done | Only incidents by month. Backend done (Phase 3): `GET /stats/incidents` groupBy month/type/zone/department. Mobile done (managers): Reports tab charts from `/stats/incidents` month/type/zone, KPI cards from `/stats/kpis`, forecast mini-chart from `/stats/forecast`. Admin done: overview + `/reports` recharts (month, type donut, zone bar, status, severity) |
+| M4.2 | Automatic reports PDF/Excel by period, incident type, department | B A | done | No department field yet. Backend done (Phase 3): `GET /reports/{incidents|equipment|trainings}` PDF + XLSX (risks/audits -> 400 until Phase 4). Admin done: `/reports` downloads |
+| M4.3 | Statistical alerts on thresholds (e.g. sudden rise of an incident type) | B A | done | Backend done (Phase 3): alert types are OHS values; daily 06:30 `incident_spike` rule + `critical_incident` alert on critical incident creation, managers notified (deduped). Admin done: `/alerts` page (OHS types, severity/status filters, investigate/resolve/dismiss); type filter is client-side (backend has none) |
+| M5.1 | Audit planning calendar (internal/external) | B A | partial | Backend done: `GET /audits?from&to&status&type`. Admin UI pending |
+| M5.2 | Checklists (ISO 45001…) | B A | partial | Backend done: `GET/POST /audits/templates`, responses. Admin UI pending |
+| M5.3 | Compliance documents storage (audit reports, certifications) | B A | partial | Backend done: `/compliance-documents` (multipart, expiry reminders <= 30 days). Admin UI pending |
 | M6.1 | Training catalogue with description and schedule | B M A | done | Backend done: trainings + sessions with schedule.  Mobile: catalogue + upcoming sessions UI. Admin: catalogue `/trainings` + sessions list/create/edit/cancel `/trainings/sessions`. |
 | M6.2 | Employee enrollment | B M | done | Backend done: enroll / cancel with capacity check. Mobile: enroll / withdraw UI with places left. Admin: enrollments drawer on `/trainings/sessions` (manager enrolls a user; user list from `GET /auth/users`, admin-only -> falls back to skills-report users for sst_manager). |
 | M6.3 | Evaluations & participant progress | B M A | done | Backend done: `PATCH /trainings/enrollments/:id` status/score/progress, passed => expiresAt.  Mobile: "Mes formations" shows status, score, progress (read-only). Admin: enrollments drawer sets status/score/progress. |
-| M7.1 | User profile: personal info, role, preferences | B M A | partial | Mobile profile read-only |
+| M7.1 | User profile: personal info, role, preferences | B M A | partial | Mobile done: view/edit firstName, lastName, phone, department, zone (`GET/PATCH /users/profile`), role label, change password (`PATCH /users/change-password`), notification prefs, logout with confirmation. Admin profile pending. Feedback row hidden (Phase 5) |
 | M7.2 | Notification settings (incidents, trainings, audits) | B M A | partial | Backend done: `GET/PUT /notifications/preferences`, devices, list/read, Expo push + email dispatch (`NotificationsService`); admin UI done (header bell with 60s unread polling, Settings/Dashboard preferences via `/notifications/preferences`); mobile UI pending; Mobile done: preferences switches in Profil |
-| M7.3 | Language & accessibility (text size, high contrast) | M A | partial | i18n set up (fr/en/ar) but barely applied; no accessibility options; Arabic RTL not applied in admin |
+| M7.3 | Language & accessibility (text size, high contrast) | M A | partial | Mobile done: language selector fr/en/ar-DZ with RTL (`I18nManager`, manual restart prompt; expo-updates not installed), text size 1/1.15/1.3 and high contrast via `AccessibilityContext` + `useAppTheme`/`useThemedStyles` (applied to tabs, home, profile, reports, incidents, trainings, stock, notifications, messages, dashboard, extras). Admin pending (incl. Arabic RTL) |
 
 ## 5. Autres éléments d'interface
 
 | ID | Requirement | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| UI1 | Bottom navigation always visible: Accueil, Incidents, Rapports, Profil | M | partial | 7 tabs incl. Logout; no Rapports |
-| UI2 | Floating "+" button to report an incident / add a task | M | missing | |
-| UI3 | Minimalist theme: red/orange alerts, green validations | M A | partial | |
+| UI1 | Bottom navigation always visible: Accueil, Incidents, Rapports, Profil | M | done | Tabs Accueil / Incidents / Rapports / Profil; trainings/messages hidden (reachable from Accueil); logout moved to Profil. Rapports = personal stats for now (Phase 3 to add `/stats`) |
+| UI2 | Floating "+" button to report an incident / add a task | M | done | Center raised red "+" in tab bar opens `/incident/new` (formerly `(tabs)/incidents`) |
+| UI3 | Minimalist theme: red/orange alerts, green validations | M A | partial | Mobile: `Palette` in `src/constants/Colors.ts` (danger #DC2626, warning #F97316, success #16A34A) + high-contrast palette; some legacy screens (auth, news, lmra) still use ad-hoc colors. Admin pending |
 
 ## 6. Généralités
 
@@ -92,7 +92,7 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | G2 | Functional & user tests | B M A | partial | Backend: unit specs with mocked repos (roles guard, auth, users, incidents, messages, tasks) + e2e health-check; mobile/admin tests missing |
 | G3.1 | Technical documentation & user guide | — | missing | README is generic/boilerplate |
 | G3.2 | API documentation with Swagger | B | done | `/api/docs`, "PROSAFE API" v1.0, bearer auth, `@ApiTags`/`@ApiBearerAuth` on all controllers, `@ApiProperty` on all DTOs (response schemas not yet typed) |
-| G4 | In-app user feedback after deployment | B M A | missing | |
+| G4 | In-app user feedback after deployment | B M A | partial | Backend done: `POST /feedback`, `GET /feedback` (averageRating). Mobile/admin UI pending |
 | G5 | Ready for deployment (migrations, env, builds) | B M A | partial | Backend done: migrations (`Init`, `MapLegacyRoles`), `synchronize` off, `migrationsRun`, monorepo-root Dockerfile + compose, `.env.example` with placeholders, README. Existing prod DB must baseline `Init` (see backend README); `railway.json` untouched. Mobile identity set to `com.prosafe.app` + `eas.json` added (needs `expo prebuild`; release keystore still to do) |
 
 ## Roadmap (execution order)
