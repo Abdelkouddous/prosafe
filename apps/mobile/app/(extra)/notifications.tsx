@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { routeForNotification } from "@/services/push";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   AppNotification,
@@ -68,10 +69,7 @@ export default function NotificationsScreen() {
 
   const open = async (n: AppNotification) => {
     markRead(n);
-    const incidentId = n.data?.incidentId;
-    if (incidentId !== undefined && incidentId !== null && incidentId !== "") {
-      router.push({ pathname: "/incident/[id]", params: { id: String(incidentId) } });
-    }
+    routeForNotification(n.type, n.data);
   };
 
   const markAll = async () => {
