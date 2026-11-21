@@ -10,8 +10,8 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 
 | ID | Requirement | Apps | Status | Gap notes (v1.0.0) |
 |---|---|---|---|---|
-| E1.1 | Employees report incidents with description, **photos, videos**, etc. | B M | partial | Backend done (Phase 2A): multipart `media[]` up to 5 images/videos on disk (`stored_file`, `incident_media`), notes/date/zone/department honoured. Mobile still sends a single photo; no video/camera yet |
-| E1.2 | Precise geolocation of incident | B M | partial | Backend stores latitude/longitude or manualAddress (flat multipart fields) and filters by radius. Mobile: `app.json` lacks location/image-picker permission plugins |
+| E1.1 | Employees report incidents with description, **photos, videos**, etc. | B M | partial | Backend done (Phase 2A): multipart `media[]` up to 5 images/videos on disk (`stored_file`, `incident_media`), notes/date/zone/department honoured. Mobile still sends a single photo; no video/camera yet; Mobile done: report form with photo/video capture, gallery multi-select (max 5, size/type checks), upload progress, reward points shown, full reset |
+| E1.2 | Precise geolocation of incident | B M | partial | Backend stores latitude/longitude or manualAddress (flat multipart fields) and filters by radius. Mobile: `app.json` lacks location/image-picker permission plugins; Mobile done: auto GPS + reverse geocode with manual address fallback; location plugins already in app.json |
 | E2.1 | Track available safety equipment | B M A | partial | Inventory CRUD works; categories are generic (electronics, furniture…) |
 | E2.2 | Notification when equipment out of stock | B M A | missing | Status recomputed on update only; no notification, no cron |
 | E3.1 | Manage employee SST trainings | B M A | partial | Implemented on top of `tasks`; no per-user enrollment |
@@ -44,7 +44,7 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | C4.2 | Individual employee progress tracking | B M A | missing | |
 | C4.3 | Reports on acquired skills and future needs | B A | missing | |
 | C5.1 | Predefined emergency response scenarios | B M A | missing | Only static text in mobile Information/Safety manual |
-| C5.2 | Real-time notifications to all parties on major incident | B M | missing | No push infrastructure (no expo-notifications) |
+| C5.2 | Real-time notifications to all parties on major incident | B M | partial | Backend push + in-app notifications done (Phase 2A); emergency trigger pending (Phase 4). Mobile client side done (expo-notifications, device registration, emergency channel, tap routing); needs EAS projectId + prebuild; backend trigger exists |
 | C5.3 | Evacuation drill planning & simulation | B A | missing | |
 
 ## 4. Interface — menus & sub-menus
@@ -53,9 +53,9 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 |---|---|---|---|---|
 | M0.1 | Home dashboard: total incidents, by status (pending / in progress / resolved), active alerts | M A | partial | Mobile employee home is a static grid; admin KPIs mostly hardcoded |
 | M0.2 | Quick access: "Signaler un incident", "Voir les risques", "Accéder aux rapports" | M | partial | Only report/view incidents |
-| M1.1 | Déclarer un incident (type, description, photos/videos, geolocation) | M A | partial | Backend done (see E1); admin/mobile UI pending |
-| M1.2 | Incidents signalés by status + filters (date, location, type) | B M A | partial | Backend done: paginated `GET /incidents` with status/type/severity/from/to/zone/department/search/reporterId/lat,lng,radiusKm; admin/mobile UI pending |
-| M1.3 | Historique des incidents with resolution | B M A | partial | Backend done: `GET /incidents/:id` (numeric or INC- code) with media, ordered `incident_history`, reporter; `PATCH /incidents/:id/status {status, comment?}`; admin/mobile UI pending |
+| M1.1 | Déclarer un incident (type, description, photos/videos, geolocation) | M A | partial | Backend done (see E1); admin/mobile UI pending; Mobile done (see E1.1); admin UI pending |
+| M1.2 | Incidents signalés by status + filters (date, location, type) | B M A | partial | Backend done: paginated `GET /incidents` with status/type/severity/from/to/zone/department/search/reporterId/lat,lng,radiusKm; admin UI done (`/incidents/manage`: filters, paginated table, map toggle); mobile UI pending; Mobile done: paginated list, status/type/period filters, search, pull-to-refresh |
+| M1.3 | Historique des incidents with resolution | B M A | partial | Backend done: `GET /incidents/:id` (numeric or INC- code) with media, ordered `incident_history`, reporter; `PATCH /incidents/:id/status {status, comment?}`; admin UI done (detail sheet: media via blob URLs, map, history timeline, status change with comment); mobile UI pending; Mobile done: `app/incident/[id].tsx` detail with media viewer, maps link, history timeline; admin UI pending |
 | M2.1 | Catalogue des risques (description, gravity, recommended solutions) | B M A | missing | |
 | M2.2 | Évaluation des risques (by employees or managers) | B M A | missing | |
 | M2.3 | Plans d'action (in progress / validated) | B A | missing | |
@@ -72,7 +72,7 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | M6.2 | Employee enrollment | B M | missing | `currentParticipants` never incremented |
 | M6.3 | Evaluations & participant progress | B M A | missing | |
 | M7.1 | User profile: personal info, role, preferences | B M A | partial | Mobile profile read-only |
-| M7.2 | Notification settings (incidents, trainings, audits) | B M A | partial | Backend done: `GET/PUT /notifications/preferences`, devices, list/read, Expo push + email dispatch (`NotificationsService`); admin/mobile UI pending |
+| M7.2 | Notification settings (incidents, trainings, audits) | B M A | partial | Backend done: `GET/PUT /notifications/preferences`, devices, list/read, Expo push + email dispatch (`NotificationsService`); admin UI done (header bell with 60s unread polling, Settings/Dashboard preferences via `/notifications/preferences`); mobile UI pending; Mobile done: preferences switches in Profil |
 | M7.3 | Language & accessibility (text size, high contrast) | M A | partial | i18n set up (fr/en/ar) but barely applied; no accessibility options; Arabic RTL not applied in admin |
 
 ## 5. Autres éléments d'interface
