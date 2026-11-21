@@ -1,4 +1,5 @@
 import api from "./api";
+import type { CorrectiveAction } from "./correctiveActionApi";
 
 export type IncidentStatus = "open" | "investigating" | "resolved" | "closed";
 export type IncidentType =
@@ -54,6 +55,23 @@ export interface IncidentHistoryEntry {
   changedBy?: PersonRef | null;
 }
 
+export interface IncidentEvaluation {
+  gravity: number;
+  probability: number;
+  riskScore: number;
+  rootCause?: string | null;
+  evaluatedSeverity?: IncidentSeverity | null;
+  evaluatedAt: string;
+  evaluatedBy?: PersonRef | null;
+}
+
+export interface EvaluationInput {
+  gravity: number;
+  probability: number;
+  rootCause?: string;
+  evaluatedSeverity?: IncidentSeverity;
+}
+
 export interface Incident {
   id: number;
   incidentId: string;
@@ -72,6 +90,8 @@ export interface Incident {
   resolver?: PersonRef | null;
   media: IncidentMedia[];
   history?: IncidentHistoryEntry[];
+  evaluation?: IncidentEvaluation | null;
+  correctiveActions?: CorrectiveAction[];
   createdAt: string;
   resolvedAt?: string | null;
 }
@@ -134,11 +154,20 @@ export const incidentApi = {
 
   get: (id: number | string) => api.get<Incident>(`/incidents/${id}`),
 
-  updateStatus: (id: number | string, status: IncidentStatus, comment?: string) =>
+  updateStatus: (
+    id: number | string,
+    status: IncidentStatus,
+    comment?: string,
+    rejected?: boolean
+  ) =>
     api.patch<Incident>(`/incidents/${id}/status`, {
       status,
       ...(comment ? { comment } : {}),
+      ...(rejected ? { rejected: true } : {}),
     }),
+
+  evaluate: (id: number | string, input: EvaluationInput) =>
+    api.patch<Incident>(`/incidents/${id}/evaluation`, input),
 
   create: (input: CreateIncidentInput) => {
     const fd = new FormData();

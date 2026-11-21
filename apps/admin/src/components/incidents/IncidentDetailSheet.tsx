@@ -21,6 +21,16 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   getIncidentCoords,
   incidentApi,
   type Incident,
@@ -32,6 +42,8 @@ import {
   statusClasses,
 } from "./incidentUi";
 import IncidentMap from "./IncidentMap";
+import EvaluationPanel from "./EvaluationPanel";
+import CorrectiveActionsPanel from "./CorrectiveActionsPanel";
 import MediaGallery from "./MediaGallery";
 
 interface Props {
@@ -55,6 +67,7 @@ const IncidentDetailSheet = ({ incidentId, onClose, onChanged }: Props) => {
   const [saving, setSaving] = useState(false);
   const [newStatus, setNewStatus] = useState<IncidentStatus | "">("");
   const [comment, setComment] = useState("");
+  const [confirmReject, setConfirmReject] = useState(false);
 
   const load = useCallback(async () => {
     if (incidentId == null) return;
@@ -97,6 +110,27 @@ const IncidentDetailSheet = ({ incidentId, onClose, onChanged }: Props) => {
         description: Array.isArray(msg) ? msg.join(", ") : msg,
         variant: "destructive",
       });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const reject = async () => {
+    if (!incident) return;
+    setSaving(true);
+    try {
+      await incidentApi.updateStatus(
+        incident.id,
+        "closed",
+        comment.trim() || undefined,
+        true
+      );
+      toast({ title: t("incidents.rejected") });
+      setConfirmReject(false);
+      await load();
+      onChanged();
+    } catch {
+      toast({ title: t("incidents.statusUpdateError"), variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -198,6 +232,14 @@ const IncidentDetailSheet = ({ incidentId, onClose, onChanged }: Props) => {
               )}
             </div>
 
+            <EvaluationPanel incident={incident} onSaved={() => { load(); onChanged(); }} />
+
+            <CorrectiveActionsPanel
+              incidentId={incident.id}
+              actions={incident.correctiveActions ?? []}
+              onChanged={load}
+            />
+
             <div className="border-t pt-4 space-y-3">
               <Label>{t("incidents.changeStatus")}</Label>
               {options.length === 0 ? (
@@ -232,8 +274,42 @@ const IncidentDetailSheet = ({ incidentId, onClose, onChanged }: Props) => {
                 </>
               )}
             </div>
+
+            {incident.status !== "closed" && (
+              <div className="border-t pt-4">
+                <Button
+                  variant="outline"
+                  className="border-red-300 text-red-700 hover:bg-red-50"
+                  onClick={() => setConfirmReject(true)}
+                  disabled={saving}
+                >
+                  {t("incidents.reject")}
+                </Button>
+              </div>
+            )}
           </div>
         )}
+
+        <AlertDialog open={confirmReject} onOpenChange={setConfirmReject}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("incidents.rejectTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("incidents.rejectDescription")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600 hover:bg-red-700"
+                onClick={(e) => {
+                  e.preventDefault();
+                  reject();
+                }}
+              >
+                {t("incidents.rejectConfirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

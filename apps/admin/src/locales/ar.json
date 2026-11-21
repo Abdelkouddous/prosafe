@@ -18,7 +18,12 @@
     "services": "خدمات",
     "contact": "اتصال",
     "equipment": "المعدات",
-    "trainings": "التكوينات"
+    "trainings": "التكوينات",
+    "correctiveActions": "الإجراءات التصحيحية",
+    "alerts": "التنبيهات",
+    "reports": "التقارير",
+    "messages": "الرسائل",
+    "rewards": "المكافآت"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -187,7 +192,8 @@
     "email": "بريد إلكتروني",
     "role": "دور",
     "status": "حالة",
-    "lastLogin": "تسجيل الدخول"
+    "lastLogin": "تسجيل الدخول",
+    "select": "اختر مستخدماً"
   },
   "training": {
     "title": "تمرين",
@@ -260,7 +266,12 @@
       "near_miss": "حادث وشيك",
       "equipment_failure": "عطل المعدات",
       "other": "أخرى"
-    }
+    },
+    "reject": "رفض (إغلاق)",
+    "rejected": "تم رفض البلاغ وإغلاقه",
+    "rejectTitle": "رفض هذا البلاغ؟",
+    "rejectDescription": "سيتم إغلاق الحادث كمرفوض وسحب نقاط المكافأة الممنوحة للمبلّغ عنه. لا يمكن التراجع عن هذا الإجراء.",
+    "rejectConfirm": "رفض وإغلاق"
   },
   "incidentReport": {
     "invalidLat": "خط العرض غير صالح (من -90 إلى 90).",
@@ -580,5 +591,198 @@
       "load": "تعذر تحميل التقرير",
       "plan": "تعذر تشغيل البرمجة التلقائية"
     }
+  },
+  "overview": {
+    "loadError": "تعذر تحميل بيانات لوحة القيادة",
+    "noZone": "بدون منطقة",
+    "noData": "لا توجد بيانات لهذه الفترة",
+    "recent": "أحدث الحوادث",
+    "viewAll": "عرض الكل",
+    "quick": {
+      "report": "الإبلاغ عن حادث",
+      "risks": "المخاطر",
+      "reports": "التقارير"
+    },
+    "kpi": {
+      "total": "إجمالي الحوادث",
+      "open": "مفتوحة",
+      "investigating": "قيد التحقيق",
+      "resolved": "تمت المعالجة",
+      "criticalOpen": "حرجة مفتوحة",
+      "activeAlerts": "التنبيهات النشطة",
+      "meanResolution": "متوسط مدة المعالجة",
+      "actionsOverdue": "إجراءات تصحيحية متأخرة",
+      "equipmentCompliance": "مطابقة المعدات",
+      "trainingCompliance": "مطابقة التكوينات",
+      "lowStock": "مواد منخفضة المخزون",
+      "overdueMaintenance": "صيانة متأخرة",
+      "expiringTrainings": "تكوينات قاربت على الانتهاء"
+    },
+    "charts": {
+      "perMonth": "الحوادث حسب الشهر",
+      "byType": "الحوادث حسب النوع",
+      "byZone": "الحوادث حسب المنطقة",
+      "byStatus": "الحوادث حسب الحالة"
+    }
+  },
+  "reports": {
+    "title": "التقارير والتحليلات",
+    "subtitle": "اتجاهات الحوادث ومؤشرات الأداء والتوقعات والتصدير",
+    "loadError": "تعذر تحميل الإحصائيات",
+    "unavailable": "التقرير غير متاح بعد",
+    "downloadError": "فشل التنزيل",
+    "presets": {
+      "30d": "30 يوماً",
+      "90d": "90 يوماً",
+      "12m": "12 شهراً",
+      "year": "هذه السنة",
+      "custom": "مخصص"
+    },
+    "allDepartments": "كل الأقسام",
+    "filtersNote": "تنطبق الفترة على الرسوم البيانية والتصدير؛ أما النوع والقسم فينطبقان على التصدير.",
+    "download": "تنزيل التقارير",
+    "phase4Note": "ستتوفر تقارير المخاطر والتدقيق مع الوحدات الخاصة بها.",
+    "kinds": {
+      "incidents": "الحوادث",
+      "equipment": "المعدات",
+      "trainings": "التكوينات",
+      "risks": "المخاطر",
+      "audits": "التدقيق"
+    },
+    "kpi": {
+      "incidents": "الحوادث في الفترة"
+    },
+    "charts": {
+      "trend": "الاتجاه الشهري والتوقعات",
+      "actual": "الفعلي",
+      "forecast": "التوقع",
+      "bySeverity": "حسب الخطورة"
+    },
+    "methods": {
+      "linear_regression": "الانحدار الخطي",
+      "moving_average": "المتوسط المتحرك"
+    }
+  },
+  "evaluation": {
+    "title": "التقييم",
+    "score": "درجة الخطر",
+    "levels": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "critical": "حرج"
+    },
+    "by": "قيّمه {{name}} بتاريخ {{date}}",
+    "gravity": "الخطورة (1-5)",
+    "probability": "الاحتمال (1-5)",
+    "computed": "درجة الخطر:",
+    "rootCause": "السبب الجذري",
+    "evaluatedSeverity": "الخطورة المقيّمة",
+    "keepReported": "الإبقاء على الخطورة المصرّح بها",
+    "save": "حفظ التقييم",
+    "saved": "تم حفظ التقييم",
+    "saveError": "تعذر حفظ التقييم"
+  },
+  "actions": {
+    "title": "الإجراءات التصحيحية",
+    "add": "إضافة",
+    "titlePlaceholder": "عنوان الإجراء",
+    "description": "الوصف",
+    "owner": "المسؤول",
+    "dueDate": "تاريخ الاستحقاق",
+    "due": "الاستحقاق",
+    "overdue": "متأخر",
+    "unassigned": "غير مسند",
+    "empty": "لا توجد إجراءات تصحيحية",
+    "created": "تم إنشاء الإجراء التصحيحي",
+    "saveError": "تعذر حفظ الإجراء التصحيحي",
+    "loadError": "تعذر تحميل الإجراءات التصحيحية",
+    "statuses": {
+      "todo": "للإنجاز",
+      "in_progress": "قيد التنفيذ",
+      "done": "منجز",
+      "cancelled": "ملغى"
+    },
+    "pageTitle": "الإجراءات التصحيحية",
+    "pageSubtitle": "متابعة الإجراءات الناتجة عن الحوادث والمخاطر والتدقيق",
+    "source": "المصدر",
+    "allSources": "كل المصادر",
+    "allOwners": "كل المسؤولين",
+    "sources": {
+      "incident": "حادث",
+      "risk": "خطر",
+      "audit": "تدقيق"
+    },
+    "confirmDelete": "حذف هذا الإجراء التصحيحي؟"
+  },
+  "messaging": {
+    "title": "المراسلة",
+    "subtitle": "المحادثات مع الموظفين ومسؤولي السلامة والصحة المهنية",
+    "new": "محادثة جديدة",
+    "empty": "لا توجد محادثات",
+    "select": "اختر محادثة",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "system": "النظام",
+    "loadError": "تعذر تحميل الرسائل",
+    "sendError": "تعذر إرسال الرسالة",
+    "createError": "تعذر إنشاء المحادثة",
+    "recipient": "المستلم",
+    "subject": "الموضوع",
+    "message": "الرسالة"
+  },
+  "rewards": {
+    "title": "المكافآت",
+    "subtitle": "ترتيب المبلّغين عن الحوادث",
+    "periods": {
+      "month": "هذا الشهر",
+      "year": "هذه السنة",
+      "all": "منذ البداية"
+    },
+    "rank": "الترتيب",
+    "badge": "الشارة",
+    "points": "النقاط",
+    "empty": "لا توجد نقاط ممنوحة لهذه الفترة",
+    "loadError": "تعذر تحميل الترتيب",
+    "badges": {
+      "bronze": "برونزية",
+      "silver": "فضية",
+      "gold": "ذهبية",
+      "platinum": "بلاتينية"
+    }
+  },
+  "alerts": {
+    "title": "التنبيهات",
+    "subtitle": "تنبيهات إحصائية وتشغيلية",
+    "active": "{{count}} تنبيه نشط",
+    "loadError": "تعذر تحميل التنبيهات",
+    "updated": "تم تحديث التنبيه",
+    "updateError": "تعذر تحديث التنبيه",
+    "confirmDelete": "حذف هذا التنبيه؟",
+    "empty": "لا توجد تنبيهات",
+    "statuses": {
+      "unresolved": "غير معالج",
+      "investigating": "قيد التحقيق",
+      "resolved": "تمت المعالجة",
+      "dismissed": "متجاهل"
+    },
+    "types": {
+      "incident_spike": "ارتفاع الحوادث",
+      "critical_incident": "حادث حرج",
+      "stock": "المخزون",
+      "maintenance": "الصيانة",
+      "training": "التكوين",
+      "emergency": "طوارئ",
+      "compliance": "المطابقة",
+      "risk": "خطر",
+      "system": "النظام"
+    },
+    "affectedUser": "المستخدم المعني",
+    "resolvedBy": "عالجه {{name}} بتاريخ {{date}}",
+    "investigate": "تحقيق",
+    "resolve": "معالجة",
+    "dismiss": "تجاهل",
+    "previous": "السابق",
+    "next": "التالي"
   }
 }

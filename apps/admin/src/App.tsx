@@ -26,6 +26,11 @@ import MaintenanceHistory from "./pages/equipment/MaintenanceHistory";
 import TrainingCatalogue from "./pages/trainings/TrainingCatalogue";
 import TrainingSessions from "./pages/trainings/TrainingSessions";
 import TrainingCompliance from "./pages/trainings/TrainingCompliance";
+import Reports from "./pages/reports/Reports";
+import CorrectiveActions from "./pages/actions/CorrectiveActions";
+import Messaging from "./pages/messages/Messaging";
+import Rewards from "./pages/rewards/Rewards";
+import Alerts from "./pages/alerts/Alerts";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
@@ -37,8 +42,6 @@ import Terms from "./pages/Terms";
 
 import Updates from "./pages/Updates";
 
-// Component imports
-import Messages from "./components/Messages";
 import Services from "./pages/Services";
 
 const queryClient = new QueryClient();
@@ -87,13 +90,17 @@ function App() {
                 <Route path="/trainings/sessions" element={<TrainingSessions />} />
                 <Route path="/trainings/compliance" element={<TrainingCompliance />} />
                 <Route path="/incidents/manage" element={<IncidentsManagement />} />
+                <Route path="/corrective-actions" element={<CorrectiveActions />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/alerts" element={<Alerts />} />
+                <Route path="/messages" element={<Messaging />} />
+                <Route path="/rewards" element={<Rewards />} />
               </Route>
 
               {/* Protected routes for authenticated users */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/incidents" element={<IncidentReport />} />
-                <Route path="/messages" element={<Messages />} />
                 <Route path="/settings" element={<Settings />} />
               </Route>
 

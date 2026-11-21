@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { disconnectSocket } from "@/services/socket";
 import api from "@/services/api";
 import { setToken, getToken, removeToken } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
@@ -113,6 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
+    disconnectSocket();
     clearAuth();
     setUser(null);
   };

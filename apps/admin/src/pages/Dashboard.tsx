@@ -10,37 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ResponsiveContainer,
-  LineChart,
-  PieChart,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  Cell,
-  Pie,
-  Line,
-  BarChart,
-  Bar,
-} from "recharts";
-import {
   Shield,
   Bell,
   Settings,
   Home,
   Users,
   Lock,
-  FileText,
   LogOut,
   Menu,
   X,
   ChevronDown,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  UserCheck,
-  UserX,
   CheckCircle,
   ShieldCheck,
   Trash2,
@@ -48,28 +27,20 @@ import {
   LockOpen,
   MessageSquare,
   AlertTriangle,
-  Activity,
   User,
   Box,
-  Search,
-  PlusCircle,
-  RefreshCw,
-  MinusCircle,
-  Package,
   GraduationCap,
   Send,
+  ClipboardCheck,
+  BarChart3,
+  Trophy,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import api from "@/services/api";
 
 import { useToast } from "@/components/ui/use-toast";
-// import { alertApi, Alert, AlertStats } from "@/services/alertApi";
-import {
-  incidentApi,
-  Incident as BackendIncident,
-} from "@/services/incidentApi";
-
+// 
 import {
   Table,
   TableBody,
@@ -86,9 +57,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import Messages from "@/components/Messages";
 
 // inventory stats card (full inventory lives at /equipment)
 import { inventoryApi, InventoryStats } from "@/services/inventoryApi";
@@ -97,18 +67,17 @@ import NotificationBell from "@/components/NotificationBell";
 import NotificationSettings from "@/components/NotificationSettings";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
-import { alertApi, Alert, AlertStats } from "@/services/alertApi";
 import AdminNotifications from "@/components/AdminNotifications";
+import Overview from "@/components/dashboard/Overview";
+import { statsApi } from "@/services/statsApi";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 interface User {
   id: number;
   firstName: string;
@@ -118,188 +87,9 @@ interface User {
   roles: string[];
 }
 
-// interface Message {
-//   id: number;
-//   sender: string;
-//   avatar: string;
-//   content: string;
-//   timestamp: string;
-//   unread: boolean;
-// }
-
-// Define a more accurate interface for messages fetched from the backend
-interface BackendMessage {
-  id: number;
-  content: string;
-  created_at: string; // ISO date string
-  status: string; // e.g., 'unread', 'read'
-  sender?: {
-    id: number;
-    firstName?: string;
-    lastName?: string;
-    email: string;
-  } | null;
-  system_sender?: string; // For system messages like "Prosafe Admin"
-  recipient?: {
-    id: number;
-    firstName?: string;
-    lastName?: string;
-    email: string;
-  };
-}
-
-const securityScoreData = [
-  { name: "Jan", score: 65 },
-  { name: "Feb", score: 68 },
-];
-
-const threatData = [
-  { name: "Malware", value: 35 },
-  { name: "Phishing", value: 25 },
-];
-
-// const incidentTrendData = [
-//   { name: "Mon", incidents: 5 },
-//   { name: "Tue", incidents: 8 },
-//   { name: "Sun", incidents: 2 },
-// ];
-
-// Add this function to process incident data by month
-const getIncidentsByMonth = (incidents: BackendIncident[]) => {
-  const monthlyData: { [key: string]: number } = {};
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  // Initialize all months with 0
-  months.forEach((month) => {
-    monthlyData[month] = 0;
-  });
-
-  // Count incidents by month
-  incidents.forEach((incident) => {
-    if (incident.createdAt) {
-      const date = new Date(incident.createdAt);
-      if (!isNaN(date.getTime())) {
-        const month = months[date.getMonth()];
-        monthlyData[month]++;
-      }
-    }
-  });
-
-  // Convert to array format for recharts
-  return months.map((month) => ({
-    month,
-    incidents: monthlyData[month],
-  }));
-};
-
-const THREAT_COLORS = ["#0d47a1", "#1976d2", "#2196f3", "#64b5f6", "#bbdefb"];
-const INCIDENT_COLORS = {
-  low: "#4CAF50",
-  medium: "#FFC107",
-  high: "#FF9800",
-  critical: "#F44336",
-};
-
-// const incidentLogs: Incident[] = [
-//   {
-//     id: 1,
-//     title: "Unauthorized Access Attempt",
-//     type: "Authentication",
-//     status: "investigating",
-//     severity: "high",
-//     timestamp: "2023-06-15T14:32:00Z",
-//     assignedTo: "John Smith",
-//   },
-//   {
-//     id: 2,
-//     title: "Database Connection Issues",
-//     type: "Infrastructure",
-//     status: "open",
-//     severity: "medium",
-//     timestamp: "2023-06-15T10:15:00Z",
-//     assignedTo: "Sarah Johnson",
-//   },
-//   {
-//     id: 3,
-//     title: "Suspicious File Upload",
-//     type: "Malware",
-//     status: "investigating",
-//     severity: "critical",
-//     timestamp: "2023-06-14T18:45:00Z",
-//     assignedTo: "Michael Chen",
-//   },
-//   {
-//     id: 4,
-//     title: "Network Latency Spike",
-//     type: "Performance",
-//     status: "resolved",
-//     severity: "low",
-//     timestamp: "2023-06-14T09:20:00Z",
-//     assignedTo: "Emma Davis",
-//   },
-//   {
-//     id: 5,
-//     title: "Failed Backup Job",
-//     type: "Data",
-//     status: "open",
-//     severity: "medium",
-//     timestamp: "2023-06-13T22:10:00Z",
-//     assignedTo: "Robert Wilson",
-//   },
-// ];
-
-// const recentMessages: Message[] = [
-//   {
-//     id: 1,
-//     sender: "John Smith",
-//     avatar: "/avatars/john-smith.jpg",
-//     content:
-//       "I've completed the security audit report. Please review when you get a chance.",
-//     timestamp: "10 min ago",
-//     unread: true,
-//   },
-//   {
-//     id: 2,
-//     sender: "Security Team",
-//     avatar: "/avatars/security-team.png",
-//     content:
-//       "Reminder: All admins must complete the new security training by Friday.",
-//     timestamp: "2 hours ago",
-//     unread: false,
-//   },
-//   {
-//     id: 3,
-//     sender: "Sarah Johnson",
-//     avatar: "/avatars/sarah-johnson.jpg",
-//     content: "The firewall update has been scheduled for tonight at 10 PM.",
-//     timestamp: "4 hours ago",
-//     unread: false,
-//   },
-//   {
-//     id: 4,
-//     sender: "System Alert",
-//     avatar: "/avatars/system-alert.png",
-//     content: "New security patch available for deployment.",
-//     timestamp: "1 day ago",
-//     unread: false,
-//   },
-// ];
 
 const Dashboard = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -308,18 +98,6 @@ const Dashboard = () => {
   const [openRoleDialog, setOpenRoleDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
-  const [newMessage, setNewMessage] = useState("");
-  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
-  const [alertStats, setAlertStats] = useState<AlertStats>({
-    total: 0,
-    unresolved: 0,
-    resolved: 0,
-    monitoring: 0,
-    critical: 0,
-    high: 0,
-  });
-  const [latestMessages, setLatestMessages] = useState<BackendMessage[]>([]);
-  const [incidents, setIncidents] = useState<BackendIncident[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   // This is the inventory management concept
   const [inventoryStats, setInventoryStats] = useState<InventoryStats | null>(
@@ -339,93 +117,25 @@ const Dashboard = () => {
     confirmPassword: "",
   });
 
-  const [incidentStats, setIncidentStats] = useState({
-    total: 0,
-    open: 0,
-    investigating: 0,
-    critical: 0,
-  });
+  const [incidentStats, setIncidentStats] = useState({ open: 0, investigating: 0 });
+  const unreadMessageCount = useUnreadMessages();
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const isAdmin = !!user?.roles?.includes("admin");
 
-  // Calculate unread message count from backend messages
-  const unreadMessageCount = latestMessages.filter(
-    (msg) => msg.status === "unread"
-  ).length;
-
-
-
   useEffect(() => {
-    // Only fetch alerts when on alerts tab
-    if (activeTab === "alerts") {
-      const fetchAlerts = async () => {
-        try {
-          const [alertsResponse, statsResponse] = await Promise.all([
-            alertApi.getAlerts(1, 10), // Get latest 10 alerts for alerts page
-            alertApi.getAlertStats(),
-          ]);
-          setRecentAlerts(alertsResponse.data.alerts);
-          setAlertStats(statsResponse.data);
-        } catch (error) {
-          console.error("Error fetching alerts:", error);
-        }
-      };
-
-      fetchAlerts();
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    // Fetch incidents for dashboard overview
-    fetchIncidents();
+    statsApi
+      .overview()
+      .then((res) =>
+        setIncidentStats({
+          open: res.data.incidents.open,
+          investigating: res.data.incidents.investigating,
+        })
+      )
+      .catch(() => undefined);
   }, []);
-
-  const fetchIncidents = async () => {
-    try {
-      const response = await incidentApi.list({ page: 1, limit: 100 });
-      const incidentData: BackendIncident[] = response.data.data;
-
-      setIncidents(incidentData);
-
-      // Calculate stats
-      const stats = {
-        total: response.data.total,
-        open: incidentData.filter((i: BackendIncident) => i.status === "open")
-          .length,
-        investigating: incidentData.filter(
-          (i: BackendIncident) => i.status === "investigating"
-        ).length,
-        critical: incidentData.filter(
-          (i: BackendIncident) => i.severity === "critical"
-        ).length,
-      };
-      setIncidentStats(stats);
-    } catch (error) {
-      console.error("Error fetching incidents:", error);
-    }
-  };
-
-  useEffect(() => {
-    // here we fetch the messages received from the users and admins
-    const fetchLatestMessages = async () => {
-      try {
-        const response = await api.get<BackendMessage[]>("/messages");
-        setLatestMessages(response.data);
-      } catch (error) {
-        console.error("Error fetching latest messages:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load latest messages",
-          variant: "destructive",
-        });
-      }
-    };
-
-    fetchLatestMessages();
-  }, [toast]); // Added toast to dependency array as it's used inside
 
   useEffect(() => {
     if (activeTab === "users") {
@@ -571,23 +281,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (newMessage.trim()) {
-      // In a real app, you would send this to your backend
-      await api.post("/messages", {
-        subject: "Prosafe Admin",
-        content: newMessage,
-        sender_id: user?.id,
-      });
-
-      toast({
-        title: "Message sent",
-        description: "Your message has been sent to the team",
-      });
-      setNewMessage("");
-    }
-  };
-
   const handleProfileUpdate = async () => {
     try {
       setLoading(true);
@@ -666,80 +359,6 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "text-red-500 bg-red-50";
-      case "medium":
-        return "text-amber-500 bg-amber-50";
-      case "low":
-        return "text-green-500 bg-green-50";
-      default:
-        return "text-gray-500 bg-gray-50";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "unresolved":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case "resolved":
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case "monitoring":
-        return <Clock className="h-4 w-4 text-amber-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const getIncidentStatusColor = (status: string) => {
-    switch (status) {
-      case "open":
-        return "bg-blue-100 text-blue-800";
-      case "investigating":
-        return "bg-purple-100 text-purple-800";
-      case "resolved":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) {
-      return "No Date";
-    }
-
-    const date = new Date(dateString);
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return "Invalid Date";
-    }
-
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatLocation = (incident: BackendIncident) => {
-    if (incident.manualAddress) return incident.manualAddress;
-    if (incident.geoLatitude != null && incident.geoLongitude != null) {
-      return `${Number(incident.geoLatitude).toFixed(4)}, ${Number(incident.geoLongitude).toFixed(4)}`;
-    }
-    return "No Location";
-  };
-
-  const formatIncidentType = (type: string) => {
-    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-  };
-
-  const formatIncidentSeverity = (severity: string) => {
-    return severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase();
-  };
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -749,417 +368,21 @@ const Dashboard = () => {
     position: "",
     bio: "",
   });
-  const renderDashboardContent = () => {
-    return (
-      <>
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-2">
-            {t("adminDashboard.welcome_back", {
-              firstName: user?.firstName || "User",
-            })}
-          </h2>
-          <p className="text-gray-600">
-            {t("adminDashboard.dashboard_description")}
-          </p>
-        </div>
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {t("adminDashboard.total_assets")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold">88/100</div>
-                <div className="text-sm text-green-500 flex items-center">
-                  [] +3% <ChevronDown className="h-4 w-4 rotate-180" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {t("adminDashboard.total_assets_description")}
-                {/* Security score is a measure of how secure your system is */}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {t("adminDashboard.total_incidents")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold">3</div>
-                <div className="text-sm text-red-500 flex items-center">
-                  +1 <ChevronDown className="h-4 w-4" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                [] 2 critical, 1 moderate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {t("adminDashboard.total_devices")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold">127</div>
-                <div className="text-sm text-green-500 flex items-center">
-                  +5 <ChevronDown className="h-4 w-4 rotate-180" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {t("adminDashboard.total_devices_description")}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {t("adminDashboard.system_status")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-lg font-bold flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                  {t("adminDashboard.operational")}
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {t("adminDashboard.all_systems_running_properly")}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Inventory Stats Cards */}
-        {inventoryStats && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("adminDashboard.total_items")}
-                </CardTitle>
-                <Box className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {inventoryStats.totalItems}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("adminDashboard.low_stock")}
-                </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {inventoryStats.lowStockItems}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("adminDashboard.out_of_stock")}
-                </CardTitle>
-                <AlertTriangle className="h-4 w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {inventoryStats.outOfStockItems}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {t("adminDashboard.total_value")}
-                </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  ${inventoryStats.totalValue.toFixed(2)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="mb-8">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="threats">Threats</TabsTrigger>
-            <TabsTrigger value="compliance">Compliance</TabsTrigger>
-            <TabsTrigger value="audits">Audit Logs</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab Content */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Security Score Trend */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Security Score Trend</CardTitle>
-                  <CardDescription>
-                    Your security posture over time
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={securityScoreData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis domain={[50, 100]} />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="score"
-                          stroke="#0565d3"
-                          strokeWidth={3}
-                          activeDot={{ r: 8 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Incident Trends</CardTitle>
-                  <CardDescription>
-                    Number of incidents reported by month
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={getIncidentsByMonth(incidents)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar
-                          dataKey="incidents"
-                          fill="#0565d3"
-                          name="Incidents"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Incidents */}
-
-              {/* Threat Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Threat Distribution</CardTitle>
-                  <CardDescription>By category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={threatData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={80}
-                          paddingAngle={5}
-                          dataKey="value"
-                          label
-                        >
-                          {threatData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={THREAT_COLORS[index % THREAT_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* User Incident Information Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Incidents</CardTitle>
-                  <CardDescription>
-                    List of incidents reported by the current user
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    {/* Filter incidents by current user ID */}
-                    {incidents &&
-                    incidents.filter(
-                      (incident) => (incident.reporter?.id != null && String(incident.reporter.id) === String(user?.id))
-                    ).length > 0 ? (
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                          <tr>
-                            <th className="px-4 py-2">Description</th>
-                            <th className="px-4 py-2">Status</th>
-                            <th className="px-4 py-2">Date</th>
-                            <th className="px-4 py-2">Type</th>
-                            <th className="px-4 py-2">Severity</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {/* Map through filtered incidents and display each one */}
-                          {incidents
-                            .filter(
-                              (incident) =>
-                                (incident?.reporter?.id != null && String(incident.reporter.id) === String(user?.id))
-                            )
-                            .map((incident, idx) => (
-                              <tr key={idx}>
-                                <td className="px-4 py-2">
-                                  {incident.description}
-                                </td>
-                                <td className="px-4 py-2">{incident.status}</td>
-                                <td className="px-4 py-2">
-                                  {formatDate(incident.createdAt)}
-                                </td>
-                                <td className="px-4 py-2">{incident.type}</td>
-                                <td className="px-4 py-2">
-                                  {incident.severity}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    ) : (
-                      <div className="text-gray-500 text-center py-4">
-                        No incidents reported by you yet.
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* System Activity */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Activity</CardTitle>
-                  <CardDescription>
-                    Recent system events and activities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-start p-4 border rounded-lg">
-                      <Activity className="h-5 w-5 text-blue-500 mr-3 mt-1" />
-                      <div>
-                        <h4 className="font-semibold">
-                          System Backup Completed
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          Daily backup process finished successfully
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          2 hours ago[]
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-start p-4 border rounded-lg">
-                      <Shield className="h-5 w-5 text-green-500 mr-3 mt-1" />
-                      <div>
-                        <h4 className="font-semibold">
-                          Security Scan Complete
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          No threats detected in latest scan
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          4 hours ago[]
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-start p-4 border rounded-lg">
-                      <Users className="h-5 w-5 text-amber-500 mr-3 mt-1" />
-                      <div>
-                        <h4 className="font-semibold">New User Registration</h4>
-                        <p className="text-sm text-gray-600">
-                          3 []new users pending approval
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          6 hours ago[]
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Placeholder for other tabs */}
-          <TabsContent value="threats">
-            <Card>
-              <CardHeader>
-                <CardTitle>Threat Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Detailed threat analysis content will appear here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="compliance">
-            <Card>
-              <CardHeader>
-                <CardTitle>Compliance Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>Compliance reporting and status will appear here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="audits">
-            <Card>
-              <CardHeader>
-                <CardTitle>Audit Logs</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p>System and user activity logs will appear here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </>
-    );
-  };
+  const renderDashboardContent = () => (
+    <>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-2">
+          {t("adminDashboard.welcome_back", {
+            firstName: user?.firstName || "User",
+          })}
+        </h2>
+        <p className="text-gray-600">
+          {t("adminDashboard.dashboard_description")}
+        </p>
+      </div>
+      <Overview />
+    </>
+  );
   const getTabTitle = () => {
     switch (activeTab) {
       case "overview":
@@ -1228,6 +451,38 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
+            onClick={() => navigate("/corrective-actions")}
+          >
+            <ClipboardCheck className="mr-2 h-5 w-5" />
+            {t("navigation.correctiveActions")}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
+            onClick={() => navigate("/alerts")}
+          >
+            <Bell className="mr-2 h-5 w-5" />
+            {t("navigation.alerts")}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
+            onClick={() => navigate("/reports")}
+          >
+            <BarChart3 className="mr-2 h-5 w-5" />
+            {t("navigation.reports")}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
+            onClick={() => navigate("/rewards")}
+          >
+            <Trophy className="mr-2 h-5 w-5" />
+            {t("navigation.rewards")}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-gray-600"
             onClick={() => setActiveTab("users")}
           >
             <Users className="mr-2 h-5 w-5" />
@@ -1236,7 +491,7 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("messages")}
+            onClick={() => navigate("/messages")}
           >
             <MessageSquare className="mr-2 h-5 w-5" />
             Messages
@@ -1606,112 +861,6 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
-            </div>
-          ) : activeTab === "messages" ? (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">
-                  Team Messages
-                </h2>
-                <p className="text-muted-foreground">
-                  Communicate with your security team
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Recent Messages</CardTitle>
-                    <CardDescription>
-                      Latest communications received.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {latestMessages.length > 0 ? (
-                      <ul className="space-y-3">
-                        {latestMessages.map((msg) => (
-                          <li
-                            key={msg.id}
-                            className="flex items-start space-x-3 p-2 hover:bg-muted/50 rounded-md"
-                          >
-                            <Avatar className="h-9 w-9">
-                              <AvatarFallback>
-                                {msg.system_sender ? (
-                                  msg.system_sender.charAt(0).toUpperCase()
-                                ) : msg.sender ? (
-                                  <>
-                                    {msg.sender.firstName?.[0]?.toUpperCase() ||
-                                      msg.sender.email[0]?.toUpperCase()}
-                                    {msg.sender.lastName?.[0]?.toUpperCase()}
-                                  </>
-                                ) : (
-                                  "?"
-                                )}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium leading-none">
-                                {msg.system_sender ||
-                                  (msg.sender
-                                    ? `${msg.sender.firstName || msg.sender.email.split("@")[0]} ${msg.sender.lastName || ""}`.trim()
-                                    : "Unknown Sender")}
-                              </p>
-                              <p className="text-sm text-muted-foreground truncate max-w-xs">
-                                {msg.content}
-                              </p>
-                            </div>
-                            <time className="text-xs text-muted-foreground">
-                              {(() => {
-                                if (!msg.created_at) return "Invalid Date";
-                                const date = new Date(msg.created_at);
-                                if (isNaN(date.getTime()))
-                                  return "Invalid Date";
-                                return date.toLocaleTimeString([], {
-                                  year: "2-digit",
-                                  month: "2-digit",
-                                  day: "2-digit",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                });
-                              })()}
-                            </time>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No recent messages.
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Send Message</CardTitle>
-                    <CardDescription>
-                      Send a message to your team
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <Input
-                          placeholder="Type your message here..."
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") handleSendMessage();
-                          }}
-                        />
-                      </div>
-                      <div className="flex justify-end">
-                        <Button onClick={handleSendMessage}>Send</Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           ) : activeTab === "profile" ? (
             <div className="space-y-6">

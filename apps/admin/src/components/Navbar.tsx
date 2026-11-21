@@ -1,4 +1,5 @@
 import NotificationBell from "@/components/NotificationBell";
+import ManagerSubNav from "@/components/ManagerSubNav";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -474,6 +475,7 @@ const Navbar = () => {
           </nav>
         )}
       </div>
+      {isAdmin && isAuthenticated && <ManagerSubNav />}
     </nav>
   );
 };

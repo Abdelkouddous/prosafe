@@ -51,7 +51,12 @@
     "services": "Services",
     "contact": "Contact",
     "equipment": "Equipment",
-    "trainings": "Trainings"
+    "trainings": "Trainings",
+    "correctiveActions": "Corrective actions",
+    "alerts": "Alerts",
+    "reports": "Reports",
+    "messages": "Messages",
+    "rewards": "Rewards"
   },
   "auth": {
     "login": "Login",
@@ -229,7 +234,8 @@
     "email": "Email",
     "role": "Role",
     "status": "Status",
-    "lastLogin": "Last Login"
+    "lastLogin": "Last Login",
+    "select": "Select a user"
   },
   "training": {
     "title": "Training",
@@ -302,7 +308,12 @@
       "near_miss": "Near miss",
       "equipment_failure": "Equipment failure",
       "other": "Other"
-    }
+    },
+    "reject": "Reject (close)",
+    "rejected": "Report rejected and closed",
+    "rejectTitle": "Reject this report?",
+    "rejectDescription": "The incident will be closed as rejected and the reward points granted to the reporter for it will be revoked. This cannot be undone.",
+    "rejectConfirm": "Reject and close"
   },
   "incidentReport": {
     "invalidLat": "Invalid latitude (-90 to 90).",
@@ -616,5 +627,198 @@
       "load": "Could not load the report",
       "plan": "Could not run automatic planning"
     }
+  },
+  "overview": {
+    "loadError": "Could not load the dashboard data",
+    "noZone": "No zone",
+    "noData": "No data for this period",
+    "recent": "Recent incidents",
+    "viewAll": "View all",
+    "quick": {
+      "report": "Report an incident",
+      "risks": "Risks",
+      "reports": "Reports"
+    },
+    "kpi": {
+      "total": "Total incidents",
+      "open": "Open",
+      "investigating": "Investigating",
+      "resolved": "Resolved",
+      "criticalOpen": "Critical open",
+      "activeAlerts": "Active alerts",
+      "meanResolution": "Mean resolution time",
+      "actionsOverdue": "Overdue corrective actions",
+      "equipmentCompliance": "Equipment compliance",
+      "trainingCompliance": "Training compliance",
+      "lowStock": "Low stock items",
+      "overdueMaintenance": "Overdue maintenance",
+      "expiringTrainings": "Expiring trainings"
+    },
+    "charts": {
+      "perMonth": "Incidents per month",
+      "byType": "Incidents by type",
+      "byZone": "Incidents by zone",
+      "byStatus": "Incidents by status"
+    }
+  },
+  "reports": {
+    "title": "Reports & analysis",
+    "subtitle": "Incident trends, KPIs, forecasts and exports",
+    "loadError": "Could not load statistics",
+    "unavailable": "Report not available yet",
+    "downloadError": "Download failed",
+    "presets": {
+      "30d": "30 days",
+      "90d": "90 days",
+      "12m": "12 months",
+      "year": "This year",
+      "custom": "Custom"
+    },
+    "allDepartments": "All departments",
+    "filtersNote": "The period applies to charts and exports; type and department apply to exports.",
+    "download": "Download reports",
+    "phase4Note": "Risk and audit reports become available with the risk and audit modules.",
+    "kinds": {
+      "incidents": "Incidents",
+      "equipment": "Equipment",
+      "trainings": "Trainings",
+      "risks": "Risks",
+      "audits": "Audits"
+    },
+    "kpi": {
+      "incidents": "Incidents in period"
+    },
+    "charts": {
+      "trend": "Monthly trend and forecast",
+      "actual": "Actual",
+      "forecast": "Forecast",
+      "bySeverity": "By severity"
+    },
+    "methods": {
+      "linear_regression": "linear regression",
+      "moving_average": "moving average"
+    }
+  },
+  "evaluation": {
+    "title": "Evaluation",
+    "score": "Risk score",
+    "levels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "by": "Evaluated by {{name}} on {{date}}",
+    "gravity": "Gravity (1-5)",
+    "probability": "Probability (1-5)",
+    "computed": "Risk score:",
+    "rootCause": "Root cause",
+    "evaluatedSeverity": "Evaluated severity",
+    "keepReported": "Keep reported severity",
+    "save": "Save evaluation",
+    "saved": "Evaluation saved",
+    "saveError": "Could not save the evaluation"
+  },
+  "actions": {
+    "title": "Corrective actions",
+    "add": "Add",
+    "titlePlaceholder": "Action title",
+    "description": "Description",
+    "owner": "Owner",
+    "dueDate": "Due date",
+    "due": "Due",
+    "overdue": "Overdue",
+    "unassigned": "Unassigned",
+    "empty": "No corrective action",
+    "created": "Corrective action created",
+    "saveError": "Could not save the corrective action",
+    "loadError": "Could not load corrective actions",
+    "statuses": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "pageTitle": "Corrective actions",
+    "pageSubtitle": "Track actions arising from incidents, risks and audits",
+    "source": "Source",
+    "allSources": "All sources",
+    "allOwners": "All owners",
+    "sources": {
+      "incident": "Incident",
+      "risk": "Risk",
+      "audit": "Audit"
+    },
+    "confirmDelete": "Delete this corrective action?"
+  },
+  "messaging": {
+    "title": "Messages",
+    "subtitle": "Conversations with employees and SST managers",
+    "new": "New conversation",
+    "empty": "No conversation yet",
+    "select": "Select a conversation",
+    "placeholder": "Write a message...",
+    "send": "Send",
+    "system": "System",
+    "loadError": "Could not load messages",
+    "sendError": "Could not send the message",
+    "createError": "Could not create the conversation",
+    "recipient": "Recipient",
+    "subject": "Subject",
+    "message": "Message"
+  },
+  "rewards": {
+    "title": "Rewards",
+    "subtitle": "Leaderboard of incident reporters",
+    "periods": {
+      "month": "This month",
+      "year": "This year",
+      "all": "All time"
+    },
+    "rank": "Rank",
+    "badge": "Badge",
+    "points": "Points",
+    "empty": "No points awarded for this period",
+    "loadError": "Could not load the leaderboard",
+    "badges": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "platinum": "Platinum"
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "Statistical and operational alerts",
+    "active": "{{count}} active alert(s)",
+    "loadError": "Could not load alerts",
+    "updated": "Alert updated",
+    "updateError": "Could not update the alert",
+    "confirmDelete": "Delete this alert?",
+    "empty": "No alerts",
+    "statuses": {
+      "unresolved": "Unresolved",
+      "investigating": "Investigating",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    },
+    "types": {
+      "incident_spike": "Incident spike",
+      "critical_incident": "Critical incident",
+      "stock": "Stock",
+      "maintenance": "Maintenance",
+      "training": "Training",
+      "emergency": "Emergency",
+      "compliance": "Compliance",
+      "risk": "Risk",
+      "system": "System"
+    },
+    "affectedUser": "Affected user",
+    "resolvedBy": "Resolved by {{name}} on {{date}}",
+    "investigate": "Investigate",
+    "resolve": "Resolve",
+    "dismiss": "Dismiss",
+    "previous": "Previous",
+    "next": "Next"
   }
 }
