@@ -24,6 +24,9 @@ async function removeItem(key: string): Promise<void> {
 }
 
 export const storage = {
+  getItem,
+  setItem,
+  removeItem,
   getToken: () => getItem(TOKEN_KEY),
   setToken: (token: string) => setItem(TOKEN_KEY, token),
   getUser: async <T = unknown>(): Promise<T | null> => {

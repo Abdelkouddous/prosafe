@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/contexts/AuthContext";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { fetchUnreadCount } from "@/services/notificationApi";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 60) / 3; // 3 cards per row with margins
@@ -27,6 +28,15 @@ interface MenuOption {
 export default function MenuScreen() {
   const { user, logout } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [unread, setUnread] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnreadCount()
+        .then(setUnread)
+        .catch(() => {}); // badge is optional: never block the menu
+    }, [])
+  );
 
   const menuOptions: MenuOption[] = [
     {
@@ -195,8 +205,17 @@ export default function MenuScreen() {
             <Text style={styles.logoText}>PROSAFE</Text>
             <Text style={styles.logoSubtext}>SAVE YOUR WORK</Text>
           </View>
-          <TouchableOpacity style={styles.searchButton}>
-            <Ionicons name="search" size={24} color="#374151" />
+          <TouchableOpacity
+            style={styles.searchButton}
+            accessibilityRole="button"
+            onPress={() => router.push("/(extra)/notifications")}
+          >
+            <Ionicons name="notifications-outline" size={24} color="#374151" />
+            {unread > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>{unread > 99 ? "99+" : unread}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -237,6 +256,19 @@ export default function MenuScreen() {
 }
 
 const styles = StyleSheet.create({
+  bellBadge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bellBadgeText: { color: "#FFFFFF", fontSize: 10, fontWeight: "700" },
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
