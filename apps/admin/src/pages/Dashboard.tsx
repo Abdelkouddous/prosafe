@@ -36,7 +36,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 import api from "@/services/api";
 
 import { useToast } from "@/components/ui/use-toast";
@@ -1180,125 +1180,7 @@ const Dashboard = () => {
               </Card>
             </div>
           ) : activeTab === "user-settings" ? (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">
-                  User Settings
-                </h2>
-                <p className="text-muted-foreground">
-                  Configure your personal preferences and application settings.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Appearance Settings */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>
-                      Customize how the application looks and feels.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium">Theme</label>
-                      <Select defaultValue="light">
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="system">System</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Language</label>
-                      <Select defaultValue="en">
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="fr">Français</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Timezone</label>
-                      <Select defaultValue="utc">
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="utc">UTC</SelectItem>
-                          <SelectItem value="est">Eastern Time</SelectItem>
-                          <SelectItem value="pst">Pacific Time</SelectItem>
-                          <SelectItem value="cet">
-                            Central European Time
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Privacy Settings */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Privacy & Data</CardTitle>
-                    <CardDescription>
-                      Control your privacy and data sharing preferences.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Profile Visibility</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Make your profile visible to other users
-                        </p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="h-4 w-4"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Activity Tracking</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Allow tracking of your activity for analytics
-                        </p>
-                      </div>
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        className="h-4 w-4"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">Data Export</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Download your data
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Export Data
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <Navigate to="/settings" replace />
           ) : activeTab === "notifications" ? (
             <div className="space-y-6">
               <div>

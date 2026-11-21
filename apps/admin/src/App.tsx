@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import {
@@ -11,47 +12,53 @@ import {
 } from "@/components/ProtectedRoute";
 
 // Page imports - organized alphabetically
-import About from "./pages/About";
-import Blog from "./pages/Blog";
-import Carreers from "./pages/Carreers";
-import Contact from "./pages/Contact";
-import Dashboard from "./pages/Dashboard";
-import Features from "./pages/Features";
-import IncidentReport from "./pages/IncidentReport";
-import IncidentsManagement from "./pages/incidents/IncidentsManagement";
+const About = lazy(() => import("./pages/About"));
+const Blog = lazy(() => import("./pages/Blog"));
+const Carreers = lazy(() => import("./pages/Carreers"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Features = lazy(() => import("./pages/Features"));
+const IncidentReport = lazy(() => import("./pages/IncidentReport"));
+const IncidentsManagement = lazy(() => import("./pages/incidents/IncidentsManagement"));
 import Index from "./pages/Index";
-import EquipmentInventory from "./pages/equipment/EquipmentInventory";
-import MaintenancePlanning from "./pages/equipment/MaintenancePlanning";
-import MaintenanceHistory from "./pages/equipment/MaintenanceHistory";
-import TrainingCatalogue from "./pages/trainings/TrainingCatalogue";
-import TrainingSessions from "./pages/trainings/TrainingSessions";
-import TrainingCompliance from "./pages/trainings/TrainingCompliance";
-import Reports from "./pages/reports/Reports";
-import CorrectiveActions from "./pages/actions/CorrectiveActions";
-import Messaging from "./pages/messages/Messaging";
-import Rewards from "./pages/rewards/Rewards";
-import Alerts from "./pages/alerts/Alerts";
-import Risks from "./pages/risks/Risks";
-import RiskMatrix from "./pages/risks/RiskMatrix";
-import ActionPlans from "./pages/risks/ActionPlans";
-import Lmra from "./pages/risks/Lmra";
-import Audits from "./pages/audits/Audits";
-import AuditExecution from "./pages/audits/AuditExecution";
-import ComplianceDocuments from "./pages/audits/ComplianceDocuments";
-import Emergency from "./pages/emergency/Emergency";
-import Feedback from "./pages/feedback/Feedback";
-import Login from "./pages/Login";
-import NotFound from "./pages/NotFound";
-import Pricing from "./pages/Pricing";
-import Privacy from "./pages/Privacy";
-import Profile from "./pages/Profile";
-import Security from "./pages/Security";
-import Settings from "./pages/Settings";
-import Terms from "./pages/Terms";
+const EquipmentInventory = lazy(() => import("./pages/equipment/EquipmentInventory"));
+const MaintenancePlanning = lazy(() => import("./pages/equipment/MaintenancePlanning"));
+const MaintenanceHistory = lazy(() => import("./pages/equipment/MaintenanceHistory"));
+const TrainingCatalogue = lazy(() => import("./pages/trainings/TrainingCatalogue"));
+const TrainingSessions = lazy(() => import("./pages/trainings/TrainingSessions"));
+const TrainingCompliance = lazy(() => import("./pages/trainings/TrainingCompliance"));
+const Reports = lazy(() => import("./pages/reports/Reports"));
+const CorrectiveActions = lazy(() => import("./pages/actions/CorrectiveActions"));
+const Messaging = lazy(() => import("./pages/messages/Messaging"));
+const Rewards = lazy(() => import("./pages/rewards/Rewards"));
+const Alerts = lazy(() => import("./pages/alerts/Alerts"));
+const Risks = lazy(() => import("./pages/risks/Risks"));
+const RiskMatrix = lazy(() => import("./pages/risks/RiskMatrix"));
+const ActionPlans = lazy(() => import("./pages/risks/ActionPlans"));
+const Lmra = lazy(() => import("./pages/risks/Lmra"));
+const Audits = lazy(() => import("./pages/audits/Audits"));
+const AuditExecution = lazy(() => import("./pages/audits/AuditExecution"));
+const ComplianceDocuments = lazy(() => import("./pages/audits/ComplianceDocuments"));
+const Emergency = lazy(() => import("./pages/emergency/Emergency"));
+const Feedback = lazy(() => import("./pages/feedback/Feedback"));
+const Login = lazy(() => import("./pages/Login"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Security = lazy(() => import("./pages/Security"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Terms = lazy(() => import("./pages/Terms"));
 
-import Updates from "./pages/Updates";
+const Updates = lazy(() => import("./pages/Updates"));
 
-import Services from "./pages/Services";
+const Services = lazy(() => import("./pages/Services"));
+
+const PageLoader = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-t-2 border-prosafe-600" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -63,6 +70,7 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public routes - accessible to all users */}
               <Route path="/" element={<Index />} />
@@ -125,6 +133,7 @@ function App() {
               {/* Catch-all route - MUST be last */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

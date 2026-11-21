@@ -1137,5 +1137,41 @@
       "usability": "Usability",
       "other": "Other"
     }
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "subtitle": "Manage your profile, password, notifications and accessibility",
+    "tabs": {
+      "general": "Language & accessibility",
+      "notifications": "Notifications",
+      "security": "Password"
+    },
+    "profile": "Profile",
+    "profileDesc": "Your account information",
+    "language": "Language",
+    "languageDesc": "Interface language (Arabic switches to right-to-left)",
+    "accessibility": "Accessibility",
+    "accessibilityDesc": "Adjust text size and contrast for easier reading",
+    "textSize": "Text size",
+    "sizeNormal": "Normal",
+    "sizeLarge": "Large",
+    "sizeXLarge": "Extra large",
+    "highContrast": "High contrast",
+    "highContrastDesc": "Black text on white, stronger borders, darker red and green",
+    "password": "Change password",
+    "passwordDesc": "Update your password to keep your account secure",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "changePassword": "Change password",
+    "changing": "Changing...",
+    "mismatch": "New passwords do not match",
+    "tooShort": "Password must be at least 8 characters long",
+    "passwordChanged": "Password changed successfully",
+    "passwordError": "Failed to change password",
+    "notificationsDesc": "Choose what notifications you want to receive",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role"
   }
 }
