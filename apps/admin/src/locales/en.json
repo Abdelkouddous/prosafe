@@ -56,7 +56,11 @@
     "alerts": "Alerts",
     "reports": "Reports",
     "messages": "Messages",
-    "rewards": "Rewards"
+    "rewards": "Rewards",
+    "risks": "Risks",
+    "audits": "Audits",
+    "emergency": "Emergency",
+    "feedback": "Feedback"
   },
   "auth": {
     "login": "Login",
@@ -652,7 +656,8 @@
       "trainingCompliance": "Training compliance",
       "lowStock": "Low stock items",
       "overdueMaintenance": "Overdue maintenance",
-      "expiringTrainings": "Expiring trainings"
+      "expiringTrainings": "Expiring trainings",
+      "auditCompliance": "Audit compliance"
     },
     "charts": {
       "perMonth": "Incidents per month",
@@ -820,5 +825,317 @@
     "dismiss": "Dismiss",
     "previous": "Previous",
     "next": "Next"
+  },
+  "risks": {
+    "title": "Risk management",
+    "subtitle": "Risk catalogue, matrix, action plans and LMRA",
+    "loadError": "Could not load risks",
+    "saveError": "Could not save the risk",
+    "saved": "Risk saved",
+    "create": "New risk",
+    "edit": "Edit risk",
+    "empty": "No risk found",
+    "searchPlaceholder": "Search title or description",
+    "allStatuses": "All statuses",
+    "allLevels": "All levels",
+    "proposedBy": "Proposed by {{name}}",
+    "nav": {
+      "catalogue": "Catalogue",
+      "matrix": "Matrix",
+      "plans": "Action plans",
+      "lmra": "LMRA"
+    },
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "hazardCategory": "Hazard category",
+      "zone": "Zone",
+      "department": "Department",
+      "gravity": "Severity",
+      "probability": "Probability",
+      "score": "Score",
+      "status": "Status",
+      "recommendedMeasures": "Recommended measures"
+    },
+    "scale": {
+      "gravity": {
+        "1": "Minor",
+        "2": "Moderate",
+        "3": "Serious",
+        "4": "Major",
+        "5": "Catastrophic"
+      },
+      "probability": {
+        "1": "Rare",
+        "2": "Unlikely",
+        "3": "Possible",
+        "4": "Likely",
+        "5": "Almost certain"
+      }
+    },
+    "levels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "statuses": {
+      "proposed": "Proposed",
+      "validated": "Validated",
+      "mitigated": "Mitigated",
+      "archived": "Archived"
+    },
+    "actions": {
+      "validate": "Validate",
+      "archive": "Archive",
+      "mitigate": "Mark as mitigated",
+      "restore": "Restore"
+    },
+    "matrix": {
+      "subtitle": "5x5 matrix: severity x probability",
+      "total": "{{count}} risk(s)",
+      "pick": "Cell details",
+      "pickHint": "Click a cell to list its risks.",
+      "cellTitle": "Severity {{g}} x Probability {{p}} = {{score}}",
+      "emptyCell": "No risk in this cell."
+    },
+    "plans": {
+      "title": "Action plans",
+      "subtitle": "Mitigation plans per risk, with owner, deadline and progress",
+      "create": "New action plan",
+      "edit": "Edit action plan",
+      "add": "Add",
+      "empty": "No action plan",
+      "risk": "Risk",
+      "selectRisk": "Select a risk",
+      "saved": "Action plan saved",
+      "saveError": "Could not save the action plan",
+      "confirmDelete": "Delete this action plan?",
+      "onlyOverdue": "Overdue only",
+      "overdueCount": "{{count}} overdue",
+      "statuses": {
+        "planned": "Planned",
+        "in_progress": "In progress",
+        "completed": "Completed",
+        "validated": "Validated"
+      }
+    },
+    "lmra": {
+      "subtitle": "Last Minute Risk Assessments submitted from the field",
+      "empty": "No LMRA found",
+      "user": "User",
+      "task": "Task",
+      "location": "Location",
+      "decision": "Decision",
+      "allDecisions": "All decisions",
+      "uncontrolled": "Uncontrolled hazards",
+      "hazard": "Hazard",
+      "present": "Present",
+      "controlled": "Controlled",
+      "createdRisks": "{{count}} risk(s) proposed from this LMRA",
+      "decisions": {
+        "go": "GO",
+        "stop": "STOP"
+      }
+    }
+  },
+  "audits": {
+    "title": "Audits & compliance",
+    "subtitle": "Audit planning, ISO 45001 checklists and corrective actions",
+    "loadError": "Could not load audits",
+    "saveError": "Could not save",
+    "saved": "Audit saved",
+    "create": "New audit",
+    "edit": "Edit audit",
+    "empty": "No audit found",
+    "confirmDelete": "Delete this audit?",
+    "allStatuses": "All statuses",
+    "allTypes": "All types",
+    "nav": {
+      "audits": "Audits",
+      "documents": "Documents"
+    },
+    "view": {
+      "calendar": "Calendar",
+      "list": "List"
+    },
+    "fields": {
+      "title": "Title",
+      "type": "Type",
+      "standard": "Standard",
+      "scheduledAt": "Scheduled",
+      "auditor": "Auditor",
+      "noAuditor": "No internal auditor",
+      "auditorName": "Auditor name (external)",
+      "zone": "Zone",
+      "template": "Checklist template",
+      "selectTemplate": "Select a template",
+      "status": "Status",
+      "score": "Score"
+    },
+    "types": {
+      "internal": "Internal",
+      "external": "External"
+    },
+    "statuses": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "results": {
+      "conform": "Conform",
+      "non_conform": "Non-conform",
+      "not_applicable": "N/A"
+    },
+    "exec": {
+      "back": "Back to audits",
+      "checklist": "Checklist",
+      "progress": "Answered",
+      "comment": "Comment",
+      "createActions": "Create corrective actions for non-conformities",
+      "save": "Save responses",
+      "saved": "Responses saved",
+      "confirmComplete": "Complete this audit? The score will be frozen.",
+      "to": {
+        "in_progress": "Start the audit",
+        "completed": "Complete the audit",
+        "cancelled": "Cancel"
+      }
+    },
+    "docs": {
+      "title": "Compliance documents",
+      "subtitle": "Certificates, procedures, policies and audit reports",
+      "upload": "Upload a document",
+      "uploaded": "Document uploaded",
+      "uploadError": "Upload failed",
+      "downloadError": "Download failed",
+      "confirmDelete": "Delete this document?",
+      "empty": "No document",
+      "allTypes": "All types",
+      "onlyExpiring": "Expiring soon",
+      "validUntil": "Valid until",
+      "validity": "Validity",
+      "noExpiry": "No expiry",
+      "expired": "Expired",
+      "expiresIn": "Expires in {{count}} d",
+      "valid": "Valid",
+      "file": "File",
+      "fileHint": "PDF, DOCX, XLSX (max 20 MB) or image (max 10 MB)",
+      "types": {
+        "audit_report": "Audit report",
+        "certificate": "Certificate",
+        "procedure": "Procedure",
+        "policy": "Policy",
+        "other": "Other"
+      }
+    }
+  },
+  "emergency": {
+    "title": "Emergency management",
+    "subtitle": "Scenarios, alerts and evacuation drills",
+    "loadError": "Could not load emergency data",
+    "saveError": "Could not save",
+    "activeAlert": "Emergency alert active",
+    "openPage": "Open",
+    "close": "Close the alert",
+    "confirmClose": "Close this emergency alert? Everyone will be notified.",
+    "closeError": "Could not close the alert",
+    "noHistory": "No past alert",
+    "tabs": {
+      "scenarios": "Scenarios",
+      "drills": "Drills",
+      "history": "History"
+    },
+    "types": {
+      "fire": "Fire",
+      "evacuation": "Evacuation",
+      "chemical": "Chemical",
+      "injury": "Injury",
+      "earthquake": "Earthquake",
+      "gas_leak": "Gas leak",
+      "other": "Other"
+    },
+    "fields": {
+      "title": "Title",
+      "type": "Type",
+      "assemblyPoint": "Assembly point",
+      "active": "Active",
+      "inactive": "Inactive",
+      "steps": "Steps",
+      "contacts": "Emergency contacts"
+    },
+    "contact": {
+      "name": "Name",
+      "role": "Role",
+      "phone": "Phone"
+    },
+    "scenarios": {
+      "create": "New scenario",
+      "edit": "Edit scenario",
+      "empty": "No scenario",
+      "saved": "Scenario saved",
+      "confirmDelete": "Delete this scenario?",
+      "addStep": "Add step",
+      "addContact": "Add contact",
+      "incompleteContacts": "Incomplete contacts will be ignored."
+    },
+    "trigger": {
+      "button": "Trigger an emergency alert",
+      "scenario": "Scenario",
+      "noScenario": "No scenario (free message)",
+      "message": "Alert message",
+      "zone": "Zone",
+      "next": "Continue",
+      "back": "Back",
+      "confirm": "Confirm and send the alert",
+      "warning": "All users will receive a priority notification.",
+      "sent": "Emergency alert sent",
+      "error": "Could not trigger the alert"
+    },
+    "drills": {
+      "create": "Plan a drill",
+      "edit": "Edit drill",
+      "empty": "No drill planned",
+      "saved": "Drill saved",
+      "confirmDelete": "Delete this drill?",
+      "scheduledAt": "Date",
+      "scenario": "Scenario",
+      "status": "Status",
+      "results": "Results",
+      "record": "Record results",
+      "markDone": "Save and mark as done",
+      "duration": "Duration (min)",
+      "participants": "Participants",
+      "evacuated": "Evacuated",
+      "evacuatedShort": "evacuated",
+      "evacuatedError": "Evacuated cannot exceed participants",
+      "observations": "Observations",
+      "statuses": {
+        "planned": "Planned",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      }
+    }
+  },
+  "feedback": {
+    "title": "User feedback",
+    "subtitle": "Ratings and comments sent from the mobile app",
+    "loadError": "Could not load feedback",
+    "average": "Average rating",
+    "count": "Feedback received",
+    "allCategories": "All categories",
+    "allRatings": "All ratings",
+    "empty": "No feedback yet",
+    "rating": "Rating",
+    "category": "Category",
+    "comment": "Comment",
+    "user": "User",
+    "categories": {
+      "bug": "Bug",
+      "suggestion": "Suggestion",
+      "usability": "Usability",
+      "other": "Other"
+    }
   }
 }

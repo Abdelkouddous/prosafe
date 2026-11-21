@@ -184,6 +184,13 @@ const Overview = () => {
           value={fmtRate(k.trainingComplianceRate)}
           tone="success"
         />
+        <Link to="/compliance" className="block">
+          <KpiCard
+            label={t("overview.kpi.auditCompliance")}
+            value={fmtRate(k.auditComplianceRate)}
+            tone={k.auditComplianceRate == null ? "default" : k.auditComplianceRate >= 70 ? "success" : "danger"}
+          />
+        </Link>
         <KpiCard
           label={t("overview.kpi.lowStock")}
           value={o.lowStock}

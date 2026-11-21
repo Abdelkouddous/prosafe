@@ -5,6 +5,10 @@ import {
   BarChart3,
   Bell,
   ClipboardCheck,
+  ClipboardList,
+  Siren,
+  Star,
+  ShieldAlert,
   LayoutDashboard,
   MessageSquare,
   Trophy,
@@ -17,21 +21,33 @@ const ManagerSubNav = () => {
   const { pathname } = useLocation();
   const unread = useUnreadMessages();
 
-  const items = [
+  const items: {
+    to: string;
+    icon: typeof Bell;
+    label: string;
+    badge?: number;
+    also?: string[];
+  }[] = [
     { to: "/dashboard", icon: LayoutDashboard, label: t("navigation.dashboard") },
     { to: "/incidents/manage", icon: AlertTriangle, label: t("navigation.incidents") },
     { to: "/corrective-actions", icon: ClipboardCheck, label: t("navigation.correctiveActions") },
+    { to: "/risks", icon: ShieldAlert, label: t("navigation.risks") },
+    { to: "/audits", icon: ClipboardList, label: t("navigation.audits"), also: ["/compliance"] },
+    { to: "/emergency", icon: Siren, label: t("navigation.emergency") },
     { to: "/alerts", icon: Bell, label: t("navigation.alerts") },
     { to: "/reports", icon: BarChart3, label: t("navigation.reports") },
     { to: "/messages", icon: MessageSquare, label: t("navigation.messages"), badge: unread },
     { to: "/rewards", icon: Trophy, label: t("navigation.rewards") },
+    { to: "/feedback", icon: Star, label: t("navigation.feedback") },
   ];
 
   return (
     <div className="border-t border-gray-100 bg-gray-50">
       <div className="container mx-auto px-4 flex gap-1 overflow-x-auto py-1">
-        {items.map(({ to, icon: Icon, label, badge }) => {
-          const active = pathname === to;
+        {items.map(({ to, icon: Icon, label, badge, also }) => {
+          const active = [to, ...(also ?? [])].some(
+            (p) => pathname === p || pathname.startsWith(`${p}/`)
+          );
           return (
             <Link
               key={to}

@@ -1,5 +1,6 @@
 import NotificationBell from "@/components/NotificationBell";
 import ManagerSubNav from "@/components/ManagerSubNav";
+import EmergencyBanner from "@/components/EmergencyBanner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -476,6 +477,7 @@ const Navbar = () => {
         )}
       </div>
       {isAdmin && isAuthenticated && <ManagerSubNav />}
+      {isAdmin && isAuthenticated && <EmergencyBanner />}
     </nav>
   );
 };

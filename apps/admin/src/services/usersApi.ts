@@ -7,6 +7,7 @@ export interface DirectoryUser {
   email?: string;
   roles?: string[];
   department?: string | null;
+  zone?: string | null;
   isActive?: boolean;
 }
 
@@ -24,34 +25,14 @@ interface Paginated<T> {
   limit: number;
 }
 
-const status = (e: unknown) =>
-  (e as { response?: { status?: number } })?.response?.status;
-
-/**
- * User picker. Calls the manager-readable GET /users and falls back to the
- * admin-only GET /auth/users (filtered client-side) on 404/403.
- */
+/** User picker directory: manager-readable GET /users. */
 export const usersApi = {
   async list(params: UsersListParams = {}): Promise<DirectoryUser[]> {
-    try {
-      const res = await api.get<Paginated<DirectoryUser> | DirectoryUser[]>(
-        "/users",
-        { params: { limit: 100, ...params } }
-      );
-      const rows = Array.isArray(res.data) ? res.data : res.data.data;
-      return rows.filter(
-        (u) => !(u.roles || []).includes("pending") && u.isActive !== false
-      );
-    } catch (e) {
-      if (status(e) !== 404 && status(e) !== 403) throw e;
-      const res = await api.get<DirectoryUser[]>("/auth/users");
-      const q = params.search?.trim().toLowerCase();
-      return res.data.filter((u) => {
-        if ((u.roles || []).includes("pending") || u.isActive === false) return false;
-        if (params.role && !(u.roles || []).includes(params.role)) return false;
-        if (!q) return true;
-        return `${u.firstName} ${u.lastName} ${u.email ?? ""}`.toLowerCase().includes(q);
-      });
-    }
+    const res = await api.get<Paginated<DirectoryUser>>("/users", {
+      params: { limit: 100, ...params },
+    });
+    return res.data.data.filter(
+      (u) => !(u.roles || []).includes("pending") && u.isActive !== false
+    );
   },
 };

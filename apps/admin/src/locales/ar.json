@@ -23,7 +23,11 @@
     "alerts": "التنبيهات",
     "reports": "التقارير",
     "messages": "الرسائل",
-    "rewards": "المكافآت"
+    "rewards": "المكافآت",
+    "risks": "المخاطر",
+    "audits": "التدقيق",
+    "emergency": "الطوارئ",
+    "feedback": "الآراء"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -326,7 +330,16 @@
     "actions": "الإجراءات",
     "totalCount": "{{count}} نتيجة",
     "no": "لا",
-    "yes": "نعم"
+    "yes": "نعم",
+    "search": "بحث",
+    "error": "خطأ",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "loading": "جار التحميل...",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "date": "التاريخ",
+    "name": "الاسم"
   },
   "manager": {
     "backToDashboard": "العودة إلى لوحة القيادة"
@@ -616,7 +629,8 @@
       "trainingCompliance": "مطابقة التكوينات",
       "lowStock": "مواد منخفضة المخزون",
       "overdueMaintenance": "صيانة متأخرة",
-      "expiringTrainings": "تكوينات قاربت على الانتهاء"
+      "expiringTrainings": "تكوينات قاربت على الانتهاء",
+      "auditCompliance": "الامتثال في التدقيق"
     },
     "charts": {
       "perMonth": "الحوادث حسب الشهر",
@@ -784,5 +798,317 @@
     "dismiss": "تجاهل",
     "previous": "السابق",
     "next": "التالي"
+  },
+  "risks": {
+    "title": "إدارة المخاطر",
+    "subtitle": "سجل المخاطر والمصفوفة وخطط العمل وLMRA",
+    "loadError": "تعذر تحميل المخاطر",
+    "saveError": "تعذر حفظ الخطر",
+    "saved": "تم حفظ الخطر",
+    "create": "خطر جديد",
+    "edit": "تعديل الخطر",
+    "empty": "لا توجد مخاطر",
+    "searchPlaceholder": "بحث في العنوان أو الوصف",
+    "allStatuses": "كل الحالات",
+    "allLevels": "كل المستويات",
+    "proposedBy": "مقترح من {{name}}",
+    "nav": {
+      "catalogue": "السجل",
+      "matrix": "المصفوفة",
+      "plans": "خطط العمل",
+      "lmra": "LMRA"
+    },
+    "fields": {
+      "title": "العنوان",
+      "description": "الوصف",
+      "hazardCategory": "فئة الخطر",
+      "zone": "المنطقة",
+      "department": "القسم",
+      "gravity": "الخطورة",
+      "probability": "الاحتمال",
+      "score": "الدرجة",
+      "status": "الحالة",
+      "recommendedMeasures": "التدابير الموصى بها"
+    },
+    "scale": {
+      "gravity": {
+        "1": "طفيفة",
+        "2": "متوسطة",
+        "3": "خطيرة",
+        "4": "كبيرة",
+        "5": "كارثية"
+      },
+      "probability": {
+        "1": "نادر",
+        "2": "غير محتمل",
+        "3": "ممكن",
+        "4": "محتمل",
+        "5": "شبه مؤكد"
+      }
+    },
+    "levels": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "critical": "حرج"
+    },
+    "statuses": {
+      "proposed": "مقترح",
+      "validated": "معتمد",
+      "mitigated": "تمت السيطرة عليه",
+      "archived": "مؤرشف"
+    },
+    "actions": {
+      "validate": "اعتماد",
+      "archive": "أرشفة",
+      "mitigate": "تحديد كمسيطر عليه",
+      "restore": "استعادة"
+    },
+    "matrix": {
+      "subtitle": "مصفوفة 5x5: الخطورة x الاحتمال",
+      "total": "{{count}} خطر",
+      "pick": "تفاصيل الخلية",
+      "pickHint": "انقر على خلية لعرض مخاطرها.",
+      "cellTitle": "الخطورة {{g}} x الاحتمال {{p}} = {{score}}",
+      "emptyCell": "لا توجد مخاطر في هذه الخلية."
+    },
+    "plans": {
+      "title": "خطط العمل",
+      "subtitle": "خطط التحكم في كل خطر: المسؤول والأجل والتقدم",
+      "create": "خطة عمل جديدة",
+      "edit": "تعديل خطة العمل",
+      "add": "إضافة",
+      "empty": "لا توجد خطط عمل",
+      "risk": "الخطر",
+      "selectRisk": "اختر خطرا",
+      "saved": "تم حفظ خطة العمل",
+      "saveError": "تعذر حفظ خطة العمل",
+      "confirmDelete": "حذف خطة العمل هذه؟",
+      "onlyOverdue": "المتأخرة فقط",
+      "overdueCount": "{{count}} متأخرة",
+      "statuses": {
+        "planned": "مخطط",
+        "in_progress": "قيد التنفيذ",
+        "completed": "مكتمل",
+        "validated": "معتمد"
+      }
+    },
+    "lmra": {
+      "subtitle": "تحليلات المخاطر اللحظية المرسلة من الميدان",
+      "empty": "لا توجد LMRA",
+      "user": "المستخدم",
+      "task": "المهمة",
+      "location": "الموقع",
+      "decision": "القرار",
+      "allDecisions": "كل القرارات",
+      "uncontrolled": "أخطار غير مسيطر عليها",
+      "hazard": "الخطر",
+      "present": "موجود",
+      "controlled": "مسيطر عليه",
+      "createdRisks": "تم اقتراح {{count}} خطر من هذا التحليل",
+      "decisions": {
+        "go": "متابعة",
+        "stop": "توقف"
+      }
+    }
+  },
+  "audits": {
+    "title": "التدقيق والامتثال",
+    "subtitle": "تخطيط التدقيق وقوائم ISO 45001 والإجراءات التصحيحية",
+    "loadError": "تعذر تحميل عمليات التدقيق",
+    "saveError": "تعذر الحفظ",
+    "saved": "تم حفظ التدقيق",
+    "create": "تدقيق جديد",
+    "edit": "تعديل التدقيق",
+    "empty": "لا توجد عمليات تدقيق",
+    "confirmDelete": "حذف هذا التدقيق؟",
+    "allStatuses": "كل الحالات",
+    "allTypes": "كل الأنواع",
+    "nav": {
+      "audits": "التدقيق",
+      "documents": "الوثائق"
+    },
+    "view": {
+      "calendar": "التقويم",
+      "list": "القائمة"
+    },
+    "fields": {
+      "title": "العنوان",
+      "type": "النوع",
+      "standard": "المعيار",
+      "scheduledAt": "الموعد",
+      "auditor": "المدقق",
+      "noAuditor": "بدون مدقق داخلي",
+      "auditorName": "اسم المدقق (خارجي)",
+      "zone": "المنطقة",
+      "template": "نموذج قائمة التحقق",
+      "selectTemplate": "اختر نموذجا",
+      "status": "الحالة",
+      "score": "الدرجة"
+    },
+    "types": {
+      "internal": "داخلي",
+      "external": "خارجي"
+    },
+    "statuses": {
+      "planned": "مخطط",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    },
+    "results": {
+      "conform": "مطابق",
+      "non_conform": "غير مطابق",
+      "not_applicable": "لا ينطبق"
+    },
+    "exec": {
+      "back": "العودة إلى التدقيق",
+      "checklist": "قائمة التحقق",
+      "progress": "الإجابات",
+      "comment": "تعليق",
+      "createActions": "إنشاء إجراءات تصحيحية لحالات عدم المطابقة",
+      "save": "حفظ الإجابات",
+      "saved": "تم حفظ الإجابات",
+      "confirmComplete": "إنهاء هذا التدقيق؟ ستُثبَّت الدرجة.",
+      "to": {
+        "in_progress": "بدء التدقيق",
+        "completed": "إنهاء التدقيق",
+        "cancelled": "إلغاء"
+      }
+    },
+    "docs": {
+      "title": "وثائق الامتثال",
+      "subtitle": "الشهادات والإجراءات والسياسات وتقارير التدقيق",
+      "upload": "رفع وثيقة",
+      "uploaded": "تم رفع الوثيقة",
+      "uploadError": "فشل الرفع",
+      "downloadError": "فشل التنزيل",
+      "confirmDelete": "حذف هذه الوثيقة؟",
+      "empty": "لا توجد وثائق",
+      "allTypes": "كل الأنواع",
+      "onlyExpiring": "تنتهي قريبا",
+      "validUntil": "صالحة حتى",
+      "validity": "الصلاحية",
+      "noExpiry": "بدون انتهاء",
+      "expired": "منتهية",
+      "expiresIn": "تنتهي خلال {{count}} يوم",
+      "valid": "صالحة",
+      "file": "الملف",
+      "fileHint": "PDF أو DOCX أو XLSX (حتى 20 ميغابايت) أو صورة (حتى 10 ميغابايت)",
+      "types": {
+        "audit_report": "تقرير تدقيق",
+        "certificate": "شهادة",
+        "procedure": "إجراء",
+        "policy": "سياسة",
+        "other": "أخرى"
+      }
+    }
+  },
+  "emergency": {
+    "title": "إدارة الطوارئ",
+    "subtitle": "السيناريوهات والتنبيهات وتمارين الإخلاء",
+    "loadError": "تعذر تحميل بيانات الطوارئ",
+    "saveError": "تعذر الحفظ",
+    "activeAlert": "تنبيه طوارئ نشط",
+    "openPage": "فتح",
+    "close": "إغلاق التنبيه",
+    "confirmClose": "إغلاق تنبيه الطوارئ هذا؟ سيتم إعلام الجميع.",
+    "closeError": "تعذر إغلاق التنبيه",
+    "noHistory": "لا توجد تنبيهات سابقة",
+    "tabs": {
+      "scenarios": "السيناريوهات",
+      "drills": "التمارين",
+      "history": "السجل"
+    },
+    "types": {
+      "fire": "حريق",
+      "evacuation": "إخلاء",
+      "chemical": "كيميائي",
+      "injury": "إصابة",
+      "earthquake": "زلزال",
+      "gas_leak": "تسرب غاز",
+      "other": "أخرى"
+    },
+    "fields": {
+      "title": "العنوان",
+      "type": "النوع",
+      "assemblyPoint": "نقطة التجمع",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "steps": "الخطوات",
+      "contacts": "جهات اتصال الطوارئ"
+    },
+    "contact": {
+      "name": "الاسم",
+      "role": "الدور",
+      "phone": "الهاتف"
+    },
+    "scenarios": {
+      "create": "سيناريو جديد",
+      "edit": "تعديل السيناريو",
+      "empty": "لا توجد سيناريوهات",
+      "saved": "تم حفظ السيناريو",
+      "confirmDelete": "حذف هذا السيناريو؟",
+      "addStep": "إضافة خطوة",
+      "addContact": "إضافة جهة اتصال",
+      "incompleteContacts": "سيتم تجاهل جهات الاتصال غير المكتملة."
+    },
+    "trigger": {
+      "button": "إطلاق تنبيه طوارئ",
+      "scenario": "السيناريو",
+      "noScenario": "بدون سيناريو (رسالة حرة)",
+      "message": "رسالة التنبيه",
+      "zone": "المنطقة",
+      "next": "متابعة",
+      "back": "رجوع",
+      "confirm": "تأكيد وإرسال التنبيه",
+      "warning": "سيتلقى جميع المستخدمين إشعارا ذا أولوية.",
+      "sent": "تم إرسال تنبيه الطوارئ",
+      "error": "تعذر إطلاق التنبيه"
+    },
+    "drills": {
+      "create": "تخطيط تمرين",
+      "edit": "تعديل التمرين",
+      "empty": "لا توجد تمارين مخططة",
+      "saved": "تم حفظ التمرين",
+      "confirmDelete": "حذف هذا التمرين؟",
+      "scheduledAt": "التاريخ",
+      "scenario": "السيناريو",
+      "status": "الحالة",
+      "results": "النتائج",
+      "record": "تسجيل النتائج",
+      "markDone": "حفظ وتحديد كمنجز",
+      "duration": "المدة (دقيقة)",
+      "participants": "المشاركون",
+      "evacuated": "تم إخلاؤهم",
+      "evacuatedShort": "تم إخلاؤهم",
+      "evacuatedError": "لا يمكن أن يتجاوز عدد المخلين عدد المشاركين",
+      "observations": "ملاحظات",
+      "statuses": {
+        "planned": "مخطط",
+        "done": "منجز",
+        "cancelled": "ملغى"
+      }
+    }
+  },
+  "feedback": {
+    "title": "آراء المستخدمين",
+    "subtitle": "التقييمات والتعليقات المرسلة من تطبيق الجوال",
+    "loadError": "تعذر تحميل الآراء",
+    "average": "متوسط التقييم",
+    "count": "الآراء المستلمة",
+    "allCategories": "كل الفئات",
+    "allRatings": "كل التقييمات",
+    "empty": "لا توجد آراء بعد",
+    "rating": "التقييم",
+    "category": "الفئة",
+    "comment": "التعليق",
+    "user": "المستخدم",
+    "categories": {
+      "bug": "خلل",
+      "suggestion": "اقتراح",
+      "usability": "سهولة الاستخدام",
+      "other": "أخرى"
+    }
   }
 }
