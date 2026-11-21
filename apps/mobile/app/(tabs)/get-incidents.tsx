@@ -9,7 +9,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import api, { fetchMyRewardsSummary } from "../services/api";
+import api, { fetchMyRewardsSummary } from "@/services/api";
 import { RefreshControl } from "react-native-gesture-handler";
 import * as Location from "expo-location";
 

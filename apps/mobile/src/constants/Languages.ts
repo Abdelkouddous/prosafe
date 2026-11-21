@@ -40,7 +40,10 @@ export type TranslationKey =
   | "success"
   | "ok"
   | "accountPendingApproval"
-  | "accountBlocked";
+  | "accountBlocked"
+  | "adminDashboard"
+  | "pageNotFound"
+  | "goHome";
 
 export const LANGUAGES: Language[] = [
   {
@@ -111,6 +114,9 @@ export const TRANSLATIONS = {
     ok: "موافق",
     accountPendingApproval: "حسابك في انتظار الموافقة",
     accountBlocked: "تم حظر حسابك. يرجى الاتصال بالمسؤول",
+    adminDashboard: "لوحة تحكم المسؤول",
+    pageNotFound: "الصفحة غير موجودة",
+    goHome: "العودة إلى الرئيسية",
   },
 
   fr: {
@@ -158,6 +164,9 @@ export const TRANSLATIONS = {
     accountPendingApproval: "Votre compte est en attente d'approbation",
     accountBlocked:
       "Votre compte a été bloqué. Veuillez contacter l'administrateur",
+    adminDashboard: "Tableau de bord SST",
+    pageNotFound: "Page introuvable",
+    goHome: "Retour à l'accueil",
   },
 
   en: {
@@ -205,5 +214,8 @@ export const TRANSLATIONS = {
     accountPendingApproval: "Your account is waiting approval",
     accountBlocked:
       "Your account has been blocked. Please contact administrator",
+    adminDashboard: "Admin dashboard",
+    pageNotFound: "Page not found",
+    goHome: "Back to home",
   },
 };

@@ -5,7 +5,7 @@ import {
   LANGUAGES,
   LanguageCode,
   TranslationKey,
-} from "../constants/Languages";
+} from "@/constants/Languages";
 
 interface LanguageContextType {
   currentLanguage: LanguageCode;

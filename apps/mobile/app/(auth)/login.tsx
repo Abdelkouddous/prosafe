@@ -11,23 +11,21 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "../contexts/AuthContext";
-import { useLanguage } from "../contexts/LanguageContext";
-import { Colors } from "../constants/Colors";
-import { useColorScheme } from "../hooks/useColorScheme";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import {
   createAuthStyles,
   createRTLStyles,
   mergeStyles,
-} from "../styles/AuthStyles";
+} from "@/styles/AuthStyles";
 import Shield from "@expo/vector-icons/MaterialIcons";
-import api from "../services/api";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showTestAccounts, setShowTestAccounts] = useState(false);
   const { login } = useAuth();
   const { t, isRTL } = useLanguage();
   const router = useRouter();
@@ -69,18 +67,7 @@ export default function LoginScreen() {
     }
   };
 
-  const fillTestAccount = (testEmail: string, testPassword: string) => {
-    setEmail(testEmail);
-    setPassword(testPassword);
-  };
-
-  const mergedStyles = {
-    ...styles,
-    ...Object.keys(rtlStyles).reduce((acc, key) => {
-      acc[key] = { ...styles[key], ...rtlStyles[key] };
-      return acc;
-    }, {} as any),
-  };
+  const mergedStyles = mergeStyles(styles, rtlStyles, isRTL);
 
   return (
     <KeyboardAvoidingView
@@ -146,42 +133,6 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
         </View>
-
-        {showTestAccounts && (
-          <View style={mergedStyles.testAccountsContainer}>
-            <Text style={mergedStyles.testAccountsTitle}>🧪 Test Accounts</Text>
-
-            <TouchableOpacity
-              style={mergedStyles.testAccountButton}
-              onPress={() => fillTestAccount("test@prosafe.com", "test123")}
-            >
-              <View style={mergedStyles.testAccountInfo}>
-                <Text style={mergedStyles.testAccountEmail}>
-                  test@prosafe.com
-                </Text>
-                <Text style={mergedStyles.testAccountRole}>USER</Text>
-              </View>
-              <Text style={mergedStyles.testAccountPassword}>
-                Password: test123
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={mergedStyles.testAccountButton}
-              onPress={() => fillTestAccount("admin@prosafe.com", "admin123")}
-            >
-              <View style={mergedStyles.testAccountInfo}>
-                <Text style={mergedStyles.testAccountEmail}>
-                  admin@prosafe.com
-                </Text>
-                <Text style={mergedStyles.testAccountRole}>ADMIN</Text>
-              </View>
-              <Text style={mergedStyles.testAccountPassword}>
-                Password: admin123
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <View style={mergedStyles.linkContainer}>
           <Text style={mergedStyles.linkText}>{t("newToProsafe")}</Text>

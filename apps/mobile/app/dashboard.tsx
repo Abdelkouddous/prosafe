@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   adminApi,
   AdminDashboardStats,
@@ -18,12 +19,13 @@ import {
   AdminInventoryItem,
   AdminMessage,
   AdminIncident,
-} from "./services/adminAdminApi";
+} from "@/services/adminAdminApi";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function AdminDashboardScreen() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const [tasks, setTasks] = useState<AdminTask[]>([]);
@@ -43,7 +45,7 @@ export default function AdminDashboardScreen() {
         lowStockRes,
         incidentsRes,
         unreadMessagesRes,
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         adminApi.getDashboardStats(),
         adminApi.getAlerts(1, 5),
         adminApi.getTasks(),
@@ -51,12 +53,22 @@ export default function AdminDashboardScreen() {
         adminApi.getIncidents(),
         adminApi.getUnreadMessages(),
       ]);
-      setStats(statsRes.data);
-      setAlerts(alertsRes.data.items || []);
-      setTasks(tasksRes.data || []);
-      setLowStock(lowStockRes.data || []);
-      setIncidents(incidentsRes.data || []);
-      setMessages(unreadMessagesRes.data || []);
+      // One failing request must not blank the whole screen
+      if (statsRes.status === "fulfilled") setStats(statsRes.value.data);
+      if (alertsRes.status === "fulfilled")
+        setAlerts(alertsRes.value.data?.items || []);
+      if (tasksRes.status === "fulfilled") setTasks(tasksRes.value.data || []);
+      if (lowStockRes.status === "fulfilled")
+        setLowStock(lowStockRes.value.data || []);
+      if (incidentsRes.status === "fulfilled")
+        setIncidents(incidentsRes.value.data || []);
+      if (unreadMessagesRes.status === "fulfilled")
+        setMessages(unreadMessagesRes.value.data || []);
+      [statsRes, alertsRes, tasksRes, lowStockRes, incidentsRes, unreadMessagesRes]
+        .filter((r) => r.status === "rejected")
+        .forEach((r) =>
+          console.error("Dashboard request failed", (r as PromiseRejectedResult).reason)
+        );
     } catch (e) {
       console.error("Failed to load admin dashboard", e);
     } finally {
@@ -65,7 +77,7 @@ export default function AdminDashboardScreen() {
   };
 
   useEffect(() => {
-    if (user?.role !== "admin") {
+    if (user?.role !== "admin" && user?.role !== "sst_manager") {
       router.replace("/(tabs)/menu");
       return;
     }
@@ -82,7 +94,7 @@ export default function AdminDashboardScreen() {
   const onLogoutPress = async () => {
     try {
       await logout();
-      router.replace("/login");
+      router.replace("/(auth)/login");
     } catch (e) {
       console.error("Logout failed", e);
     }
@@ -104,13 +116,13 @@ export default function AdminDashboardScreen() {
       }
     >
       <View>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
+        <Text style={styles.headerTitle}>{t("adminDashboard")}</Text>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>PROSAFE</Text>
-              <Text style={styles.logoSubtext}>NEW INCIDENT</Text>
+              <Text style={styles.logoSubtext}>{t("adminDashboard")}</Text>
             </View>
           </View>
           <View style={styles.logoutContainer}>
@@ -246,8 +258,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: "#F3F4F6" },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
   header: {
     backgroundColor: "#FFFFFF",
@@ -271,11 +285,6 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     letterSpacing: 2,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  container: { flex: 1, backgroundColor: "#F3F4F6" },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   // header: { fontSize: 24, fontWeight: "700", margin: 16 },
   grid: {

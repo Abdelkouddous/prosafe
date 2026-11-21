@@ -5,18 +5,25 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../services/api";
-import { ToastAndroid } from "react-native";
+import api, { onUnauthorized } from "@/services/api";
+import { storage } from "@/services/storage";
+import { Platform, ToastAndroid } from "react-native";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "user";
+  role: "admin" | "sst_manager" | "employee" | "pending";
   roles?: string[];
   isActive?: boolean;
 }
+
+const pickRole = (roles?: string[]): User["role"] => {
+  if (roles?.includes("admin")) return "admin";
+  if (roles?.includes("sst_manager")) return "sst_manager";
+  if (roles?.includes("pending")) return "pending";
+  return "employee";
+};
 
 interface AuthContextType {
   user: User | null;
@@ -51,15 +58,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Reset state when the API layer reports a 401
+  useEffect(() => {
+    return onUnauthorized(() => {
+      setUser(null);
+      setIsAuthenticated(false);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Session expired. Please log in again.", ToastAndroid.SHORT);
+      }
+    });
+  }, []);
+
   const checkAuthStatus = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken");
-      const userData = await AsyncStorage.getItem("userData");
+      const token = await storage.getToken();
+      const parsedUser = await storage.getUser<User>();
 
-      if (token && userData) {
-        console.log("checkAuthStatus: Token and userData found.");
+      if (token && parsedUser) {
         try {
-          const parsedUser = JSON.parse(userData);
 
           // Validate parsed user data
           if (
@@ -84,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             await logout();
           }
         } catch (parseError) {
-          console.error("Error parsing stored user data:", parseError);
+          console.error("Error restoring session:", parseError);
           await logout();
         }
       }
@@ -99,7 +115,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchAndUpdateUser = async () => {
     try {
       const response = await api.get("/auth/me");
-      console.log("Raw API response:", response.data); // Debug line
       const userData = response.data;
 
       // Handle different response formats
@@ -129,17 +144,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userInfo.name ||
           `${userInfo.firstName || ""} ${userInfo.lastName || ""}`.trim() ||
           userInfo.email,
-        role: userInfo.roles?.includes("admin") ? "admin" : "user",
+        role: pickRole(userInfo.roles),
         roles: userInfo.roles,
         isActive: userInfo.isActive,
       };
 
       setUser(transformedUser);
       setIsAuthenticated(true);
-      console.log("fetchAndUpdateUser: User set and authenticated.");
 
-      // Store user data in AsyncStorage
-      await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
+      await storage.setUser(transformedUser);
     } catch (error: any) {
       console.error("Error fetching user profile:", error);
 
@@ -147,8 +160,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error.response?.status === 401) {
         console.warn("Token expired or invalid, logging out...");
         setIsAuthenticated(false);
-        const toast = ToastAndroid.show; // Assuming you have a toast notification setup
-        toast("Session expired. Please log in again.", ToastAndroid.SHORT);
+        if (Platform.OS === "android") {
+          ToastAndroid.show("Session expired. Please log in again.", ToastAndroid.SHORT);
+        }
         await logout();
       }
       throw error;
@@ -170,7 +184,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("No response received from server");
       }
 
-      console.log("Backend response:", response.data);
 
       // Handle the actual backend response format
       const responseData = response.data;
@@ -204,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userData.name ||
           `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
           userData.email,
-        role: userData.roles?.includes("admin") ? "admin" : "user",
+        role: pickRole(userData.roles),
         roles: userData.roles,
         isActive: userData.isActive,
       };
@@ -220,15 +233,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Store token and user data
-      await AsyncStorage.setItem("authToken", token);
-      await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
+      await storage.setToken(token);
+      await storage.setUser(transformedUser);
 
       // Set token in axios headers
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       setUser(transformedUser);
       setIsAuthenticated(true);
-      console.log("Login: User authenticated successfully.");
     } catch (error: any) {
       console.error("Login error:", error);
       setIsAuthenticated(false);
@@ -283,7 +295,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
 
       // Clear stored data
-      await AsyncStorage.multiRemove(["authToken", "userData"]);
+      await storage.clear();
 
       // Clear axios headers
       delete api.defaults.headers.common["Authorization"];
