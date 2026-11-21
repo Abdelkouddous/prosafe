@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod } from '@nestjs/common';
+import { allowedOrigins } from './common/cors-origins';
 
 async function bootstrap() {
   try {
@@ -17,25 +18,11 @@ async function bootstrap() {
     app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
     // cross-origin resource policy so the admin web (other origin) can display /files/:id media
     app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-    // CORS: CORS_ORIGINS (comma-separated) overrides the defaults.
-    const envOrigins = (process.env.CORS_ORIGINS ?? '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean);
-    // Restrictive by default; permissive (any origin) only when NODE_ENV === 'development'.
-    const defaultOrigins: (string | RegExp)[] | string =
-      process.env.NODE_ENV === 'development'
-        ? '*'
-        : [
-            'https://prosafe-admin-psi.vercel.app',
-            'https://prosafe-admin-92x9gdh09-abdelkouddous-projects.vercel.app',
-            'https://prosafe-admin.vercel.app',
-            /^https:\/\/prosafe-admin-.*\.vercel\.app$/, // Vercel preview deployments
-          ];
     app.enableCors({
-      origin: envOrigins.length > 0 ? envOrigins : defaultOrigins,
+      origin: allowedOrigins(),
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      exposedHeaders: ['Content-Disposition'],
       credentials: true,
       preflightContinue: false,
       optionsSuccessStatus: 204,

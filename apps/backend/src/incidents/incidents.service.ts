@@ -17,6 +17,12 @@ import { StoredFile } from '../files/entities/stored-file.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/enums/notification-type.enum';
 import { MANAGER_ROLES } from '../users/enums/role.enum';
+import { AlertsService } from '../alerts/alerts.service';
+import { AlertSeverity } from '../alerts/enums/alert-severity.enum';
+import { AlertType } from '../alerts/enums/alert-type.enum';
+import { CorrectiveActionsService } from '../corrective-actions/corrective-actions.service';
+import { CorrectiveActionSource } from '../corrective-actions/enums/corrective-action.enums';
+import { EvaluateIncidentDto } from './dto/evaluate-incident.dto';
 
 export interface IncidentScope {
   /** Id of the requesting user */
@@ -37,6 +43,8 @@ export class IncidentsService {
     private readonly rewardsService: RewardsService,
     private readonly filesService: FilesService,
     private readonly notificationsService: NotificationsService,
+    private readonly correctiveActions: CorrectiveActionsService,
+    private readonly alertsService: AlertsService,
   ) {}
 
   async create(
@@ -115,6 +123,8 @@ export class IncidentsService {
         priority: urgent ? 'high' : 'normal',
       });
 
+      if (dto.severity === IncidentSeverity.CRITICAL) await this.raiseCriticalAlert(saved.id, incidentId, dto);
+
       return { incidentId, id: saved.id, reward };
     } catch (err) {
       // Nothing must stay behind when the creation fails
@@ -123,7 +133,25 @@ export class IncidentsService {
     }
   }
 
+  /** Creates an `alert` row (never fails the incident creation). */
+  private async raiseCriticalAlert(id: number, incidentId: string, dto: CreateIncidentDto): Promise<void> {
+    try {
+      await this.alertsService.create({
+        title: `Incident critique ${incidentId}`,
+        description: `${dto.type}: ${dto.description ?? incidentId}`.slice(0, 500),
+        severity: AlertSeverity.CRITICAL,
+        type: AlertType.CRITICAL_INCIDENT,
+        metadata: { incidentId, id, zone: dto.zone ?? null, department: dto.department ?? null },
+      });
+    } catch (err) {
+      this.logger.error(`critical alert for ${incidentId} failed: ${(err as Error).message}`);
+    }
+  }
+
   async updateStatus(idOrCode: string, dto: UpdateIncidentStatusDto, userId: number): Promise<Incident> {
+    if (dto.rejected && dto.status !== IncidentStatus.CLOSED) {
+      throw new BadRequestException('`rejected` is only allowed with status `closed`');
+    }
     const incident = await this.incidentRepository.findOne({ where: this.idWhere(idOrCode) });
     if (!incident) {
       throw new NotFoundException('Incident not found');
@@ -157,11 +185,14 @@ export class IncidentsService {
       return s;
     });
 
+    let pointsRevoked = 0;
+    if (dto.rejected) pointsRevoked = await this.rewardsService.revokeForIncident(incident.incidentId);
+
     await this.notificationsService.notifyUsers([incident.reportedBy], {
       type: NotificationType.INCIDENT,
-      title: 'Statut de votre incident mis à jour',
+      title: dto.rejected ? 'Votre incident a été rejeté' : 'Statut de votre incident mis à jour',
       body: `${incident.incidentId}: ${previous} -> ${dto.status}`,
-      data: { incidentId: incident.incidentId, id: incident.id, status: dto.status },
+      data: { incidentId: incident.incidentId, id: incident.id, status: dto.status, rejected: !!dto.rejected, pointsRevoked },
     });
 
     return saved;
@@ -193,6 +224,8 @@ export class IncidentsService {
     const qb = this.baseQuery()
       .leftJoin('i.resolver', 'resolver')
       .addSelect(['resolver.id', 'resolver.firstName', 'resolver.lastName'])
+      .leftJoin('i.evaluatedBy', 'evaluator')
+      .addSelect(['evaluator.id', 'evaluator.firstName', 'evaluator.lastName'])
       .leftJoin('i.history', 'h')
       .addSelect(['h.id', 'h.fromStatus', 'h.toStatus', 'h.comment', 'h.changedAt', 'h.changedById'])
       .leftJoin('h.changedBy', 'hu')
@@ -208,7 +241,37 @@ export class IncidentsService {
     if (!incident || (scope && !scope.isManager && incident.reportedBy !== scope.userId)) {
       throw new NotFoundException('Incident not found');
     }
-    return this.present(incident);
+    const correctiveActions = await this.correctiveActions.findBySource(CorrectiveActionSource.INCIDENT, incident.id);
+    return { ...this.present(incident), evaluation: this.presentEvaluation(incident), correctiveActions };
+  }
+
+  /** Manager evaluation (A4): riskScore = gravity * probability. Returns the full incident detail. */
+  async evaluate(idOrCode: string, dto: EvaluateIncidentDto, userId: number) {
+    const incident = await this.incidentRepository.findOne({ where: this.idWhere(idOrCode) });
+    if (!incident) throw new NotFoundException('Incident not found');
+    incident.gravity = dto.gravity;
+    incident.probability = dto.probability;
+    incident.riskScore = dto.gravity * dto.probability;
+    if (dto.rootCause !== undefined) incident.rootCause = dto.rootCause;
+    if (dto.evaluatedSeverity !== undefined) incident.evaluatedSeverity = dto.evaluatedSeverity;
+    incident.evaluatedById = userId;
+    incident.evaluatedAt = new Date();
+    await this.incidentRepository.save(incident);
+    return this.findOne(String(incident.id));
+  }
+
+  private presentEvaluation(i: Incident) {
+    if (!i.evaluatedAt) return null;
+    const by = (i as any).evaluatedBy;
+    return {
+      gravity: i.gravity,
+      probability: i.probability,
+      riskScore: i.riskScore,
+      rootCause: i.rootCause,
+      evaluatedSeverity: i.evaluatedSeverity,
+      evaluatedAt: i.evaluatedAt,
+      evaluatedBy: by ? { id: by.id, firstName: by.firstName, lastName: by.lastName } : null,
+    };
   }
 
   /** The 10 latest incidents of the user (legacy mobile endpoint). */

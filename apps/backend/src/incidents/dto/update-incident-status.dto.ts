@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { IncidentStatus } from '../enums/incident-status.enum';
 
 export class UpdateIncidentStatusDto {
@@ -18,4 +18,9 @@ export class UpdateIncidentStatusDto {
   @IsString()
   @MaxLength(2000)
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Only with status `closed`: the report is rejected and the reporter\'s reward points are revoked' })
+  @IsOptional()
+  @IsBoolean()
+  rejected?: boolean;
 }

@@ -26,7 +26,9 @@ describe('IncidentsService', () => {
   let em: any;
   let notifications: { notifyRoles: jest.Mock; notifyUsers: jest.Mock };
   let files: { saveUploaded: jest.Mock; discard: jest.Mock };
-  let rewards: { awardForIncident: jest.Mock };
+  let rewards: { awardForIncident: jest.Mock; revokeForIncident: jest.Mock };
+  let corrective: { findBySource: jest.Mock };
+  let alerts: { create: jest.Mock };
 
   const incident = (status: IncidentStatus, extra = {}) => ({ id: 1, incidentId: 'INC-1', reportedBy: 5, status, ...extra });
 
@@ -43,8 +45,10 @@ describe('IncidentsService', () => {
     };
     notifications = { notifyRoles: jest.fn(), notifyUsers: jest.fn() };
     files = { saveUploaded: jest.fn(), discard: jest.fn() };
-    rewards = { awardForIncident: jest.fn().mockResolvedValue({ pointsAwarded: 10, totalPoints: 10 }) };
-    service = new IncidentsService(repo, rewards as any, files as any, notifications as any);
+    rewards = { awardForIncident: jest.fn().mockResolvedValue({ pointsAwarded: 10, totalPoints: 10 }), revokeForIncident: jest.fn().mockResolvedValue(15) };
+    corrective = { findBySource: jest.fn().mockResolvedValue([{ id: 1, title: 'Fix' }]) };
+    alerts = { create: jest.fn().mockResolvedValue({}) };
+    service = new IncidentsService(repo, rewards as any, files as any, notifications as any, corrective as any, alerts as any);
   });
 
   describe('updateStatus', () => {
@@ -101,6 +105,46 @@ describe('IncidentsService', () => {
     it('404 when unknown', async () => {
       repo.findOne.mockResolvedValue(null);
       await expect(service.updateStatus('INC-X', { status: IncidentStatus.RESOLVED }, 9)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('evaluate (A4)', () => {
+    it('computes riskScore = gravity * probability and stores the evaluator', async () => {
+      const inc: any = incident(IncidentStatus.OPEN);
+      repo.findOne.mockResolvedValue(inc);
+      repo.save = jest.fn(async (i) => i);
+      repo.createQueryBuilder.mockReturnValue(makeQb({ ...inc, evaluatedAt: new Date(), gravity: 4, probability: 3, riskScore: 12 }));
+      const res: any = await service.evaluate('INC-1', { gravity: 4, probability: 3, rootCause: 'worn cable', evaluatedSeverity: 'high' as any }, 9);
+      const saved = repo.save.mock.calls[0][0];
+      expect(saved).toMatchObject({ gravity: 4, probability: 3, riskScore: 12, rootCause: 'worn cable', evaluatedSeverity: 'high', evaluatedById: 9 });
+      expect(saved.evaluatedAt).toBeInstanceOf(Date);
+      expect(res.evaluation.riskScore).toBe(12);
+      expect(res.correctiveActions).toHaveLength(1);
+    });
+
+    it('404 for an unknown incident', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await expect(service.evaluate('99', { gravity: 1, probability: 1 }, 9)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('rejected status (A1)', () => {
+    it('revokes the reward points when closing as rejected', async () => {
+      repo.findOne.mockResolvedValue(incident(IncidentStatus.OPEN));
+      await service.updateStatus('INC-1', { status: IncidentStatus.CLOSED, rejected: true }, 9);
+      expect(rewards.revokeForIncident).toHaveBeenCalledWith('INC-1');
+      expect(notifications.notifyUsers.mock.calls[0][1].data).toMatchObject({ rejected: true, pointsRevoked: 15 });
+    });
+
+    it('does not revoke on a plain close', async () => {
+      repo.findOne.mockResolvedValue(incident(IncidentStatus.OPEN));
+      await service.updateStatus('INC-1', { status: IncidentStatus.CLOSED }, 9);
+      expect(rewards.revokeForIncident).not.toHaveBeenCalled();
+    });
+
+    it('rejects `rejected` with a status other than closed', async () => {
+      await expect(service.updateStatus('INC-1', { status: IncidentStatus.RESOLVED, rejected: true }, 9)).rejects.toBeInstanceOf(BadRequestException);
+      expect(repo.findOne).not.toHaveBeenCalled();
     });
   });
 
@@ -186,6 +230,15 @@ describe('IncidentsService', () => {
         ]),
       );
       expect(notifications.notifyRoles).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ priority: 'high' }));
+    });
+
+    it('raises a critical_incident alert for critical incidents only', async () => {
+      repo.findOne.mockResolvedValue(null);
+      await service.create(dto, [], 5);
+      expect(alerts.create).toHaveBeenCalledWith(expect.objectContaining({ type: 'critical_incident', severity: 'critical' }));
+      alerts.create.mockClear();
+      await service.create({ ...dto, severity: 'low' }, [], 5);
+      expect(alerts.create).not.toHaveBeenCalled();
     });
 
     it('requires a location', async () => {

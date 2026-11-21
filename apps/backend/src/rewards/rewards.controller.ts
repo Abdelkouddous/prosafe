@@ -1,12 +1,32 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiBearerAuth, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/strategy/roles.guard';
-import { RewardsService } from './rewards.service';
+import { Roles } from '../custom.decorator';
+import { Role } from '../users/enums/role.enum';
+import { LeaderboardPeriod, RewardsService } from './rewards.service';
+
+export class LeaderboardQueryDto {
+  @ApiPropertyOptional({ enum: ['month', 'year', 'all'], default: 'all' })
+  @IsOptional()
+  @IsIn(['month', 'year', 'all'])
+  period?: LeaderboardPeriod = 'all';
+
+  @ApiPropertyOptional({ default: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
+}
 
 @ApiTags('rewards')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.ADMIN, Role.SST_MANAGER, Role.EMPLOYEE)
 @Controller('rewards')
 export class RewardsController {
   constructor(private rewards: RewardsService) {}
@@ -16,9 +36,15 @@ export class RewardsController {
     return this.rewards.getMyRewards(req.user.id);
   }
 
+  /** `{ totalPoints, rank, badge, nextBadgeAt }` */
   @Get('me/summary')
-  async summary(@Request() req: any) {
-    const totalPoints = await this.rewards.getTotalPoints(req.user.id);
-    return { totalPoints };
+  summary(@Request() req: any) {
+    return this.rewards.getSummary(req.user.id);
+  }
+
+  /** Top users by points over the period (names included). */
+  @Get('leaderboard')
+  leaderboard(@Query() q: LeaderboardQueryDto) {
+    return this.rewards.getLeaderboard(q.period, q.limit);
   }
 }

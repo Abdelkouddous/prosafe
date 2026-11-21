@@ -86,6 +86,35 @@ export class Incident {
   @JoinColumn({ name: 'resolvedBy' })
   resolver: User;
 
+  // ---- Manager evaluation (A4) ----
+  /** 1-5 */
+  @Column({ type: 'int', nullable: true })
+  gravity: number | null;
+
+  /** 1-5 */
+  @Column({ type: 'int', nullable: true })
+  probability: number | null;
+
+  /** gravity * probability (1-25) */
+  @Column({ type: 'int', nullable: true })
+  riskScore: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  rootCause: string | null;
+
+  @Column({ type: 'enum', enum: IncidentSeverity, nullable: true })
+  evaluatedSeverity: IncidentSeverity | null;
+
+  @Column({ type: 'int', nullable: true })
+  evaluatedById: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'evaluatedById' })
+  evaluatedBy: User | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  evaluatedAt: Date | null;
+
   @OneToMany(() => IncidentMedia, (m) => m.incident)
   media: IncidentMedia[];
 

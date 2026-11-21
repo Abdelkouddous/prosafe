@@ -1,8 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 import { In, Repository } from 'typeorm';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../users/enums/role.enum';
 import { DeviceToken } from './entities/device-token.entity';
@@ -51,6 +52,7 @@ export class NotificationsService {
     @InjectRepository(NotificationPreference) private readonly prefRepo: Repository<NotificationPreference>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly mailer: MailerService,
+    @Optional() private readonly realtime?: RealtimeGateway,
   ) {}
 
   // ---------- Dispatch API (used by other modules) ----------
@@ -137,11 +139,13 @@ export class NotificationsService {
       }
       if (!recipients.length) return;
 
-      await this.notifRepo.save(
+      const saved = await this.notifRepo.save(
         recipients.map((r) =>
           this.notifRepo.create({ userId: r.id, type: payload.type, title: payload.title, body: payload.body, data: payload.data ?? null }),
         ),
       );
+      // Realtime push to connected clients (no-op without a running socket server)
+      for (const n of saved ?? []) this.realtime?.emitToUsers([n.userId], 'notification:new', n);
 
       const pushUsers = recipients.filter((r) => isEmergency || r.pref.push).map((r) => r.id);
       await this.sendPush(pushUsers, payload).catch((e) => this.logger.error(`push failed: ${(e as Error).message}`));
