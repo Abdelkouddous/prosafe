@@ -1146,5 +1146,41 @@
       "usability": "Ergonomie",
       "other": "Autre"
     }
+  },
+  "settingsPage": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre profil, mot de passe, notifications et accessibilité",
+    "tabs": {
+      "general": "Langue et accessibilité",
+      "notifications": "Notifications",
+      "security": "Mot de passe"
+    },
+    "profile": "Profil",
+    "profileDesc": "Informations de votre compte",
+    "language": "Langue",
+    "languageDesc": "Langue de l’interface (l’arabe passe en écriture de droite à gauche)",
+    "accessibility": "Accessibilité",
+    "accessibilityDesc": "Ajustez la taille du texte et le contraste pour une lecture plus facile",
+    "textSize": "Taille du texte",
+    "sizeNormal": "Normal",
+    "sizeLarge": "Grand",
+    "sizeXLarge": "Très grand",
+    "highContrast": "Contraste élevé",
+    "highContrastDesc": "Texte noir sur fond blanc, bordures renforcées, rouge et vert plus foncés",
+    "password": "Changer le mot de passe",
+    "passwordDesc": "Mettez à jour votre mot de passe pour sécuriser votre compte",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "changing": "Modification...",
+    "mismatch": "Les nouveaux mots de passe ne correspondent pas",
+    "tooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordChanged": "Mot de passe modifié avec succès",
+    "passwordError": "Échec de la modification du mot de passe",
+    "notificationsDesc": "Choisissez les notifications que vous souhaitez recevoir",
+    "name": "Nom",
+    "email": "E-mail",
+    "role": "Rôle"
   }
 }

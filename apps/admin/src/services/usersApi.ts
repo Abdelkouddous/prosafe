@@ -36,3 +36,11 @@ export const usersApi = {
     );
   },
 };
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export const changePassword = (payload: ChangePasswordPayload) =>
+  api.patch<{ message?: string }>("/users/change-password", payload);
