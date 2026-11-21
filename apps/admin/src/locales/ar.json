@@ -1,16 +1,16 @@
 {
   "navigation": {
-    "home": "بيت",
+    "home": "الرئيسية",
     "dashboard": "لوحة القيادة",
-    "inventory": "جرد",
-    "goToHome": "اذهب إلى المنزل",
+    "inventory": "المخزون",
+    "goToHome": "العودة إلى الرئيسية",
     "myProfile": "ملفي الشخصي",
     "settings": "إعدادات",
     "notifications": "إشعارات",
     "incidents": "الحوادث",
-    "training": "تمرين",
+    "training": "التكوين",
     "adminAccess": "وصول المسؤول",
-    "userManagement": "إدارة المستخدم",
+    "userManagement": "إدارة المستخدمين",
     "roleManagement": "إدارة الأدوار",
     "permissions": "أذونات",
     "logout": "تسجيل الخروج",
@@ -95,7 +95,7 @@
   },
   "adminDashboard": {
     "welcome_back": "مرحباً بعودتك",
-    "dashboard_description": "إليك ما يحدث مع أمانك اليوم",
+    "dashboard_description": "إليك وضع الصحة والسلامة المهنية اليوم",
     "total_assets": "إجمالي الأصول",
     "active_threats": "التهديدات النشطة",
     "compliance_score": "نقاط الامتثال",
@@ -150,10 +150,13 @@
       "dashboard": "لوحة التحكم",
       "incidents": "الحوادث",
       "users": "المستخدمون",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "messages": "الرسائل",
+      "notificationSettings": "إعدادات الإشعارات",
+      "sendNotifications": "إرسال إعلانات"
     },
     "page_titles": {
-      "security_dashboard": "لوحة تحكم الأمان",
+      "security_dashboard": "لوحة قيادة الصحة والسلامة المهنية",
       "user_management": "إدارة المستخدمين",
       "incident_management": "إدارة الحوادث"
     },

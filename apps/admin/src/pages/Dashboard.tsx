@@ -386,23 +386,23 @@ const Dashboard = () => {
   const getTabTitle = () => {
     switch (activeTab) {
       case "overview":
-        return "Security Dashboard";
+        return t("adminDashboard.page_titles.security_dashboard");
       case "users":
-        return "User Management";
+        return t("navigation.userManagement");
       case "incidents":
-        return "Incident Logs";
+        return t("navigation.incidents");
       case "profile":
-        return "My Profile";
+        return t("navigation.myProfile");
       case "user-settings":
-        return "User Settings";
+        return t("navigation.settings");
       case "messages":
-        return "Messages";
+        return t("adminDashboard.sidebar.messages");
       case "notifications":
-        return "Notification Settings";
+        return t("adminDashboard.sidebar.notificationSettings");
       case "admin-notifications":
-        return "Send Notifications";
+        return t("adminDashboard.sidebar.sendNotifications");
       default:
-        return "Security Dashboard";
+        return t("adminDashboard.page_titles.security_dashboard");
     }
   };
 
@@ -435,7 +435,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("overview")}
           >
             <Home className="mr-2 h-5 w-5" />
-            Dashboard
+            {t("adminDashboard.sidebar.dashboard")}
           </Button>
           <Button
             variant="ghost"
@@ -486,7 +486,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("users")}
           >
             <Users className="mr-2 h-5 w-5" />
-            Users
+            {t("adminDashboard.sidebar.users")}
           </Button>
           <Button
             variant="ghost"
@@ -494,7 +494,7 @@ const Dashboard = () => {
             onClick={() => navigate("/messages")}
           >
             <MessageSquare className="mr-2 h-5 w-5" />
-            Messages
+            {t("adminDashboard.sidebar.messages")}
             {unreadMessageCount > 0 && (
               <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 {unreadMessageCount}
@@ -507,7 +507,7 @@ const Dashboard = () => {
             onClick={() => navigate("/equipment")}
           >
             <Box className="mr-2 h-5 w-5" />
-            Inventory
+            {t("navigation.inventory")}
             {(inventoryStats?.lowStockItems ?? 0) > 0 && (
               <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 {(inventoryStats?.lowStockItems ?? 0)}
@@ -520,7 +520,7 @@ const Dashboard = () => {
             onClick={() => navigate("/trainings")}
           >
             <GraduationCap className="mr-2 h-5 w-5" />
-            Training Management
+            {t("navigation.training")}
           </Button>
           <Button
             variant="ghost"
@@ -528,7 +528,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("notifications")}
           >
             <Bell className="mr-2 h-5 w-5" />
-            Notification Settings
+            {t("adminDashboard.sidebar.notificationSettings")}
           </Button>
           <Button
             variant="ghost"
@@ -536,7 +536,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("admin-notifications")}
           >
             <Send className="mr-2 h-5 w-5" />
-            Send Notifications
+            {t("adminDashboard.sidebar.sendNotifications")}
           </Button>
           <Button
             variant="ghost"
@@ -544,7 +544,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("profile")}
           >
             <User className="mr-2 h-5 w-5" />
-            My Profile
+            {t("navigation.myProfile")}
           </Button>
 
           <div className="pt-6 mt-6 border-t border-gray-100">
@@ -554,7 +554,7 @@ const Dashboard = () => {
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-5 w-5" />
-              Logout
+              {t("adminDashboard.sidebar.logout")}
             </Button>
           </div>
         </nav>
@@ -582,7 +582,7 @@ const Dashboard = () => {
               className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
             >
               <Home className="h-4 w-4" />
-              Go to Home
+              {t("navigation.goToHome")}
             </Link>
 
             <NotificationBell />
@@ -644,7 +644,7 @@ const Dashboard = () => {
                         className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                       >
                         <User className="h-4 w-4" />
-                        My Profile
+                        {t("navigation.myProfile")}
                       </button>
 
                       <button
@@ -681,7 +681,7 @@ const Dashboard = () => {
                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         <LogOut className="h-4 w-4" />
-                        Logout
+                        {t("adminDashboard.sidebar.logout")}
                       </button>
                     </div>
                   </div>
@@ -866,7 +866,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">
-                  My Profile
+                  {t("navigation.myProfile")}
                 </h2>
                 <p className="text-muted-foreground">
                   Manage your personal information and account details.
@@ -1185,7 +1185,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">
-                  Notification Settings
+                  {t("adminDashboard.sidebar.notificationSettings")}
                 </h2>
                 <p className="text-muted-foreground">
                   Configure notification rules and manage training reminders.
@@ -1197,7 +1197,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">
-                  Send Notifications
+                  {t("adminDashboard.sidebar.sendNotifications")}
                 </h2>
                 <p className="text-muted-foreground">
                   Send important announcements and notifications to all users.
