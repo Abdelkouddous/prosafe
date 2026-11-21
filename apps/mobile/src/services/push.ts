@@ -115,6 +115,10 @@ export const routeForNotification = (
     return true;
   }
   const kind = type ?? (typeof data?.type === "string" ? data.type : undefined);
+  if (kind === "emergency") {
+    router.push("/(extra)/emergency");
+    return true;
+  }
   if (kind === "training") {
     router.push("/(tabs)/trainings");
     return true;
@@ -130,6 +134,18 @@ const openFromData = (data: Record<string, unknown> | undefined) => {
   if (!routeForNotification(undefined, data)) {
     router.push("/(extra)/notifications");
   }
+};
+
+/** Notifications received while the app is in the foreground (push). Returns cleanup. */
+export const subscribeToForegroundNotifications = (
+  handler: (n: { title?: string | null; body?: string | null; data: Record<string, unknown> }) => void
+): (() => void) => {
+  if (!Notifications) return () => {};
+  const sub = Notifications.addNotificationReceivedListener((n) => {
+    const c = n.request.content;
+    handler({ title: c.title, body: c.body, data: (c.data ?? {}) as Record<string, unknown> });
+  });
+  return () => sub.remove();
 };
 
 /** Listen to notification taps (incl. the one that cold-started the app). Returns cleanup. */

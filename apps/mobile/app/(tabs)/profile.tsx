@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -392,7 +394,15 @@ export default function ProfileScreen() {
             ))}
         </View>
 
-        {/* Feedback ("Donner un avis") is hidden until Phase 5. */}
+        {/* Feedback (G4) */}
+        <TouchableOpacity
+          style={[styles.section, styles.prefRow]}
+          onPress={() => router.push("/(extra)/feedback")}
+          accessibilityRole="button"
+        >
+          <Text style={styles.value}>{t("feedbackRow")}</Text>
+          <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: colors.danger, marginBottom: 30 }]}

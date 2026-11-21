@@ -1,423 +1,422 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
   TextInput,
-  Alert,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAppTheme } from "@/contexts/AccessibilityContext";
+import { TranslationKey } from "@/constants/Languages";
+import { PHASE4_TRANSLATIONS } from "@/constants/Phase4Translations";
+import { RISK_HC_LEVEL_COLORS, RISK_LEVEL_COLORS } from "@/constants/riskUi";
+import { createLmra, fetchMyLmra, LmraAssessment, RiskLevel } from "@/services/risksApi";
 
-interface RiskLevel {
-  level: "low" | "medium" | "high" | "critical";
-  color: string;
-  description: string;
-}
+type HazardId = "slip" | "electrical" | "chemical" | "machinery" | "height" | "lifting" | "noise" | "confined";
 
-interface Hazard {
-  id: string;
-  category: string;
-  description: string;
-  riskLevel: "low" | "medium" | "high" | "critical";
-  mitigation: string;
-  selected: boolean;
-}
+const HAZARDS: { id: HazardId; level: RiskLevel }[] = [
+  { id: "slip", level: "medium" },
+  { id: "electrical", level: "high" },
+  { id: "chemical", level: "high" },
+  { id: "machinery", level: "high" },
+  { id: "height", level: "critical" },
+  { id: "lifting", level: "medium" },
+  { id: "noise", level: "medium" },
+  { id: "confined", level: "critical" },
+];
+const LEVEL_ORDER: RiskLevel[] = ["low", "medium", "high", "critical"];
 
-interface LMRAForm {
-  taskDescription: string;
-  location: string;
-  personnel: string;
-  equipment: string;
-  identifiedHazards: Hazard[];
-  additionalMeasures: string;
-  supervisorApproval: boolean;
+interface HazardState {
+  present: boolean;
+  controlled: boolean;
 }
+const emptyHazards = (): Record<HazardId, HazardState> =>
+  Object.fromEntries(HAZARDS.map((h) => [h.id, { present: false, controlled: false }])) as Record<HazardId, HazardState>;
+
+const hazardKey = (id: HazardId) => `lmraHazard_${id}` as TranslationKey;
 
 const LMRA = () => {
-  const styles = useThemedStyles(baseStyles);
-  const { t } = useLanguage();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [form, setForm] = useState<LMRAForm>({
-    taskDescription: "",
-    location: "",
-    personnel: "",
-    equipment: "",
-    identifiedHazards: [],
-    additionalMeasures: "",
-    supervisorApproval: false,
-  });
+  const { t, isRTL, currentLanguage } = useLanguage();
+  const { colors, fs, highContrast } = useAppTheme();
+  const levelColors = highContrast ? RISK_HC_LEVEL_COLORS : RISK_LEVEL_COLORS;
 
-  const riskLevels: Record<string, RiskLevel> = {
-    low: { level: "low", color: "#10B981", description: "Low Risk" },
-    medium: { level: "medium", color: "#F59E0B", description: "Medium Risk" },
-    high: { level: "high", color: "#EF4444", description: "High Risk" },
-    critical: { level: "critical", color: "#7C2D12", description: "Critical Risk" },
+  const [mode, setMode] = useState<"form" | "history">("form");
+  const [step, setStep] = useState(1);
+  const [task, setTask] = useState("");
+  const [location, setLocation] = useState("");
+  const [hazards, setHazards] = useState(emptyHazards);
+  const [comments, setComments] = useState("");
+  const [decision, setDecision] = useState<"go" | "stop">("go");
+  const [confirmed, setConfirmed] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<LmraAssessment | null>(null);
+
+  const [history, setHistory] = useState<LmraAssessment[] | null>(null);
+  const [historyFailed, setHistoryFailed] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryFailed(false);
+    try {
+      setHistory(await fetchMyLmra());
+    } catch {
+      setHistoryFailed(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (mode === "history") loadHistory();
+  }, [mode, loadHistory]);
+
+  const present = HAZARDS.filter((h) => hazards[h.id].present);
+  const overall: RiskLevel = present.reduce<RiskLevel>(
+    (acc, h) => (LEVEL_ORDER.indexOf(h.level) > LEVEL_ORDER.indexOf(acc) ? h.level : acc),
+    "low"
+  );
+  const uncontrolled = present.filter((h) => !hazards[h.id].controlled).length;
+
+  const reset = () => {
+    setStep(1);
+    setTask("");
+    setLocation("");
+    setHazards(emptyHazards());
+    setComments("");
+    setDecision("go");
+    setConfirmed(false);
+    setResult(null);
+    setError(null);
   };
 
-  const commonHazards: Hazard[] = [
-    {
-      id: "slip",
-      category: "Physical",
-      description: "Slips, trips, and falls",
-      riskLevel: "medium",
-      mitigation: "Ensure walkways are clear, use non-slip footwear, install barriers",
-      selected: false,
-    },
-    {
-      id: "electrical",
-      category: "Electrical",
-      description: "Electrical shock/electrocution",
-      riskLevel: "high",
-      mitigation: "Use LOTO procedures, test equipment, wear appropriate PPE",
-      selected: false,
-    },
-    {
-      id: "chemical",
-      category: "Chemical",
-      description: "Chemical exposure",
-      riskLevel: "high",
-      mitigation: "Use proper ventilation, wear chemical-resistant PPE, follow SDS",
-      selected: false,
-    },
-    {
-      id: "machinery",
-      category: "Mechanical",
-      description: "Moving machinery/equipment",
-      riskLevel: "high",
-      mitigation: "Install guards, use LOTO, maintain safe distances",
-      selected: false,
-    },
-    {
-      id: "height",
-      category: "Physical",
-      description: "Working at height",
-      riskLevel: "critical",
-      mitigation: "Use fall protection, inspect equipment, secure work area",
-      selected: false,
-    },
-    {
-      id: "lifting",
-      category: "Ergonomic",
-      description: "Manual handling/lifting",
-      riskLevel: "medium",
-      mitigation: "Use proper lifting techniques, mechanical aids, team lifting",
-      selected: false,
-    },
-    {
-      id: "noise",
-      category: "Physical",
-      description: "Excessive noise exposure",
-      riskLevel: "medium",
-      mitigation: "Use hearing protection, limit exposure time, reduce noise at source",
-      selected: false,
-    },
-    {
-      id: "confined",
-      category: "Environmental",
-      description: "Confined space entry",
-      riskLevel: "critical",
-      mitigation: "Obtain permits, test atmosphere, use ventilation, standby person",
-      selected: false,
-    },
-  ];
-
-  const [hazards, setHazards] = useState<Hazard[]>(commonHazards);
-
-  const toggleHazard = (hazardId: string) => {
-    setHazards(prev =>
-      prev.map(hazard =>
-        hazard.id === hazardId
-          ? { ...hazard, selected: !hazard.selected }
-          : hazard
-      )
-    );
-  };
-
-  const getSelectedHazards = () => {
-    return hazards.filter(hazard => hazard.selected);
-  };
-
-  const getOverallRiskLevel = () => {
-    const selectedHazards = getSelectedHazards();
-    if (selectedHazards.length === 0) return "low";
-    
-    const riskLevels = selectedHazards.map(h => h.riskLevel);
-    if (riskLevels.includes("critical")) return "critical";
-    if (riskLevels.includes("high")) return "high";
-    if (riskLevels.includes("medium")) return "medium";
-    return "low";
-  };
-
-  const submitLMRA = () => {
-    const selectedHazards = getSelectedHazards();
-    if (!form.taskDescription || !form.location || selectedHazards.length === 0) {
-      Alert.alert(t("lmraIncompleteTitle"), t("lmraIncompleteMessage"));
+  const next = () => {
+    if (step === 1 && (!task.trim() || !location.trim())) {
+      setError(t("lmraIncompleteMessage"));
       return;
     }
-
-    Alert.alert(
-      "LMRA Submitted",
-      "Your Last Minute Risk Assessment has been submitted successfully.",
-      [
-        {
-          text: "New Assessment",
-          onPress: () => {
-            setForm({
-              taskDescription: "",
-              location: "",
-              personnel: "",
-              equipment: "",
-              identifiedHazards: [],
-              additionalMeasures: "",
-              supervisorApproval: false,
-            });
-            setHazards(commonHazards);
-            setCurrentStep(1);
-          }
-        },
-        {
-          text: "Done",
-          onPress: () => router.back()
-        }
-      ]
-    );
+    setError(null);
+    setStep(step + 1);
   };
 
-  const renderStep1 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t("lmraTaskInfo")}</Text>
-      
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Task Description *</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="Describe the task to be performed..."
-          value={form.taskDescription}
-          onChangeText={(text) => setForm(prev => ({ ...prev, taskDescription: text }))}
-          multiline
-          numberOfLines={3}
-        />
-      </View>
+  const submit = async () => {
+    setSending(true);
+    setError(null);
+    try {
+      // Labels are sent in French so the same hazard is deduplicated across app languages.
+      const fr = PHASE4_TRANSLATIONS.fr as Record<string, string>;
+      const res = await createLmra({
+        task: task.trim(),
+        location: location.trim(),
+        hazards: HAZARDS.map((h) => ({
+          label: fr[hazardKey(h.id)],
+          present: hazards[h.id].present,
+          controlled: hazards[h.id].present ? hazards[h.id].controlled : true,
+        })),
+        decision,
+        comments: comments.trim() || undefined,
+      });
+      setResult(res);
+    } catch {
+      setError(t("lmraSubmitFailed"));
+    } finally {
+      setSending(false);
+    }
+  };
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Location *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Work location/area"
-          value={form.location}
-          onChangeText={(text) => setForm(prev => ({ ...prev, location: text }))}
-        />
-      </View>
+  const back = () => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home"));
+  const align = { textAlign: isRTL ? ("right" as const) : ("left" as const) };
+  const inputStyle = [styles.input, align, { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface, fontSize: fs(15) }];
+  const labelStyle = { color: colors.text, fontSize: fs(15), fontWeight: "600" as const, marginBottom: 6 };
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Personnel Involved</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Names of personnel"
-          value={form.personnel}
-          onChangeText={(text) => setForm(prev => ({ ...prev, personnel: text }))}
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Equipment/Tools</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="List equipment and tools to be used..."
-          value={form.equipment}
-          onChangeText={(text) => setForm(prev => ({ ...prev, equipment: text }))}
-          multiline
-          numberOfLines={2}
-        />
-      </View>
+  const Badge = ({ level }: { level: RiskLevel }) => (
+    <View style={[styles.badge, { backgroundColor: levelColors[level] }]}>
+      <Text style={{ color: "#FFFFFF", fontSize: fs(11), fontWeight: "700" }}>{t(`risksLevel_${level}` as TranslationKey)}</Text>
     </View>
   );
 
-  const renderStep2 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t("lmraHazards")}</Text>
-      <Text style={styles.stepSubtitle}>Select all hazards that apply to this task:</Text>
-      
-      <View style={styles.hazardsList}>
-        {hazards.map((hazard) => (
-          <TouchableOpacity
-            key={hazard.id}
-            style={[
-              styles.hazardCard,
-              hazard.selected && styles.hazardCardSelected
-            ]}
-            onPress={() => toggleHazard(hazard.id)}
-          >
-            <View style={styles.hazardHeader}>
-              <View style={styles.hazardInfo}>
-                <Text style={styles.hazardCategory}>{hazard.category}</Text>
-                <View style={[
-                  styles.riskBadge,
-                  { backgroundColor: riskLevels[hazard.riskLevel].color }
-                ]}>
-                  <Text style={styles.riskBadgeText}>
-                    {riskLevels[hazard.riskLevel].description}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons
-                name={hazard.selected ? "checkbox" : "square-outline"}
-                size={24}
-                color={hazard.selected ? "#3B82F6" : "#9CA3AF"}
-              />
-            </View>
-            <Text style={styles.hazardDescription}>{hazard.description}</Text>
-            <Text style={styles.hazardMitigation}>
-              <Text style={styles.mitigationLabel}>Mitigation: </Text>
-              {hazard.mitigation}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderStep3 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>{t("lmraSummary")}</Text>
-      
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryHeader}>
-          <Text style={styles.summaryTitle}>Overall Risk Level</Text>
-          <View style={[
-            styles.overallRiskBadge,
-            { backgroundColor: riskLevels[getOverallRiskLevel()].color }
-          ]}>
-            <Text style={styles.overallRiskText}>
-              {riskLevels[getOverallRiskLevel()].description.toUpperCase()}
-            </Text>
-          </View>
-        </View>
-        
-        <Text style={styles.summarySubtitle}>Selected Hazards ({getSelectedHazards().length})</Text>
-        {getSelectedHazards().map((hazard) => (
-          <View key={hazard.id} style={styles.selectedHazard}>
-            <Text style={styles.selectedHazardText}>{hazard.description}</Text>
-            <View style={[
-              styles.miniRiskBadge,
-              { backgroundColor: riskLevels[hazard.riskLevel].color }
-            ]}>
-              <Text style={styles.miniRiskText}>{hazard.riskLevel.toUpperCase()}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Additional Control Measures</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="Any additional safety measures or precautions..."
-          value={form.additionalMeasures}
-          onChangeText={(text) => setForm(prev => ({ ...prev, additionalMeasures: text }))}
-          multiline
-          numberOfLines={3}
-        />
-      </View>
-
+  const header = (
+    <View style={[styles.header, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <TouchableOpacity onPress={back} accessibilityLabel={t("back")} style={{ padding: 8 }}>
+        <Ionicons name={isRTL ? "arrow-forward" : "arrow-back"} size={24} color={colors.text} />
+      </TouchableOpacity>
+      <Text style={{ color: colors.text, fontSize: fs(18), fontWeight: "700" }}>{t("lmraTitle")}</Text>
       <TouchableOpacity
-        style={styles.approvalButton}
-        onPress={() => setForm(prev => ({ ...prev, supervisorApproval: !prev.supervisorApproval }))}
+        onPress={() => setMode(mode === "form" ? "history" : "form")}
+        accessibilityRole="button"
+        style={{ padding: 8 }}
       >
-        <Ionicons
-          name={form.supervisorApproval ? "checkbox" : "square-outline"}
-          size={24}
-          color={form.supervisorApproval ? "#3B82F6" : "#9CA3AF"}
-        />
-        <Text style={styles.approvalText}>
-          I confirm that all risks have been assessed and appropriate control measures are in place
+        <Text style={{ color: colors.primary, fontSize: fs(13), fontWeight: "600" }}>
+          {mode === "form" ? t("lmraHistory") : t("lmraForm")}
         </Text>
       </TouchableOpacity>
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t("lmraTitle")}</Text>
-        <View style={styles.placeholder} />
-      </View>
+  const container = { flex: 1, backgroundColor: colors.background, direction: isRTL ? ("rtl" as const) : ("ltr" as const) };
 
-      {/* Progress Indicator */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressSteps}>
-          {[1, 2, 3].map((step) => (
-            <View key={step} style={styles.progressStep}>
-              <View style={[
-                styles.progressCircle,
-                currentStep >= step && styles.progressCircleActive
-              ]}>
-                <Text style={[
-                  styles.progressNumber,
-                  currentStep >= step && styles.progressNumberActive
-                ]}>
-                  {step}
+  if (mode === "history") {
+    return (
+      <View style={container}>
+        {header}
+        <FlatList
+          data={history ?? []}
+          keyExtractor={(l) => String(l.id)}
+          contentContainerStyle={{ padding: 12, flexGrow: 1 }}
+          ListHeaderComponent={
+            historyFailed ? (
+              <TouchableOpacity onPress={loadHistory}>
+                <Text style={{ color: colors.danger, fontSize: fs(13), marginBottom: 8 }}>
+                  {t("p4LoadFailed")} {t("p4Retry")}
                 </Text>
-              </View>
-              <Text style={styles.progressLabel}>
-                {step === 1 ? "Task Info" : step === 2 ? "Hazards" : "Summary"}
+              </TouchableOpacity>
+            ) : null
+          }
+          ListEmptyComponent={
+            history === null && !historyFailed ? (
+              <ActivityIndicator style={{ marginTop: 30 }} color={colors.primary} size="large" />
+            ) : historyFailed ? null : (
+              <Text style={{ color: colors.textSecondary, textAlign: "center", marginTop: 40, fontSize: fs(15) }}>
+                {t("lmraHistoryEmpty")}
               </Text>
-            </View>
-          ))}
+            )
+          }
+          renderItem={({ item }) => {
+            const stop = item.decision === "stop";
+            const open = item.hazards.filter((h) => h.present && !h.controlled).length;
+            return (
+              <View style={[styles.histRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Ionicons name={stop ? "hand-left" : "checkmark-circle"} size={26} color={stop ? colors.danger : colors.success} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: colors.text, fontSize: fs(15), fontWeight: "600" }} numberOfLines={2}>
+                    {item.task}
+                  </Text>
+                  <Text style={{ color: colors.textSecondary, fontSize: fs(12) }}>
+                    {[item.location, new Date(item.createdAt).toLocaleString(currentLanguage)].filter(Boolean).join(" - ")}
+                  </Text>
+                  <Text style={{ color: open ? colors.warning : colors.success, fontSize: fs(12), marginTop: 2 }}>
+                    {stop ? t("lmraStop") : t("lmraGo")}
+                    {open ? ` - ${t("lmraUncontrolled")}: ${open}` : ""}
+                  </Text>
+                </View>
+              </View>
+            );
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (result) {
+    return (
+      <View style={container}>
+        {header}
+        <View style={styles.successBox}>
+          <Ionicons name="checkmark-circle" size={72} color={colors.success} />
+          <Text style={{ color: colors.text, fontSize: fs(20), fontWeight: "700", marginTop: 10 }}>{t("lmraSuccessTitle")}</Text>
+          <Text style={{ color: colors.textSecondary, fontSize: fs(14), marginTop: 6, textAlign: "center" }}>
+            {t("lmraSuccessMessage")}
+          </Text>
+          {result.riskIds.length > 0 && (
+            <Text style={{ color: colors.warning, fontSize: fs(14), marginTop: 10, textAlign: "center" }}>
+              {t("lmraProposedNote").replace("{n}", String(result.riskIds.length))}
+            </Text>
+          )}
+          {result.decision === "stop" && (
+            <Text style={{ color: colors.danger, fontSize: fs(14), marginTop: 6, textAlign: "center" }}>{t("lmraStopNote")}</Text>
+          )}
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 24 }}>
+            <TouchableOpacity style={[styles.btnOutline, { borderColor: colors.primary }]} onPress={reset}>
+              <Text style={{ color: colors.primary, fontWeight: "600", fontSize: fs(15) }}>{t("lmraNew")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.btnFill, { backgroundColor: colors.primary }]} onPress={back}>
+              <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: fs(15) }}>{t("lmraDone")}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
+    );
+  }
 
-      <ScrollView style={styles.content}>
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderStep3()}
+  const stepLabels = [t("lmraStepTask"), t("lmraStepHazards"), t("lmraStepSummary")];
+  const canSubmit = confirmed && !sending;
+
+  return (
+    <View style={container}>
+      {header}
+      <View style={[styles.progress, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {[1, 2, 3].map((s) => (
+          <View key={s} style={{ alignItems: "center", marginHorizontal: 20 }}>
+            <View style={[styles.circle, { backgroundColor: step >= s ? colors.primary : colors.border }]}>
+              <Text style={{ color: step >= s ? "#FFFFFF" : colors.textSecondary, fontWeight: "700", fontSize: fs(15) }}>{s}</Text>
+            </View>
+            <Text style={{ color: colors.textSecondary, fontSize: fs(12), marginTop: 4 }}>{stepLabels[s - 1]}</Text>
+          </View>
+        ))}
+      </View>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+        {step === 1 && (
+          <View>
+            <Text style={[labelStyle, { fontSize: fs(20), fontWeight: "700" }]}>{t("lmraTaskInfo")}</Text>
+            <Text style={labelStyle}>{t("lmraTaskLabel")}</Text>
+            <TextInput
+              style={[inputStyle, { minHeight: 80, textAlignVertical: "top" }]}
+              placeholder={t("lmraTaskPlaceholder")}
+              placeholderTextColor={colors.textSecondary}
+              value={task}
+              onChangeText={setTask}
+              maxLength={200}
+              multiline
+            />
+            <Text style={labelStyle}>{t("lmraLocationLabel")}</Text>
+            <TextInput
+              style={inputStyle}
+              placeholder={t("lmraLocationPlaceholder")}
+              placeholderTextColor={colors.textSecondary}
+              value={location}
+              onChangeText={setLocation}
+              maxLength={200}
+            />
+          </View>
+        )}
+
+        {step === 2 && (
+          <View>
+            <Text style={[labelStyle, { fontSize: fs(20), fontWeight: "700" }]}>{t("lmraHazards")}</Text>
+            <Text style={{ color: colors.textSecondary, fontSize: fs(14), marginBottom: 12 }}>{t("lmraSelectHazards")}</Text>
+            {HAZARDS.map((h) => {
+              const st = hazards[h.id];
+              const set = (patch: Partial<HazardState>) => setHazards((p) => ({ ...p, [h.id]: { ...p[h.id], ...patch } }));
+              return (
+                <View
+                  key={h.id}
+                  style={[styles.hazard, { backgroundColor: colors.surface, borderColor: st.present ? colors.primary : colors.border }]}
+                >
+                  <TouchableOpacity
+                    style={styles.hazardHead}
+                    onPress={() => set({ present: !st.present, controlled: false })}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: st.present }}
+                  >
+                    <Ionicons name={st.present ? "checkbox" : "square-outline"} size={24} color={st.present ? colors.primary : colors.textSecondary} />
+                    <Text style={{ flex: 1, color: colors.text, fontSize: fs(15), fontWeight: "600" }}>{t(hazardKey(h.id))}</Text>
+                    <Badge level={h.level} />
+                  </TouchableOpacity>
+                  {st.present && (
+                    <TouchableOpacity
+                      style={[styles.hazardHead, { marginTop: 8 }]}
+                      onPress={() => set({ controlled: !st.controlled })}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: st.controlled }}
+                    >
+                      <Ionicons name={st.controlled ? "shield-checkmark" : "shield-outline"} size={22} color={st.controlled ? colors.success : colors.danger} />
+                      <Text style={{ color: st.controlled ? colors.success : colors.danger, fontSize: fs(14), fontWeight: "600" }}>
+                        {st.controlled ? t("lmraControlled") : t("lmraUncontrolled")}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {step === 3 && (
+          <View>
+            <Text style={[labelStyle, { fontSize: fs(20), fontWeight: "700" }]}>{t("lmraSummary")}</Text>
+            <View style={[styles.summary, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ color: colors.text, fontSize: fs(16), fontWeight: "700" }}>{t("lmraOverallRisk")}</Text>
+                <Badge level={overall} />
+              </View>
+              <Text style={{ color: colors.textSecondary, fontSize: fs(14), marginTop: 10, fontWeight: "600" }}>
+                {t("lmraSelectedHazards").replace("{n}", String(present.length))}
+              </Text>
+              {present.map((h) => (
+                <View key={h.id} style={styles.summaryRow}>
+                  <Text style={{ flex: 1, color: colors.text, fontSize: fs(14) }}>{t(hazardKey(h.id))}</Text>
+                  <Text style={{ color: hazards[h.id].controlled ? colors.success : colors.danger, fontSize: fs(12), fontWeight: "700" }}>
+                    {hazards[h.id].controlled ? t("lmraControlled") : t("lmraUncontrolled")}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <Text style={labelStyle}>{t("lmraDecision")}</Text>
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 16 }}>
+              {(["go", "stop"] as const).map((d) => {
+                const active = decision === d;
+                const c = d === "go" ? colors.success : colors.danger;
+                return (
+                  <TouchableOpacity
+                    key={d}
+                    onPress={() => setDecision(d)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    style={[styles.decision, { borderColor: c, backgroundColor: active ? c : colors.surface }]}
+                  >
+                    <Text style={{ color: active ? "#FFFFFF" : c, fontWeight: "700", fontSize: fs(14), textAlign: "center" }}>
+                      {d === "go" ? t("lmraGo") : t("lmraStop")}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {uncontrolled > 0 && decision === "go" && (
+              <Text style={{ color: colors.warning, fontSize: fs(13), marginBottom: 12 }}>
+                {t("lmraProposedNote").replace("{n}", String(uncontrolled))}
+              </Text>
+            )}
+
+            <Text style={labelStyle}>{t("lmraComments")}</Text>
+            <TextInput
+              style={[inputStyle, { minHeight: 80, textAlignVertical: "top" }]}
+              placeholder={t("lmraCommentsPlaceholder")}
+              placeholderTextColor={colors.textSecondary}
+              value={comments}
+              onChangeText={setComments}
+              multiline
+            />
+            <TouchableOpacity
+              style={[styles.confirm, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => setConfirmed(!confirmed)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: confirmed }}
+            >
+              <Ionicons name={confirmed ? "checkbox" : "square-outline"} size={24} color={confirmed ? colors.primary : colors.textSecondary} />
+              <Text style={{ flex: 1, color: colors.text, fontSize: fs(14) }}>{t("lmraConfirm")}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {!!error && <Text style={{ color: colors.danger, fontSize: fs(13), marginTop: 10 }}>{error}</Text>}
       </ScrollView>
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        {currentStep > 1 && (
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => setCurrentStep(currentStep - 1)}
-          >
-            <Ionicons name="chevron-back" size={20} color="#3B82F6" />
-            <Text style={styles.navButtonText}>{t("lmraPrevious")}</Text>
+      <View style={[styles.nav, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        {step > 1 ? (
+          <TouchableOpacity style={[styles.btnOutline, { borderColor: colors.primary }]} onPress={() => setStep(step - 1)}>
+            <Text style={{ color: colors.primary, fontWeight: "600", fontSize: fs(15) }}>{t("lmraPrevious")}</Text>
           </TouchableOpacity>
+        ) : (
+          <View />
         )}
-        
-        <View style={styles.navSpacer} />
-        
-        {currentStep < 3 ? (
+        {step < 3 ? (
           <TouchableOpacity
-            style={styles.navButtonPrimary}
-            onPress={() => setCurrentStep(currentStep + 1)}
+            style={[styles.btnFill, { backgroundColor: colors.primary, opacity: step === 2 && present.length === 0 ? 0.5 : 1 }]}
+            onPress={next}
+            disabled={step === 2 && present.length === 0}
           >
-            <Text style={styles.navButtonPrimaryText}>{t("lmraNext")}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+            <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: fs(15) }}>{t("lmraNext")}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[
-              styles.submitButton,
-              (!form.supervisorApproval || getSelectedHazards().length === 0) && styles.submitButtonDisabled
-            ]}
-            onPress={submitLMRA}
-            disabled={!form.supervisorApproval || getSelectedHazards().length === 0}
+            style={[styles.btnFill, { backgroundColor: colors.success, opacity: canSubmit ? 1 : 0.5 }]}
+            onPress={submit}
+            disabled={!canSubmit}
           >
-            <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.submitButtonText}>{t("lmraSubmit")}</Text>
+            {sending ? <ActivityIndicator color="#FFFFFF" /> : <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: fs(15) }}>{t("lmraSubmit")}</Text>}
           </TouchableOpacity>
         )}
       </View>
@@ -425,302 +424,23 @@ const LMRA = () => {
   );
 };
 
-const baseStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-  },
-  placeholder: {
-    width: 40,
-  },
-  progressContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  progressSteps: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  progressStep: {
-    alignItems: "center",
-    marginHorizontal: 30,
-  },
-  progressCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#E5E7EB",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  progressCircleActive: {
-    backgroundColor: "#3B82F6",
-  },
-  progressNumber: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#9CA3AF",
-  },
-  progressNumberActive: {
-    color: "#FFFFFF",
-  },
-  progressLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  stepContainer: {
-    paddingBottom: 20,
-  },
-  stepTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  stepSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 20,
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  hazardsList: {
-    gap: 12,
-  },
-  hazardCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: "#E5E7EB",
-  },
-  hazardCardSelected: {
-    borderColor: "#3B82F6",
-    backgroundColor: "#F0F9FF",
-  },
-  hazardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  hazardInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  hazardCategory: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#6B7280",
-    marginRight: 12,
-  },
-  riskBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  riskBadgeText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  hazardDescription: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  hazardMitigation: {
-    fontSize: 14,
-    color: "#6B7280",
-    lineHeight: 20,
-  },
-  mitigationLabel: {
-    fontWeight: "600",
-    color: "#374151",
-  },
-  summaryCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 20,
-  },
-  summaryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-  },
-  overallRiskBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  overallRiskText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  summarySubtitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 12,
-  },
-  selectedHazard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-  },
-  selectedHazardText: {
-    fontSize: 14,
-    color: "#374151",
-    flex: 1,
-  },
-  miniRiskBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  miniRiskText: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  approvalButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-  },
-  approvalText: {
-    fontSize: 14,
-    color: "#374151",
-    marginLeft: 12,
-    flex: 1,
-    lineHeight: 20,
-  },
-  navigationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-  },
-  navButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#3B82F6",
-  },
-  navButtonText: {
-    fontSize: 16,
-    color: "#3B82F6",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  navSpacer: {
-    flex: 1,
-  },
-  navButtonPrimary: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#3B82F6",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  navButtonPrimaryText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    fontWeight: "600",
-    marginRight: 4,
-  },
-  submitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#10B981",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#9CA3AF",
-  },
-  submitButtonText: {
-    fontSize: 16,
-    color: "#FFFFFF",
-    fontWeight: "600",
-    marginLeft: 4,
-  },
+const styles = StyleSheet.create({
+  header: { paddingTop: 44, paddingBottom: 8, paddingHorizontal: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1 },
+  progress: { flexDirection: "row", justifyContent: "center", paddingVertical: 14, borderBottomWidth: 1 },
+  circle: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 16 },
+  badge: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  hazard: { borderWidth: 2, borderRadius: 10, padding: 12, marginBottom: 10 },
+  hazardHead: { flexDirection: "row", alignItems: "center", gap: 10 },
+  summary: { borderWidth: 1, borderRadius: 10, padding: 14, marginBottom: 16 },
+  summaryRow: { flexDirection: "row", alignItems: "center", paddingVertical: 6 },
+  decision: { flex: 1, borderWidth: 2, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 6 },
+  confirm: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderRadius: 10, padding: 14, marginTop: 16 },
+  nav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, borderTopWidth: 1 },
+  btnOutline: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 18, paddingVertical: 12 },
+  btnFill: { borderRadius: 8, paddingHorizontal: 18, paddingVertical: 12, minWidth: 110, alignItems: "center" },
+  successBox: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  histRow: { flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 8 },
 });
 
 export default LMRA;

@@ -6,6 +6,7 @@ import {
   Modal,
   Platform,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -26,6 +27,7 @@ import {
   markAnnouncementRead,
   personName,
 } from "@/services/messagingApi";
+import { DirectoryUser, searchUsers } from "@/services/userApi";
 import { isRealtimeConnected, onRealtime } from "@/services/realtime";
 
 type Segment = "conversations" | "announcements";
@@ -47,6 +49,9 @@ export default function MessagesScreen() {
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<DirectoryUser[] | null>(null);
+  const [recipient, setRecipient] = useState<DirectoryUser | null>(null);
 
   const isManager = user?.role === "admin" || user?.role === "sst_manager";
   const myId = user?.id !== undefined ? Number(user.id) : NaN;
@@ -93,6 +98,24 @@ export default function MessagesScreen() {
     if (!composeOpen) setComposeError(null);
   }, [composeOpen]);
 
+  // Recipient picker (managers): debounced GET /users?search
+  useEffect(() => {
+    if (!composeOpen || !isManager || recipient) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await searchUsers(userQuery.trim());
+        if (!cancelled) setUserResults(res.filter((u) => u.id !== myId));
+      } catch {
+        if (!cancelled) setUserResults([]);
+      }
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [userQuery, composeOpen, isManager, recipient, myId]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadAll();
@@ -100,6 +123,10 @@ export default function MessagesScreen() {
   };
 
   const submitNew = async () => {
+    if (isManager && !recipient) {
+      setComposeError(t("messagesPickRecipient"));
+      return;
+    }
     if (!subject.trim() || !body.trim()) {
       setComposeError(t("messagesFillFields"));
       return;
@@ -107,10 +134,16 @@ export default function MessagesScreen() {
     setSending(true);
     setComposeError(null);
     try {
-      const conv = await createConversation({ subject: subject.trim(), body: body.trim() });
+      const conv = await createConversation({
+        subject: subject.trim(),
+        body: body.trim(),
+        ...(isManager && recipient ? { recipientId: recipient.id } : {}),
+      });
       setComposeOpen(false);
       setSubject("");
       setBody("");
+      setRecipient(null);
+      setUserQuery("");
       loadConversations();
       router.push({ pathname: "/conversation/[id]", params: { id: String(conv.id) } });
     } catch {
@@ -291,8 +324,7 @@ export default function MessagesScreen() {
         />
       )}
 
-      {/* Managers must pick a recipient and the API has no user lookup for them: button hidden */}
-      {segment === "conversations" && !isManager && (
+      {segment === "conversations" && (
         <TouchableOpacity
           style={[styles.fab, { backgroundColor: colors.primary }]}
           onPress={() => setComposeOpen(true)}
@@ -300,7 +332,7 @@ export default function MessagesScreen() {
         >
           <Ionicons name="create" size={20} color="#FFFFFF" />
           <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: fs(14) }}>
-            {t("messagesNewConversation")}
+            {isManager ? t("messagesNewManager") : t("messagesNewConversation")}
           </Text>
         </TouchableOpacity>
       )}
@@ -312,8 +344,49 @@ export default function MessagesScreen() {
         >
           <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
             <Text style={{ color: colors.text, fontSize: fs(17), fontWeight: "700", marginBottom: 10 }}>
-              {t("messagesNewConversation")}
+              {isManager ? t("messagesNewManager") : t("messagesNewConversation")}
             </Text>
+            {isManager && (
+              recipient ? (
+                <TouchableOpacity
+                  style={[styles.input, { borderColor: colors.primary, flexDirection: "row", alignItems: "center", gap: 8 }]}
+                  onPress={() => setRecipient(null)}
+                  accessibilityLabel={t("messagesRecipient")}
+                >
+                  <Ionicons name="person" size={18} color={colors.primary} />
+                  <Text style={{ flex: 1, color: colors.text, fontSize: fs(15) }}>
+                    {personName(recipient) || recipient.email}
+                  </Text>
+                  <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ) : (
+                <View>
+                  <TextInput
+                    value={userQuery}
+                    onChangeText={setUserQuery}
+                    placeholder={t("messagesSearchUser")}
+                    placeholderTextColor={colors.textSecondary}
+                    style={[styles.input, { color: colors.text, borderColor: colors.border, fontSize: fs(15), textAlign: isRTL ? "right" : "left", marginBottom: 4 }]}
+                  />
+                  <ScrollView style={{ maxHeight: 150, marginBottom: 8 }} keyboardShouldPersistTaps="handled">
+                    {userResults === null ? (
+                      <ActivityIndicator color={colors.primary} />
+                    ) : userResults.length === 0 ? (
+                      <Text style={{ color: colors.textSecondary, fontSize: fs(13) }}>{t("messagesNoUsers")}</Text>
+                    ) : (
+                      userResults.map((u) => (
+                        <TouchableOpacity key={u.id} style={{ paddingVertical: 8 }} onPress={() => setRecipient(u)}>
+                          <Text style={{ color: colors.text, fontSize: fs(14), fontWeight: "600" }}>
+                            {personName(u) || u.email}
+                          </Text>
+                          <Text style={{ color: colors.textSecondary, fontSize: fs(12) }}>{u.email}</Text>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </ScrollView>
+                </View>
+              )
+            )}
             <TextInput
               value={subject}
               onChangeText={setSubject}

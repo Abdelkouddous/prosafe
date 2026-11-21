@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useAppTheme } from "@/contexts/AccessibilityContext";
 import { fetchStatsOverview } from "@/services/statsApi";
 import { fetchNotifications } from "@/services/notificationApi";
+import { EmergencyEvent, fetchActiveEvents } from "@/services/emergencyApi";
 import { TranslationKey } from "@/constants/Languages";
 
 type Overview = Awaited<ReturnType<typeof fetchStatsOverview>>;
@@ -32,6 +33,7 @@ export default function HomeScreen() {
   const { colors, fs } = useAppTheme();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [unread, setUnread] = useState<number | null>(null);
+  const [emergencies, setEmergencies] = useState<EmergencyEvent[]>([]);
   const [failed, setFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -39,10 +41,12 @@ export default function HomeScreen() {
   const firstName = (user?.name || "").split(" ")[0];
 
   const load = useCallback(async () => {
-    const [ov, un] = await Promise.allSettled([
+    const [ov, un, em] = await Promise.allSettled([
       fetchStatsOverview(),
       fetchNotifications({ unread: true, limit: 1 }),
+      fetchActiveEvents(),
     ]);
+    if (em.status === "fulfilled") setEmergencies(em.value);
     setOverview(ov.status === "fulfilled" ? ov.value : null);
     setUnread(un.status === "fulfilled" ? un.value.total : null);
     setFailed(ov.status === "rejected" || un.status === "rejected");
@@ -98,6 +102,27 @@ export default function HomeScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
+      {emergencies.map((ev) => (
+        <TouchableOpacity
+          key={ev.id}
+          style={[styles.emergencyBanner, { backgroundColor: colors.danger }]}
+          onPress={() => router.push("/(extra)/emergency")}
+          accessibilityRole="button"
+        >
+          <Ionicons name="warning" size={28} color="#FFFFFF" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#FFFFFF", fontWeight: "800", fontSize: fs(15) }}>
+              {t("emergencyActiveBanner")}
+            </Text>
+            <Text style={{ color: "#FFFFFF", fontSize: fs(14) }} numberOfLines={2}>
+              {ev.message}
+            </Text>
+            {!!ev.zone && <Text style={{ color: "#FFFFFF", fontSize: fs(12) }}>{ev.zone}</Text>}
+          </View>
+          <Ionicons name="chevron-forward" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
+      ))}
+
       <Text style={[styles.greeting, { fontSize: fs(24), color: colors.text }]}>
         {t("homeGreeting").replace("{name}", firstName)}
       </Text>
@@ -235,6 +260,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: 16, paddingTop: 56, paddingBottom: 32 },
+  emergencyBanner: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, padding: 14, marginBottom: 12 },
   greeting: { fontWeight: "700", marginBottom: 14 },
   cardRow: { flexDirection: "row", gap: 8, marginBottom: 10 },
   card: {
