@@ -310,27 +310,6 @@ const TrainingManagement: React.FC = () => {
     }
   };
 
-  const sendReminders = async () => {
-    try {
-      const expiringTrainings = trainings?.filter(
-        (t) => calculateStatus(t) === "expiring"
-      );
-
-      if (expiringTrainings.length === 0) {
-        toast.info("Aucune formation n'expire bientôt");
-        return;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      toast.success(
-        `Rappels programmés pour ${expiringTrainings.length} formation(s)`
-      );
-    } catch (error) {
-      console.error("Error sending reminders:", error);
-      toast.error("Erreur lors de l'envoi des rappels");
-    }
-  };
-
   return (
     <div className="min-h-screen ">
       <h1 className="text-2xl font-bold text-prosafe-700 flex items-center gap-2">
@@ -607,14 +586,6 @@ const TrainingManagement: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button
-              variant="outline"
-              onClick={sendReminders}
-              className="flex items-center gap-2"
-            >
-              <Bell className="h-4 w-4" />
-              Envoyer rappels
-            </Button>
           </div>
         </div>
 

@@ -68,7 +68,6 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   incidentApi,
   Incident as BackendIncident,
-  IncidentsResponse,
 } from "@/services/incidentApi";
 
 import {
@@ -102,6 +101,8 @@ import {
 } from "@/services/inventoryApi";
 import InventoryManagement from "@/components/InventoryManagement";
 import TrainingManagement from "@/components/TrainingManagement";
+import NotificationPreferences from "@/components/NotificationPreferences";
+import NotificationBell from "@/components/NotificationBell";
 import NotificationSettings from "@/components/NotificationSettings";
 import {
   Dialog,
@@ -197,8 +198,8 @@ const getIncidentsByMonth = (incidents: BackendIncident[]) => {
 
   // Count incidents by month
   incidents.forEach((incident) => {
-    if (incident.created_at) {
-      const date = new Date(incident.created_at);
+    if (incident.createdAt) {
+      const date = new Date(incident.createdAt);
       if (!isNaN(date.getTime())) {
         const month = months[date.getMonth()];
         monthlyData[month]++;
@@ -427,13 +428,6 @@ const Dashboard = () => {
     newPassword: "",
     confirmPassword: "",
   });
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    securityAlerts: true,
-    incidentUpdates: true,
-    systemMaintenance: false,
-  });
 
   const [incidentStats, setIncidentStats] = useState({
     total: 0,
@@ -456,9 +450,7 @@ const Dashboard = () => {
     (msg) => msg.status === "unread"
   ).length;
 
-  // Calculate notification count for incidents
-  const incidentNotificationCount =
-    incidentStats.open + incidentStats.investigating;
+
 
   useEffect(() => {
     // Only fetch alerts when on alerts tab
@@ -487,17 +479,14 @@ const Dashboard = () => {
 
   const fetchIncidents = async () => {
     try {
-      const response = await incidentApi.getIncidents(1, 100);
-      // Handle both IncidentsResponse and direct array responses
-      const incidentData: BackendIncident[] = Array.isArray(response.data)
-        ? response.data
-        : (response.data as IncidentsResponse).incidents;
+      const response = await incidentApi.list({ page: 1, limit: 100 });
+      const incidentData: BackendIncident[] = response.data.data;
 
       setIncidents(incidentData);
 
       // Calculate stats
       const stats = {
-        total: incidentData.length,
+        total: response.data.total,
         open: incidentData.filter((i: BackendIncident) => i.status === "open")
           .length,
         investigating: incidentData.filter(
@@ -697,7 +686,12 @@ const Dashboard = () => {
     try {
       setLoading(true);
       // API call to update profile
-      const response = await api.patch("/users/profile", profileData);
+      const response = await api.patch("/users/profile", {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+        phone: profileData.phone,
+        department: profileData.department,
+      });
       toast({
         title: "Success",
         description: "Profile updated successfully",
@@ -754,26 +748,6 @@ const Dashboard = () => {
       toast({
         title: "Error",
         description: "Failed to change password",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNotificationSettingsUpdate = async () => {
-    try {
-      setLoading(true);
-      await api.patch("/users/notification-settings", notificationSettings);
-      toast({
-        title: "Success",
-        description: "Notification settings updated",
-      });
-    } catch (error) {
-      console.error("Error updating notification settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update notification settings",
         variant: "destructive",
       });
     } finally {
@@ -926,21 +900,10 @@ const Dashboard = () => {
   };
 
   const formatLocation = (incident: BackendIncident) => {
-    // Check for manual address first
-    if (incident.location?.manualAddress) {
-      return incident.location.manualAddress;
+    if (incident.manualAddress) return incident.manualAddress;
+    if (incident.geoLatitude != null && incident.geoLongitude != null) {
+      return `${Number(incident.geoLatitude).toFixed(4)}, ${Number(incident.geoLongitude).toFixed(4)}`;
     }
-
-    // Check for coordinates
-    if (incident.location?.lat && incident.location?.long) {
-      return `${parseFloat(incident.location.lat.toString()).toFixed(4)}, ${parseFloat(incident.location.long.toString()).toFixed(4)}`;
-    }
-
-    // Fallback to location object coordinates
-    if (incident.location?.lat && incident.location?.long) {
-      return `${parseFloat(incident.location.lat.toString()).toFixed(4)}, ${parseFloat(incident.location.long.toString()).toFixed(4)}`;
-    }
-
     return "No Location";
   };
 
@@ -1259,7 +1222,7 @@ const Dashboard = () => {
                                 </td>
                                 <td className="px-4 py-2">{incident.status}</td>
                                 <td className="px-4 py-2">
-                                  {formatDate(incident.created_at)}
+                                  {formatDate(incident.createdAt)}
                                 </td>
                                 <td className="px-4 py-2">{incident.type}</td>
                                 <td className="px-4 py-2">
@@ -1432,7 +1395,7 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("incidents")}
+            onClick={() => navigate("/incidents/manage")}
           >
             <AlertTriangle className="mr-2 h-5 w-5" />
             Incidents
@@ -1545,17 +1508,7 @@ const Dashboard = () => {
               Go to Home
             </Link>
 
-            {/* Notifications with incident count */}
-            <div className="relative">
-              <Button variant="outline" size="icon">
-                <Bell className="h-5 w-5" />
-              </Button>
-              {incidentNotificationCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {incidentNotificationCount}
-                </span>
-              )}
-            </div>
+            <NotificationBell />
 
             {/* Access Control Menu */}
             <div className="relative">
@@ -1831,221 +1784,6 @@ const Dashboard = () => {
                   )}
                 </CardContent>
               </Card>
-            </div>
-          ) : activeTab === "incidents" ? (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">
-                  Incident Management
-                </h2>
-                <p className="text-muted-foreground">
-                  View and manage all security incidents reported by users.
-                </p>
-              </div>
-
-              {/* Incident Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Incidents
-                    </CardTitle>
-                    <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {incidentStats.total}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Open</CardTitle>
-                    <Clock className="h-4 w-4 text-orange-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {incidentStats.open}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Investigating
-                    </CardTitle>
-                    <Activity className="h-4 w-4 text-blue-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {incidentStats.investigating}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Critical
-                    </CardTitle>
-                    <AlertCircle className="h-4 w-4 text-red-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-red-600">
-                      {incidentStats.critical}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>All Incidents</CardTitle>
-                    <CardDescription>
-                      Complete list of incidents reported by users
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {incidents.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        No incidents reported yet.
-                      </div>
-                    ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Severity</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Reporter</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Actions</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {incidents.map((incident) => (
-                            <TableRow key={incident.id}>
-                              <TableCell className="font-medium">
-                                #{incident.id}
-                              </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                {incident.description}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">
-                                  {formatIncidentType(incident.type)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  style={{
-                                    backgroundColor:
-                                      INCIDENT_COLORS[incident.severity],
-                                    color: "white",
-                                    borderColor:
-                                      INCIDENT_COLORS[incident.severity],
-                                  }}
-                                >
-                                  {formatIncidentSeverity(incident.severity)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge
-                                  variant="outline"
-                                  className={getIncidentStatusColor(
-                                    incident.status
-                                  )}
-                                >
-                                  {incident.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {incident.reporter?.firstName}{" "}
-                                {incident.reporter?.lastName}
-                                <div className="text-xs text-muted-foreground">
-                                  {incident.reporter_email || "No email"}
-                                </div>
-                              </TableCell>
-                              <TableCell className="max-w-xs truncate">
-                                {formatLocation(incident)}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(incident.created_at)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex space-x-2">
-                                  {incident.photo_url && (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() =>
-                                        window.open(
-                                          incident.photo_url,
-                                          "_blank"
-                                        )
-                                      }
-                                    >
-                                      View Photo
-                                    </Button>
-                                  )}
-                                  <Select
-                                    value={incident.status}
-                                    onValueChange={async (newStatus) => {
-                                      try {
-                                        await incidentApi.updateIncident(
-                                          incident.incidentId,
-                                          { status: newStatus }
-                                        );
-                                        fetchIncidents();
-                                        toast({
-                                          title: "Success",
-                                          description:
-                                            "Incident status updated successfully",
-                                        });
-                                      } catch (error) {
-                                        console.error(
-                                          "Error updating incident status:",
-                                          error
-                                        );
-                                        toast({
-                                          title: "Error",
-                                          description:
-                                            "Failed to update incident status",
-                                          variant: "destructive",
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <SelectTrigger className="w-32">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="open">Open</SelectItem>
-                                      <SelectItem value="investigating">
-                                        Investigating
-                                      </SelectItem>
-                                      <SelectItem value="resolved">
-                                        Resolved
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           ) : activeTab === "messages" ? (
             <div className="space-y-6">
@@ -2793,103 +2531,7 @@ const Dashboard = () => {
                       value="notifications"
                       className="space-y-4 mt-4"
                     >
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">Email Notifications</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Receive notifications via email
-                            </p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={notificationSettings.emailNotifications}
-                            onChange={(e) =>
-                              setNotificationSettings({
-                                ...notificationSettings,
-                                emailNotifications: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">Security Alerts</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Get notified about security events
-                            </p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            title="Security Alerts"
-                            placeholder="Enable security alerts notifications"
-                            aria-label="Incident alerts Notifications"
-                            checked={notificationSettings.securityAlerts}
-                            onChange={(e) =>
-                              setNotificationSettings({
-                                ...notificationSettings,
-                                securityAlerts: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">Incident Updates</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Notifications about incident status changes
-                            </p>
-                          </div>
-                          <input
-                            title="Incident Updates Notifications"
-                            placeholder="Enable incident updates notifications"
-                            aria-label="Incident Updates Notifications"
-                            type="checkbox"
-                            checked={notificationSettings.incidentUpdates}
-                            onChange={(e) =>
-                              setNotificationSettings({
-                                ...notificationSettings,
-                                incidentUpdates: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">System Maintenance</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Notifications about system maintenance
-                            </p>
-                          </div>
-                          <input
-                            title="System Maintenance Notifications"
-                            placeholder="Enable system maintenance notifications"
-                            aria-label="System Maintenance Notifications"
-                            type="checkbox"
-                            checked={notificationSettings.systemMaintenance}
-                            onChange={(e) =>
-                              setNotificationSettings({
-                                ...notificationSettings,
-                                systemMaintenance: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4"
-                          />
-                        </div>
-                      </div>
-
-                      <Button
-                        onClick={handleNotificationSettingsUpdate}
-                        disabled={loading}
-                      >
-                        {loading ? "Saving..." : "Save Notification Settings"}
-                      </Button>
+                      <NotificationPreferences />
                     </TabsContent>
                   </Tabs>
                 </CardContent>

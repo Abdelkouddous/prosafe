@@ -18,6 +18,7 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Features from "./pages/Features";
 import IncidentReport from "./pages/IncidentReport";
+import IncidentsManagement from "./pages/incidents/IncidentsManagement";
 import Index from "./pages/Index";
 import InventoryManagement from "./pages/InventoryManagement";
 import Login from "./pages/Login";
@@ -74,6 +75,7 @@ function App() {
               <Route element={<AdminRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/inventory" element={<InventoryManagement />} />
+                <Route path="/incidents/manage" element={<IncidentsManagement />} />
               </Route>
 
               {/* Protected routes for authenticated users */}

@@ -1,3 +1,4 @@
+import NotificationBell from "@/components/NotificationBell";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -34,6 +35,8 @@ const Navbar = () => {
   // Add the missing changeLanguage function
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
+    document.documentElement.dir = languageCode === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = languageCode;
   };
 
   const handleLogout = () => {
@@ -108,6 +111,7 @@ const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <NotificationBell />
             {/* Language Switcher */}
             <div className="relative group flex">
               <button className="flex items-center gap-1 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100">

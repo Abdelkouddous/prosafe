@@ -32,14 +32,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import api from "@/services/api";
+import { useTranslation } from "react-i18next";
+import { incidentApi } from "@/services/incidentApi";
 
 // Enums matching backend
 enum IncidentType {
   SAFETY = "safety",
   SECURITY = "security",
   HR_VIOLATION = "hr_violation",
+  ENVIRONMENT = "environment",
+  NEAR_MISS = "near_miss",
+  EQUIPMENT_FAILURE = "equipment_failure",
+  OTHER = "other",
 }
+
+const MAX_FILES = 5;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 enum IncidentSeverity {
   LOW = "low",
@@ -58,6 +67,10 @@ const formSchema = z.object({
   severity: z.nativeEnum(IncidentSeverity, {
     message: "Veuillez sélectionner une gravité",
   }),
+  notes: z.string().optional(),
+  date: z.string().optional(),
+  zone: z.string().optional(),
+  department: z.string().optional(),
   location: z.object({
     lat: z.number().min(-90).max(90).optional(),
     long: z.number().min(-180).max(180).optional(),
@@ -79,6 +92,7 @@ interface SavedAddress {
 }
 
 const IncidentReport = () => {
+  const { t } = useTranslation();
   const [isGeolocating, setIsGeolocating] = useState(false);
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,6 +112,10 @@ const IncidentReport = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
+      notes: "",
+      date: "",
+      zone: "",
+      department: "",
       type: undefined,
       severity: undefined,
       location: {
@@ -289,8 +307,26 @@ const IncidentReport = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      const accepted: File[] = [];
+      for (const f of Array.from(e.target.files)) {
+        const isVideo = f.type.startsWith("video/");
+        const isImage = f.type.startsWith("image/");
+        if (!isVideo && !isImage) {
+          toast.error(t("incidentReport.fileTypeInvalid", { name: f.name }));
+        } else if (f.size > (isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
+          toast.error(t("incidentReport.fileTooLarge", { name: f.name }));
+        } else {
+          accepted.push(f);
+        }
+      }
+      setFiles((prev) => {
+        const merged = [...prev, ...accepted];
+        if (merged.length > MAX_FILES) {
+          toast.error(t("incidentReport.maxFiles", { count: MAX_FILES }));
+        }
+        return merged.slice(0, MAX_FILES);
+      });
+      e.target.value = "";
     }
   };
 
@@ -302,56 +338,29 @@ const IncidentReport = () => {
     try {
       setIsSubmitting(true);
 
-      // Create FormData for multipart/form-data request
-      const formData = new FormData();
-
-      // Add incident data
-      formData.append("description", data.description);
-      formData.append("type", data.type);
-      formData.append("severity", data.severity);
-
-      // Add location fields individually instead of as JSON string
-      // Validate coordinates before sending
-      if (data.location.lat !== undefined) {
-        if (
-          isNaN(data.location.lat) ||
-          data.location.lat < -90 ||
-          data.location.lat > 90
-        ) {
-          toast.error("Latitude invalide. Doit être entre -90 et 90.");
-          return;
-        }
-        formData.append("location[lat]", data.location.lat.toString());
+      const lat = data.location.lat;
+      const lng = data.location.long;
+      if (lat !== undefined && (isNaN(lat) || lat < -90 || lat > 90)) {
+        toast.error(t("incidentReport.invalidLat"));
+        return;
+      }
+      if (lng !== undefined && (isNaN(lng) || lng < -180 || lng > 180)) {
+        toast.error(t("incidentReport.invalidLng"));
+        return;
       }
 
-      if (data.location.long !== undefined) {
-        if (
-          isNaN(data.location.long) ||
-          data.location.long < -180 ||
-          data.location.long > 180
-        ) {
-          toast.error("Longitude invalide. Doit être entre -180 et 180.");
-          return;
-        }
-        formData.append("location[long]", data.location.long.toString());
-      }
-      if (manualAddress || data.location.manualAddress) {
-        formData.append(
-          "location[manualAddress]",
-          manualAddress || data.location.manualAddress || ""
-        );
-      }
-
-      // Add photo if available (backend expects single photo)
-      if (files.length > 0) {
-        formData.append("photo", files[0]);
-      }
-
-      // Send to backend
-      const response = await api.post("/incidents", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const response = await incidentApi.create({
+        type: data.type,
+        severity: data.severity,
+        description: data.description,
+        notes: data.notes,
+        date: data.date ? new Date(data.date).toISOString() : undefined,
+        latitude: lat,
+        longitude: lng,
+        manualAddress: manualAddress || data.location.manualAddress || undefined,
+        zone: data.zone,
+        department: data.department,
+        media: files,
       });
 
       toast.success(
@@ -448,6 +457,18 @@ const IncidentReport = () => {
                           </SelectItem>
                           <SelectItem value={IncidentType.HR_VIOLATION}>
                             Violation RH
+                          </SelectItem>
+                          <SelectItem value={IncidentType.ENVIRONMENT}>
+                            {t("incidents.types.environment")}
+                          </SelectItem>
+                          <SelectItem value={IncidentType.NEAR_MISS}>
+                            {t("incidents.types.near_miss")}
+                          </SelectItem>
+                          <SelectItem value={IncidentType.EQUIPMENT_FAILURE}>
+                            {t("incidents.types.equipment_failure")}
+                          </SelectItem>
+                          <SelectItem value={IncidentType.OTHER}>
+                            {t("incidents.types.other")}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -647,18 +668,75 @@ const IncidentReport = () => {
                   )}
                 </div>
 
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("incidentReport.notes")}</FormLabel>
+                      <FormControl>
+                        <Textarea className="min-h-[70px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("incidentReport.date")}</FormLabel>
+                        <FormControl>
+                          <Input type="datetime-local" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="zone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("incidentReport.zone")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="department"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("incidentReport.department")}</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <div>
-                  <FormLabel>Photo (optionnel)</FormLabel>
+                  <FormLabel>{t("incidentReport.media")}</FormLabel>
                   <div className="mt-1 border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center">
                     <Camera className="h-8 w-8 text-gray-400" />
-                    <p className="mt-1 text-sm text-gray-500">
-                      Ajoutez une photo de l'incident (une seule photo acceptée)
+                    <p className="mt-1 text-sm text-gray-500 text-center">
+                      {t("incidentReport.mediaHelp", { count: MAX_FILES })}
                     </p>
                     <Input
                       id="file-upload"
                       type="file"
+                      multiple
                       className="hidden"
-                      accept="image/*"
+                      accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime"
                       onChange={handleFileChange}
                     />
                     <Button
@@ -670,33 +748,30 @@ const IncidentReport = () => {
                       }
                     >
                       <Upload className="h-4 w-4 mr-2" />
-                      Télécharger une photo
+                      {t("incidentReport.addFiles")}
                     </Button>
                   </div>
                 </div>
 
                 {files.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">
-                      Photo sélectionnée
-                    </h4>
-                    <div className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
-                      <span className="text-sm truncate">{files[0].name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(0)}
-                        className="h-7 w-7 p-0"
+                  <div className="space-y-1">
+                    {files.map((f, idx) => (
+                      <div
+                        key={`${f.name}-${idx}`}
+                        className="flex items-center justify-between bg-gray-50 p-2 rounded-md"
                       >
-                        &times;
-                      </Button>
-                    </div>
-                    {files.length > 1 && (
-                      <p className="text-xs text-amber-600 mt-1">
-                        Note: Seule la première photo sera envoyée
-                      </p>
-                    )}
+                        <span className="text-sm truncate">{f.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(idx)}
+                          className="h-7 w-7 p-0"
+                        >
+                          &times;
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -761,20 +836,18 @@ import { fr } from "date-fns/locale";
 
 // Update the UserIncident interface (around line 760)
 interface UserIncident {
-  id: string;
+  id: number;
   description: string;
   type: IncidentType;
   severity: IncidentSeverity;
-  status: "pending" | "investigating" | "resolved" | "closed";
-  manualAddress?: string; // Direct field, not nested
-  geoLatitude?: number;
-  geoLongitude?: number;
-  created_at: string;
-  updatedAt: string;
+  status: "open" | "investigating" | "resolved" | "closed";
+  manualAddress?: string | null;
+  createdAt: string;
 }
 
 // Add this component before the main IncidentReport component
 const UserIncidentsTable = () => {
+  const { t } = useTranslation();
   const [userIncidents, setUserIncidents] = useState<UserIncident[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -785,8 +858,8 @@ const UserIncidentsTable = () => {
         setIsLoading(true);
         // Fetch incidents for the current user
         // This assumes the backend has an endpoint to get user's own incidents
-        const response = await api.get("/incidents/my-incidents");
-        setUserIncidents(response.data.slice(0, 5)); // Show only last 5 incidents
+        const response = await incidentApi.list({ page: 1, limit: 5 });
+        setUserIncidents(response.data.data as UserIncident[]);
       } catch (error) {
         console.error("Error fetching user incidents:", error);
         toast.error("Erreur lors du chargement de vos incidents");
@@ -817,8 +890,8 @@ const UserIncidentsTable = () => {
   // Function to get status color for badges
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending":
-        return "bg-blue-100 text-blue-800";
+      case "open":
+        return "bg-orange-100 text-orange-800";
       case "investigating":
         return "bg-yellow-100 text-yellow-800";
       case "resolved":
@@ -840,7 +913,7 @@ const UserIncidentsTable = () => {
       case IncidentType.HR_VIOLATION:
         return "Violation RH";
       default:
-        return type;
+        return t(`incidents.types.${type}`, { defaultValue: type });
     }
   };
 
@@ -863,7 +936,7 @@ const UserIncidentsTable = () => {
   // Function to translate status to French
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "pending":
+      case "open":
         return "En attente";
       case "investigating":
         return "En cours d'investigation";
@@ -937,15 +1010,13 @@ const UserIncidentsTable = () => {
                   {getStatusLabel(incident.status)}
                 </Badge>
               </TableCell>
-              // Fix the table cell rendering (around line 945)
               <TableCell className="max-w-xs">
-                <div className="truncate" title={incident.manualAddress}>
+                <div className="truncate" title={incident.manualAddress || undefined}>
                   {incident.manualAddress || "Non spécifié"}
                 </div>
               </TableCell>
-              n.
               <TableCell>
-                {format(new Date(incident.created_at), "dd/MM/yyyy HH:mm", {
+                {format(new Date(incident.createdAt), "dd/MM/yyyy HH:mm", {
                   locale: fr,
                 })}
               </TableCell>
