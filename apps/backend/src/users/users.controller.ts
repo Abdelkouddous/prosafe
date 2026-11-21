@@ -30,7 +30,7 @@ export class UsersController {
   }
 
   /**
-   * PATCH /users/profile - update firstName / lastName.
+   * PATCH /users/profile - update firstName, lastName, phone, department, zone.
    * Unknown fields sent by clients (email, phone...) are silently stripped, never applied.
    */
   @Patch('profile')

@@ -18,6 +18,8 @@ import { IncidentsModule } from './incidents/incidents.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { AdminModule } from './admin/admin.module';
 import { RewardsModule } from './rewards/rewards.module';
+import { FilesModule } from './files/files.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -61,6 +63,8 @@ import { RewardsModule } from './rewards/rewards.module';
     AlertsModule,
     AdminModule,
     RewardsModule,
+    FilesModule,
+    NotificationsModule,
     // Training
     // Conferences
   ],

@@ -8,7 +8,7 @@ Swagger (source of truth once implemented): `/api/docs`.
 ## Files (shared)
 - Upload limits: images jpg/png/webp ≤ 10 MB, video mp4/quicktime ≤ 50 MB, documents pdf/docx/xlsx ≤ 20 MB.
 - Stored on disk under `UPLOADS_DIR`; DB keeps `{ id, path, originalName, mimeType, size, uploadedById, createdAt }` (`stored_file` table).
-- `GET /files/:id` → streams file (any authenticated user allowed to see the parent resource). Clients build URLs as `${API}/files/${id}` and send the bearer token (mobile: `Image source={{ uri, headers }}`; admin: fetch blob → object URL).
+- `GET /files/:id` → streams file (Phase 2A: any authenticated non-pending user; per-parent access check not implemented). Clients build URLs as `${API}/files/${id}` and send the bearer token (mobile: `Image source={{ uri, headers }}`; admin: fetch blob → object URL).
 
 ## Incidents (E1, M1)
 Statuses: `open` (en attente), `investigating` (en cours), `resolved` (résolu), `closed` (clôturé / rejeté).
@@ -18,7 +18,8 @@ Types: `safety`, `security`, `hr_violation`, `environment`, `near_miss`, `equipm
 - `GET /incidents/:id` (numeric id or `INC-…` incidentId) → incident with `media[]`, `history[]`, `evaluation`, `correctiveActions[]`, `reporter {id, firstName, lastName}`.
 - `PATCH /incidents/:id/status` (manager) `{ status, comment? }` → writes `incident_history { fromStatus, toStatus, comment, changedBy, changedAt }`.
 - `PATCH /incidents/:id/evaluation` (manager, A4) `{ gravity 1-5, probability 1-5, rootCause?, evaluatedSeverity? }` → `riskScore = gravity*probability`.
-- Legacy `GET /incidents/my-incidents` kept (alias of own list).
+- Legacy `GET /incidents/my-incidents` kept (alias of own list, last 10). Legacy multipart field `photo` is still accepted and treated as media.
+- Implementation notes: media in responses are `[{ id (= stored file id, use with GET /files/:id), kind, mimeType }]`; `from`/`to` filter the incident `date` (`timestamp`), a date-only `to` includes the whole day; `lat,lng,radiusKm` must be sent together. Transitions: `open -> investigating|resolved|closed`, `investigating -> resolved|closed`, `resolved -> investigating|closed` (`closed` also means rejected). `reporter`/`history[].changedBy` are `{id, firstName, lastName}`. `POST /incidents` JSON (admin proxy) also accepts the legacy nested `location {lat,long,manualAddress}`. `PATCH .../status` also accepts legacy `notes` as alias of `comment`. Employees/managers/admins only (`pending` gets 403).
 
 ## Corrective actions (A4, C1.3, C3.3)
 - `corrective_action { id, sourceType: incident|risk|audit, sourceId, title, description, ownerId, dueDate, status: todo|in_progress|done|cancelled, doneAt, createdById }`.
