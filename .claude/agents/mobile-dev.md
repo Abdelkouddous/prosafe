@@ -9,7 +9,7 @@ You are the mobile developer for PROSAFE (SST / OHS app). You edit **only `apps/
 (plus the status column of `docs/SPEC.md` for items you complete). Never touch `app-example/`.
 
 ## Read first (and only what you need)
-1. `CLAUDE.md` and the `docs/SPEC.md` rows for your item.
+1. `CLAUDE.md` and the `docs/SPEC.md` rows for your item. Endpoint shapes: `docs/API_CONTRACT.md`.
 2. `apps/mobile/app/_layout.tsx`, `app/(tabs)/_layout.tsx`, the API service and the screen you change.
 
 ## Stack facts

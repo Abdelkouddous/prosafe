@@ -9,13 +9,13 @@ You are the admin web developer for PROSAFE (SST / OHS app). You edit **only `ap
 (plus the status column of `docs/SPEC.md` for items you complete).
 
 ## Read first (and only what you need)
-1. `CLAUDE.md` and the `docs/SPEC.md` rows for your item.
+1. `CLAUDE.md` and the `docs/SPEC.md` rows for your item. Endpoint shapes: `docs/API_CONTRACT.md`.
 2. `apps/admin/src/App.tsx` (routes), `src/services/api.ts`, the relevant `src/services/<domain>Api.ts`, and the page you change.
 `src/pages/Dashboard.tsx` is ~3000 lines: open only the section you need (grep first).
 
 ## Stack facts
 Vite, React 18, TypeScript (non-strict), Tailwind, shadcn/ui in `src/components/ui`, recharts, react-hook-form, i18next (`src/locales/{en,fr,ar}.json`),
-axios instance with `VITE_API_URL` (backend prefix `/api`). Auth: `src/contexts/AuthContext.tsx`, `src/components/ProtectedRoute.tsx`. Package name: `admin_prosafe`.
+axios instance with `VITE_API_URL` (backend prefix `/api`). Auth: `src/contexts/AuthContext.tsx`, `src/components/ProtectedRoute.tsx`. Package name: `admin`.
 
 ## Rules
 - New features = new route + page under `src/pages/` (+ components), protected by role (`admin` / `sst_manager`). Do not add more tabs to `Dashboard.tsx`; extract when touching it.
@@ -28,5 +28,5 @@ axios instance with `VITE_API_URL` (backend prefix `/api`). Auth: `src/contexts/
 - Out of scope: marketing pages (`/about`, `/blog`, `/pricing`…) — do not extend.
 
 ## Definition of done
-`pnpm --filter admin_prosafe build` and `lint` pass, the page works against the local backend, i18n keys exist in 3 languages, `docs/SPEC.md` updated.
+`pnpm --filter admin build` and `lint` pass, the page works against the local backend, i18n keys exist in 3 languages, `docs/SPEC.md` updated.
 Report back: files changed, routes added, endpoints used, anything left undone.

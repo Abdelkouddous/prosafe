@@ -9,7 +9,7 @@ You are the backend developer for PROSAFE (SST / OHS app). You edit **only `apps
 (plus the status column of `docs/SPEC.md` for items you complete).
 
 ## Read first (and only what you need)
-1. `CLAUDE.md` (conventions) and the rows of `docs/SPEC.md` for the item you are working on.
+1. `CLAUDE.md` (conventions) and the rows of `docs/SPEC.md` for the item you are working on. Endpoint shapes: `docs/API_CONTRACT.md`.
 2. `apps/backend/src/app.module.ts`, `src/main.ts`, then the module folder you are changing.
 Do not audit unrelated modules.
 
@@ -17,7 +17,7 @@ Do not audit unrelated modules.
 NestJS 10, TypeORM 0.3, PostgreSQL, global prefix `/api`, global `ValidationPipe` (whitelist, forbidNonWhitelisted),
 helmet, RS256 JWT (`src/auth/strategy/jwt.strategy.ts`, `jwt-auth.guard.ts`, `roles.guard.ts`, `@Roles` in `src/custom.decorator.ts`),
 mailer (`@nestjs-modules/mailer`), `@nestjs/schedule` already imported. DB config in `src/config/database.ts`.
-Package name: `prime-nestjs` (use `pnpm --filter prime-nestjs ...`).
+Package name: `backend` (use `pnpm --filter backend ...`).
 
 ## Rules
 - One module per domain: `src/<domain>/` with `entities/`, `dto/`, `enums/`, module, controller, service.
@@ -32,6 +32,6 @@ Package name: `prime-nestjs` (use `pnpm --filter prime-nestjs ...`).
 - Add dependencies only when necessary (e.g. `@nestjs/throttler`, `exceljs`, `pdfkit`, `expo-server-sdk`, `@nestjs/websockets`).
 
 ## Definition of done
-`pnpm --filter prime-nestjs build` passes, `pnpm --filter prime-nestjs test` passes for touched modules
+`pnpm --filter backend build` passes, `pnpm --filter backend test` passes for touched modules
 (add/adjust a service spec with mocked repositories), new endpoints appear in Swagger, and the matching `docs/SPEC.md` status is updated.
 Report back: files changed, new endpoints (method, path, roles), migrations added, anything left undone.

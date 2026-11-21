@@ -57,12 +57,12 @@ Minimalist; red/orange = alerts & danger, green = validated/resolved. Bottom nav
 ## Commands
 ```bash
 pnpm install
-pnpm --filter prime-nestjs start:dev        # backend (package name may be renamed to "backend" in Phase 1)
-pnpm --filter prime-nestjs test             # backend unit tests
-pnpm --filter prime-nestjs test:e2e
-pnpm --filter prime-nestjs migration:generate src/migrations/<Name>
-pnpm --filter prime-nestjs migration:run
-pnpm --filter admin_prosafe dev | build | lint
+pnpm --filter backend start:dev        # backend
+pnpm --filter backend test             # backend unit tests
+pnpm --filter backend test:e2e
+pnpm --filter backend migration:generate src/migrations/<Name>
+pnpm --filter backend migration:run
+pnpm --filter admin dev | build | lint
 pnpm --filter mobile start | lint
 cd apps/backend && docker compose up -d postgres   # local DB
 ```
@@ -76,6 +76,7 @@ Check actual package names with `cat apps/*/package.json | grep '"name"'` if a f
 
 ## Working efficiently (token economy)
 - Do not re-audit the whole repo. Start from `docs/SPEC.md` (status + gap notes) and open only the folder you change.
+- Endpoints, payloads and enums shared by the three apps are defined in `docs/API_CONTRACT.md`; follow it (update it first if the contract must change).
 - Delegate per-app work to the project subagents in `.claude/agents/`:
   `backend-dev`, `mobile-dev`, `admin-dev` (implementation), `qa-tester` (tests), `spec-reviewer` (read-only review before commit).
 - A feature that spans apps: backend first (API + Swagger), then admin/mobile consume it.
