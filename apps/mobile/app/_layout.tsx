@@ -30,6 +30,7 @@ export default function RootLayout() {
               <Stack.Screen name="(extra)" />
               <Stack.Screen name="incident/new" />
               <Stack.Screen name="incident/[id]" />
+              <Stack.Screen name="conversation/[id]" />
               <Stack.Screen name="+not-found" />
             </Stack>
           </RouteGuard>

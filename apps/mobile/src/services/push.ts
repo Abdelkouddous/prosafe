@@ -98,6 +98,14 @@ export const routeForNotification = (
   type: string | undefined | null,
   data: Record<string, unknown> | undefined | null
 ): boolean => {
+  const conversationId = data?.conversationId;
+  if (conversationId !== undefined && conversationId !== null && conversationId !== "") {
+    router.push({
+      pathname: "/conversation/[id]",
+      params: { id: String(conversationId) },
+    });
+    return true;
+  }
   const incidentId = data?.incidentId;
   if (incidentId !== undefined && incidentId !== null && incidentId !== "") {
     router.push({

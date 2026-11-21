@@ -22,7 +22,20 @@ import {
   IncidentMedia,
   fetchIncident,
 } from "@/services/incidentApi";
+import { fetchMyRewards } from "@/services/rewardsApi";
+import { Palette } from "@/constants/Colors";
 import { useThemedStyles } from "@/hooks/useThemedStyles";
+
+/** Risk score = gravity x probability (1-25): green low, orange medium, red high. */
+const riskColor = (score: number) =>
+  score >= 15 ? Palette.danger : score >= 8 ? Palette.warning : Palette.success;
+
+const ACTION_COLORS: Record<string, string> = {
+  todo: Palette.warning,
+  in_progress: Palette.info,
+  done: Palette.success,
+  cancelled: Palette.neutral,
+};
 
 const mapsUrl = (lat: number, lng: number) => {
   if (Platform.OS === "ios") return `maps:0,0?q=${lat},${lng}`;
@@ -40,12 +53,25 @@ export default function IncidentDetailScreen() {
   const [error, setError] = useState<"notFound" | "failed" | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [viewing, setViewing] = useState<IncidentMedia | null>(null);
+  const [rejected, setRejected] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setIncident(await fetchIncident(id));
+      const inc = await fetchIncident(id);
+      setIncident(inc);
+      // A rejected report is `closed` + its reward row is revoked (reason incident_rejected)
+      setRejected(false);
+      if (inc.status === "closed") {
+        fetchMyRewards()
+          .then((rows) =>
+            setRejected(
+              rows.some((r) => r.incidentId === inc.incidentId && r.reason === "incident_rejected")
+            )
+          )
+          .catch(() => {});
+      }
     } catch (e: any) {
       setError(e?.response?.status === 404 ? "notFound" : "failed");
     } finally {
@@ -100,7 +126,11 @@ export default function IncidentDetailScreen() {
               <Text style={styles.badgeText}>{t(`severity_${incident.severity}` as const)}</Text>
             </View>
             <View style={[styles.badge, { backgroundColor: STATUS_COLORS[incident.status] }]}>
-              <Text style={styles.badgeText}>{t(`status_${incident.status}` as const)}</Text>
+              <Text style={styles.badgeText}>
+                {rejected && incident.status === "closed"
+                  ? t("statusRejected")
+                  : t(`status_${incident.status}` as const)}
+              </Text>
             </View>
           </View>
 
@@ -113,6 +143,61 @@ export default function IncidentDetailScreen() {
           {!!incident.notes && (
             <Section title={t("notes")}>
               <Text style={styles.body}>{incident.notes}</Text>
+            </Section>
+          )}
+
+          {!!incident.evaluation && (
+            <Section title={t("incidentEvaluation")}>
+              <Row label={t("evalGravity")} value={`${incident.evaluation.gravity} / 5`} />
+              <Row label={t("evalProbability")} value={`${incident.evaluation.probability} / 5`} />
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>{t("evalRiskScore")}</Text>
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: riskColor(incident.evaluation.riskScore) },
+                  ]}
+                >
+                  <Text style={styles.badgeText}>{incident.evaluation.riskScore}</Text>
+                </View>
+              </View>
+              {!!incident.evaluation.rootCause && (
+                <Row label={t("evalRootCause")} value={incident.evaluation.rootCause} />
+              )}
+            </Section>
+          )}
+
+          {!!incident.correctiveActions?.length && (
+            <Section title={t("incidentCorrectiveActions")}>
+              {incident.correctiveActions.map((a) => {
+                const owner = [a.owner?.firstName, a.owner?.lastName].filter(Boolean).join(" ");
+                const overdue =
+                  !!a.dueDate &&
+                  (a.status === "todo" || a.status === "in_progress") &&
+                  new Date(a.dueDate).getTime() < Date.now();
+                return (
+                  <View key={String(a.id)} style={styles.actionItem}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.timelineTitle}>{a.title}</Text>
+                      {!!owner && (
+                        <Text style={styles.muted}>
+                          {t("actionOwner")}: {owner}
+                        </Text>
+                      )}
+                      {!!a.dueDate && (
+                        <Text style={[styles.muted, overdue && { color: Palette.danger }]}>
+                          {t("actionDue")}: {new Date(a.dueDate).toLocaleDateString(locale)}
+                        </Text>
+                      )}
+                    </View>
+                    <View
+                      style={[styles.badge, { backgroundColor: ACTION_COLORS[a.status] ?? Palette.neutral }]}
+                    >
+                      <Text style={styles.badgeText}>{t(`action_${a.status}` as const)}</Text>
+                    </View>
+                  </View>
+                );
+              })}
             </Section>
           )}
 
@@ -266,5 +351,6 @@ const baseStyles = StyleSheet.create({
   mapBtnText: { color: "#FFFFFF", fontWeight: "600", fontSize: 15 },
   timelineItem: { flexDirection: "row", gap: 10, paddingVertical: 8 },
   dot: { width: 12, height: 12, borderRadius: 6, marginTop: 4 },
+  actionItem: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8 },
   timelineTitle: { fontSize: 15, fontWeight: "600", color: "#111827" },
 });

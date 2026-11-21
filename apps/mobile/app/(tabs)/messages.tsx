@@ -1,578 +1,401 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   ActivityIndicator,
-  Alert,
-  TouchableOpacity,
-  RefreshControl,
-  TextInput,
+  FlatList,
+  KeyboardAvoidingView,
   Modal,
-  Dimensions,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { fetchMyMessages, fetchMyUser } from "@/services/api";
+import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
-import { useThemedStyles } from "@/hooks/useThemedStyles";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAppTheme } from "@/contexts/AccessibilityContext";
+import {
+  Announcement,
+  Conversation,
+  createConversation,
+  fetchAnnouncements,
+  fetchConversations,
+  markAnnouncementRead,
+  personName,
+} from "@/services/messagingApi";
+import { isRealtimeConnected, onRealtime } from "@/services/realtime";
 
-const { width } = Dimensions.get("window");
-
-interface Sender {
-  id?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-}
-
-interface Message {
-  id: string;
-  subject?: string; // Backend uses 'subject' instead of 'title'
-  content: string;
-  sender?: Sender | null; // Can be null for system messages
-  system_sender?: string; // For system messages like "Prosafe Admin"
-  created_at: string;
-  status?: string; // Backend uses 'status' instead of 'read'
-  is_urgent?: boolean; // Backend field
-  priority?: "low" | "medium" | "high"; // Keep for compatibility
-}
+type Segment = "conversations" | "announcements";
+const POLL_MS = 15000;
 
 export default function MessagesScreen() {
-  const styles = useThemedStyles(baseStyles);
-  const { t } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [filteredMessages, setFilteredMessages] = useState<Message[]>([]); // Stores filtered messages
-  const [searchQuery, setSearchQuery] = useState(""); // Stores search input
+  const { user } = useAuth();
+  const { t, isRTL, currentLanguage } = useLanguage();
+  const { colors, fs } = useAppTheme();
+  const [segment, setSegment] = useState<Segment>("conversations");
+  const [conversations, setConversations] = useState<Conversation[] | null>(null);
+  const [announcements, setAnnouncements] = useState<Announcement[] | null>(null);
+  const [errors, setErrors] = useState({ conv: false, ann: false });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const { user } = useAuth();
+  const [openAnn, setOpenAnn] = useState<number | null>(null);
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [composeError, setComposeError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadMessages();
-    fetchUserData();
+  const isManager = user?.role === "admin" || user?.role === "sst_manager";
+  const myId = user?.id !== undefined ? Number(user.id) : NaN;
+
+  const loadConversations = useCallback(async () => {
+    try {
+      setConversations(await fetchConversations());
+      setErrors((e) => ({ ...e, conv: false }));
+    } catch {
+      setErrors((e) => ({ ...e, conv: true }));
+    }
   }, []);
 
-  // Update filtered messages whenever search query or original messages change
+  const loadAnnouncements = useCallback(async () => {
+    try {
+      setAnnouncements(await fetchAnnouncements());
+      setErrors((e) => ({ ...e, ann: false }));
+    } catch {
+      setErrors((e) => ({ ...e, ann: true }));
+    }
+  }, []);
+
+  const loadAll = useCallback(async () => {
+    await Promise.all([loadConversations(), loadAnnouncements()]);
+    setLoading(false);
+  }, [loadConversations, loadAnnouncements]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadAll();
+      // Polling fallback (15 s) only while the socket is not connected
+      const timer = setInterval(() => {
+        if (!isRealtimeConnected()) loadConversations();
+      }, POLL_MS);
+      const off = onRealtime("message:new", () => loadConversations());
+      return () => {
+        clearInterval(timer);
+        off();
+      };
+    }, [loadAll, loadConversations])
+  );
+
   useEffect(() => {
-    filterMessages();
-  }, [searchQuery, messages]);
-
-  // Filter messages based on search query
-  // Update your filterMessages function to this:
-  const filterMessages = () => {
-    if (!searchQuery.trim()) {
-      setFilteredMessages(messages);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = messages.filter((message) => {
-      // Safely check title (use subject if title doesn't exist)
-      if (message.subject?.toLowerCase().includes(query)) return true;
-
-      // Safely check content
-      if (message.content?.toLowerCase().includes(query)) return true;
-
-      // Safely check sender name
-      try {
-        const senderName = formatSenderName(message.sender)?.toLowerCase();
-        if (senderName?.includes(query)) return true;
-      } catch (e) {
-        console.warn("Error formatting sender name:", e);
-      }
-
-      return false;
-    });
-
-    setFilteredMessages(filtered);
-  };
-
-  const formatSenderName = (sender: string | Sender | null | undefined) => {
-    if (typeof sender === "string") {
-      return sender;
-    }
-
-    // Handle null or undefined sender
-    if (!sender) {
-      return "System";
-    }
-
-    // if (sender.name) return sender.name;
-    if (sender.firstName || sender.lastName) {
-      return `${sender.firstName || ""} ${sender.lastName || ""}`.trim();
-    }
-    if (sender.email) return sender.email;
-
-    return "Unknown sender";
-  };
-
-  const fetchUserData = async () => {
-    try {
-      if (user && user.name) {
-        setUserName(user.name);
-        return;
-      }
-
-      const userData = await fetchMyUser();
-      let name = "";
-
-      if (userData.user) {
-        name =
-          userData.user.name ||
-          `${userData.user.firstName || ""} ${userData.user.lastName || ""}`.trim() ||
-          userData.user.email;
-      } else {
-        name =
-          userData.name ||
-          `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
-          userData.email;
-      }
-
-      setUserName(name);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  const loadMessages = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchMyMessages();
-      setMessages(data);
-      setFilteredMessages(data); // Initialize filtered messages with all messages
-    } catch (error) {
-      console.error("Error loading messages:", error);
-      Alert.alert(t("error"), t("messagesLoadFailed"));
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (!composeOpen) setComposeError(null);
+  }, [composeOpen]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadMessages();
-    await fetchUserData();
+    await loadAll();
     setRefreshing(false);
   };
 
-  const markAsRead = (messageId: string) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, status: "read" } : msg
-      )
-    );
-  };
-
-  const openMessageModal = (message: Message) => {
-    setSelectedMessage(message);
-    setModalVisible(true);
-    markAsRead(message.id);
-  };
-
-  const closeMessageModal = () => {
-    setModalVisible(false);
-    setSelectedMessage(null);
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Invalid Date";
-
-    const date = new Date(dateString);
-
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      return "Invalid Date";
+  const submitNew = async () => {
+    if (!subject.trim() || !body.trim()) {
+      setComposeError(t("messagesFillFields"));
+      return;
     }
-
-    const now = new Date();
-    const diffInDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diffInDays === 0) {
-      return date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else if (diffInDays === 1) {
-      return "Yesterday";
-    } else if (diffInDays < 7) {
-      return date.toLocaleDateString([], { weekday: "short" });
-    } else {
-      return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    setSending(true);
+    setComposeError(null);
+    try {
+      const conv = await createConversation({ subject: subject.trim(), body: body.trim() });
+      setComposeOpen(false);
+      setSubject("");
+      setBody("");
+      loadConversations();
+      router.push({ pathname: "/conversation/[id]", params: { id: String(conv.id) } });
+    } catch {
+      setComposeError(t("messagesNewFailed"));
+    } finally {
+      setSending(false);
     }
   };
 
-  if (loading) {
+  const openAnnouncement = (a: Announcement) => {
+    setOpenAnn(openAnn === a.id ? null : a.id);
+    if (a.recipient_id === myId && a.status !== "read") {
+      setAnnouncements((prev) =>
+        prev ? prev.map((x) => (x.id === a.id ? { ...x, status: "read" } : x)) : prev
+      );
+      markAnnouncementRead(a.id).catch(() => {});
+    }
+  };
+
+  const fmt = (d?: string) => {
+    if (!d) return "";
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "";
+    const sameDay = date.toDateString() === new Date().toDateString();
+    return sameDay
+      ? date.toLocaleTimeString(currentLanguage, { hour: "2-digit", minute: "2-digit" })
+      : date.toLocaleDateString(currentLanguage, { day: "numeric", month: "short" });
+  };
+
+  const otherNames = (c: Conversation) =>
+    c.participants
+      .filter((p) => p.id !== myId)
+      .map(personName)
+      .filter(Boolean)
+      .join(", ");
+
+  const errorBox = (
+    <Text style={{ color: colors.danger, fontSize: fs(13), padding: 16 }}>{t("messagesLoadFailed")}</Text>
+  );
+  const empty = (key: "messagesNoConversations" | "messagesNoAnnouncements") => (
+    <View style={styles.empty}>
+      <Ionicons name="chatbubble-outline" size={56} color={colors.textSecondary} />
+      <Text style={{ color: colors.textSecondary, fontSize: fs(15), marginTop: 8 }}>{t(key)}</Text>
+    </View>
+  );
+
+  const renderConversation = ({ item }: { item: Conversation }) => {
+    const unread = item.unreadCount > 0;
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0095F6" />
-        <Text style={styles.loadingText}>{t("messagesLoading")}</Text>
-      </View>
+      <TouchableOpacity
+        style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={() => router.push({ pathname: "/conversation/[id]", params: { id: String(item.id) } })}
+      >
+        <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+          <Ionicons name="person" size={20} color="#FFFFFF" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{ color: colors.text, fontSize: fs(15), fontWeight: unread ? "800" : "600" }}
+            numberOfLines={1}
+          >
+            {item.subject}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: fs(12) }} numberOfLines={1}>
+            {otherNames(item)}
+          </Text>
+          {!!item.lastMessage && (
+            <Text
+              style={{ color: unread ? colors.text : colors.textSecondary, fontSize: fs(13) }}
+              numberOfLines={1}
+            >
+              {item.lastMessage.body}
+            </Text>
+          )}
+        </View>
+        <View style={{ alignItems: "flex-end", gap: 4 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: fs(11) }}>
+            {fmt(item.lastMessage?.createdAt ?? item.updatedAt)}
+          </Text>
+          {unread && (
+            <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+              <Text style={styles.badgeText}>{item.unreadCount > 99 ? "99+" : item.unreadCount}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
     );
-  }
+  };
+
+  const renderAnnouncement = ({ item }: { item: Announcement }) => {
+    const unread = item.recipient_id === myId && item.status !== "read";
+    const expanded = openAnn === item.id;
+    const sender =
+      [item.sender?.firstName, item.sender?.lastName].filter(Boolean).join(" ") ||
+      item.sender?.email ||
+      t("messagesUnknownSender");
+    return (
+      <TouchableOpacity
+        style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.border, alignItems: "flex-start" }]}
+        onPress={() => openAnnouncement(item)}
+      >
+        <View style={[styles.avatar, { backgroundColor: colors.warning }]}>
+          <Ionicons name="megaphone" size={20} color="#FFFFFF" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: colors.text, fontSize: fs(15), fontWeight: unread ? "800" : "600" }}>
+            {item.subject || "-"}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: fs(12) }}>{sender}</Text>
+          <Text
+            style={{ color: colors.text, fontSize: fs(13), marginTop: 2 }}
+            numberOfLines={expanded ? undefined : 2}
+          >
+            {item.content}
+          </Text>
+        </View>
+        <View style={{ alignItems: "flex-end", gap: 4 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: fs(11) }}>{fmt(item.created_at)}</Text>
+          {unread && <View style={[styles.dot, { backgroundColor: colors.danger }]} />}
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const unreadConv = (conversations ?? []).reduce((n, c) => n + (c.unreadCount > 0 ? 1 : 0), 0);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>PROSAFE</Text>
-            <Text style={styles.logoSubtext}>{t("messagesTitle")}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#8E8E8E"
-          style={styles.searchIcon}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t("messagesSearch")}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor="#8E8E8E"
-        />
-      </View>
-
-      <ScrollView
-        style={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {filteredMessages.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubble-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyText}>
-              {searchQuery.trim() ? "No matching messages" : "No messages yet"}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {searchQuery.trim()
-                ? "Try a different search term"
-                : "You'll receive important notifications and updates here"}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.messagesList}>
-            {filteredMessages.map((message) => (
+    <View style={{ flex: 1, backgroundColor: colors.background, direction: isRTL ? "rtl" : "ltr" }}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={{ color: colors.text, fontSize: fs(20), fontWeight: "700", marginBottom: 10 }}>
+          {t("messagesTitle")}
+        </Text>
+        <View style={styles.segments}>
+          {(["conversations", "announcements"] as Segment[]).map((s) => {
+            const active = s === segment;
+            return (
               <TouchableOpacity
-                key={message.id}
-                style={styles.messageCard}
-                onPress={() => openMessageModal(message)}
+                key={s}
+                onPress={() => setSegment(s)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                style={[
+                  styles.segment,
+                  { borderColor: colors.primary, backgroundColor: active ? colors.primary : "transparent" },
+                ]}
               >
-                <View style={styles.avatarContainer}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>MSG</Text>
-                  </View>
-                  {message.status !== "read" && (
-                    <View style={styles.unreadDot} />
-                  )}
-                </View>
-
-                <View style={styles.messageContent}>
-                  <Text style={styles.messageSender} numberOfLines={1}>
-                    {formatSenderName(message.sender)}
-                  </Text>
-                  <View style={styles.messagePreview}>
-                    <Text style={styles.messageTitle} numberOfLines={1}>
-                      {message.subject || "No Subject"}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.messageText,
-                        message.status !== "read" && styles.unreadMessageText,
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {message.content}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.messageTime}>
-                  <Text style={styles.timeText}>
-                    {formatDate(message.created_at)}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Message Detail Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeMessageModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={closeMessageModal}>
-                <Ionicons name="close" size={24} color="#374151" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>{t("messageDetails")}</Text>
-              <View style={{ width: 24 }} />
-            </View>
-
-            {selectedMessage && (
-              <ScrollView style={styles.modalBody}>
-                <Text style={styles.modalSender}>
-                  {selectedMessage.system_sender || formatSenderName(selectedMessage.sender)}
+                <Text style={{ color: active ? "#FFFFFF" : colors.primary, fontSize: fs(13), fontWeight: "600" }}>
+                  {s === "conversations" ? t("messagesConversations") : t("messagesAnnouncements")}
+                  {s === "conversations" && unreadConv > 0 ? ` (${unreadConv})` : ""}
                 </Text>
-                
-                <Text style={styles.modalMessageContent}>
-                  {selectedMessage.content || "No content available"}
-                </Text>
-              </ScrollView>
-            )}
-          </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
+      </View>
+
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 30 }} color={colors.primary} size="large" />
+      ) : segment === "conversations" ? (
+        <FlatList
+          data={conversations ?? []}
+          keyExtractor={(c) => String(c.id)}
+          renderItem={renderConversation}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListHeaderComponent={errors.conv ? errorBox : null}
+          ListEmptyComponent={errors.conv ? null : empty("messagesNoConversations")}
+        />
+      ) : (
+        <FlatList
+          data={announcements ?? []}
+          keyExtractor={(a) => String(a.id)}
+          renderItem={renderAnnouncement}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListHeaderComponent={errors.ann ? errorBox : null}
+          ListEmptyComponent={errors.ann ? null : empty("messagesNoAnnouncements")}
+        />
+      )}
+
+      {/* Managers must pick a recipient and the API has no user lookup for them: button hidden */}
+      {segment === "conversations" && !isManager && (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary }]}
+          onPress={() => setComposeOpen(true)}
+          accessibilityRole="button"
+        >
+          <Ionicons name="create" size={20} color="#FFFFFF" />
+          <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: fs(14) }}>
+            {t("messagesNewConversation")}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal visible={composeOpen} transparent animationType="slide" onRequestClose={() => setComposeOpen(false)}>
+        <KeyboardAvoidingView
+          style={styles.overlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+            <Text style={{ color: colors.text, fontSize: fs(17), fontWeight: "700", marginBottom: 10 }}>
+              {t("messagesNewConversation")}
+            </Text>
+            <TextInput
+              value={subject}
+              onChangeText={setSubject}
+              placeholder={t("messagesSubject")}
+              placeholderTextColor={colors.textSecondary}
+              maxLength={200}
+              style={[styles.input, { color: colors.text, borderColor: colors.border, fontSize: fs(15), textAlign: isRTL ? "right" : "left" }]}
+            />
+            <TextInput
+              value={body}
+              onChangeText={setBody}
+              placeholder={t("messagesBody")}
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              maxLength={5000}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border, fontSize: fs(15), height: 120, textAlignVertical: "top", textAlign: isRTL ? "right" : "left" },
+              ]}
+            />
+            {!!composeError && (
+              <Text style={{ color: colors.danger, fontSize: fs(13), marginBottom: 8 }}>{composeError}</Text>
+            )}
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <TouchableOpacity
+                style={[styles.btn, { borderColor: colors.border, borderWidth: 1 }]}
+                onPress={() => setComposeOpen(false)}
+              >
+                <Text style={{ color: colors.text, fontSize: fs(15) }}>{t("messagesCancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: colors.primary, opacity: sending ? 0.6 : 1 }]}
+                onPress={submitNew}
+                disabled={sending}
+              >
+                {sending ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: fs(15) }}>{t("messagesSend")}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
 }
 
-const baseStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  scrollContent: {
-    flex: 1,
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1F2937",
-    letterSpacing: 2,
-  },
-  logoSubtext: {
-    fontSize: 10,
-    color: "#6B7280",
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  searchButton: {
-    padding: 8,
-  },
-  searchContainer: {
+const styles = StyleSheet.create({
+  header: { paddingTop: 50, paddingBottom: 12, paddingHorizontal: 16, borderBottomWidth: 1 },
+  segments: { flexDirection: "row", gap: 8 },
+  segment: { flex: 1, borderWidth: 1, borderRadius: 8, paddingVertical: 8, alignItems: "center" },
+  list: { padding: 12, paddingBottom: 100, flexGrow: 1 },
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginHorizontal: 20,
-    marginVertical: 10,
+    gap: 12,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#262626",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#8E8E8E",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
-    marginTop: 100,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#262626",
-    marginTop: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: "#8E8E8E",
-    textAlign: "center",
-    marginTop: 8,
-  },
-  messagesList: {
-    padding: 0,
-  },
-  messageCard: {
-    flexDirection: "row",
-    padding: 16,
-    backgroundColor: "#FFFFFF",
-    marginHorizontal: 20,
-    marginVertical: 5,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: 12,
+    marginBottom: 8,
   },
-  avatarContainer: {
-    position: "relative",
-    marginRight: 12,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#4A90E2",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  unreadDot: {
+  avatar: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  badge: { minWidth: 22, height: 22, borderRadius: 11, paddingHorizontal: 6, alignItems: "center", justifyContent: "center" },
+  badgeText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  empty: { alignItems: "center", marginTop: 60 },
+  fab: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#DC2626",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  messageContent: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  messageSender: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 4,
-  },
-  messagePreview: {
+    bottom: 20,
+    alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
+    borderRadius: 28,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    elevation: 4,
   },
-  messageTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginRight: 4,
-  },
-  messageText: {
-    fontSize: 14,
-    color: "#6B7280",
-    flex: 1,
-  },
-  unreadMessageText: {
-    fontWeight: "500",
-    color: "#1F2937",
-  },
-  messageTime: {
-    minWidth: 50,
-    alignItems: "flex-end",
-  },
-  timeText: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
-    margin: 20,
-    maxHeight: "80%",
-    width: width - 40,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    flex: 1,
-    textAlign: "center",
-  },
-  modalBody: {
-    flex: 1,
-  },
-  modalSender: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  modalMessageContent: {
-    fontSize: 14,
-    color: "#374151",
-    lineHeight: 22,
-  },
+  overlay: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" },
+  sheet: { borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 10, marginBottom: 10 },
+  btn: { flex: 1, borderRadius: 8, paddingVertical: 12, alignItems: "center", justifyContent: "center" },
 });

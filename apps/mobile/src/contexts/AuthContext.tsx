@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { connectRealtime, disconnectRealtime } from "@/services/realtime";
 import api, { onUnauthorized } from "@/services/api";
 import { storage } from "@/services/storage";
 import {
@@ -80,7 +81,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     configureNotificationHandler();
     if (!isAuthenticated) return;
     registerForPush();
-    return subscribeToNotificationTaps();
+    connectRealtime();
+    const unsubscribeTaps = subscribeToNotificationTaps();
+    return () => {
+      unsubscribeTaps();
+      disconnectRealtime();
+    };
   }, [isAuthenticated]);
 
   const checkAuthStatus = async () => {
