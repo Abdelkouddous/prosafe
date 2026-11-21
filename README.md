@@ -3,224 +3,226 @@
 <img src="assets/prosafe-banner.svg" alt="PROSAFE Banner" width="100%" />
 
 # PROSAFE
-### Plateforme Intégrée de Sécurité et Santé au Travail (SST) / Occupational Health & Safety (OHS)
+### Integrated Occupational Health & Safety (OHS / SST) Enterprise Platform
 
+[![French Version](https://img.shields.io/badge/Language-French-blue.svg)](README_fr.md)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-10.0-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![React](https://img.shields.io/badge/React-18.0-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK_52-000020?logo=expo&logoColor=white)](https://expo.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.0-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Socket.IO](https://img.shields.io/badge/Socket.IO-4.8-010101?logo=socketdotio&logoColor=white)](https://socket.io/)
-[![ISO 45001](https://img.shields.io/badge/Conformité-ISO_45001%3A2018-059669)](https://www.iso.org/standard/63787.html)
+[![ISO 45001](https://img.shields.io/badge/Compliance-ISO_45001%3A2018-059669)](https://www.iso.org/standard/63787.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <p align="center">
-  <b>Une solution complète et multi-plateforme pour digitaliser la prévention des risques, accélérer le signalement d'incidents sur le terrain, automatiser la conformité réglementaire et protéger le capital humain en entreprise.</b>
+  <b>A comprehensive, cross-platform ecosystem designed to digitize risk prevention, accelerate field incident reporting, automate regulatory compliance, and protect workforce health and safety across organizations.</b>
 </p>
 
-[Fonctionnalités](#-fonctionnalités-clés) •
-[Stack Technique](#-stack-technique) •
-[Architecture](#-architecture) •
-[Démarrage Rapide](#-démarrage-rapide) •
-[Rôles & Accès](#-rôles-et-permissions) •
+[Key Features](#-key-features) •
+[Tech Stack](#-tech-stack) •
+[Architecture](#-system-architecture) •
+[Quick Start](#-quick-start) •
+[Roles & Access](#-roles-and-permissions) •
 [Documentation](#-documentation)
 
 ---
 
 </div>
 
-## 📌 À Propos de PROSAFE
+## 📌 About PROSAFE
 
-Dans tout environnement industriel, logistique, BTP ou tertiaire, la gestion de la **Sécurité et Santé au Travail (SST)** représente un défi critique : lenteur de remontée des incidents, sous-déclaration des presqu'accidents, suivi fastidieux des EPI et des formations obligatoires, et complexité des audits réglementaires.
+In industrial, construction, logistics, and service environments, managing **Occupational Health and Safety (OHS / SST)** poses critical challenges: slow reporting chains, under-reporting of near-misses, manual tracking of PPE inspections and mandatory training, and high friction during regulatory audits.
 
-**PROSAFE** résout cette problématique en interconnectant le personnel de terrain et les responsables SST à travers un écosystème en temps réel composé :
-1. **D'une application mobile tout-terrain (Expo / React Native)** pour les opérateurs : déclarations instantanées avec médias, analyse de risque de dernière minute (LMRA), alertes d'urgence et inventaire EPI.
-2. **D'un portail web de pilotage (React / Vite)** pour les managers SST et administrateurs : cartographie interactive, matrice des risques 5×5, audits ISO 45001, indicateurs de performance (KPI) et plans d'action correctifs.
-3. **D'un serveur central sécurisé (NestJS / PostgreSQL)** : architecture modulaire, WebSockets bidirectionnels, notifications push, authentification RS256 JWT et tâches planifiées automatisées.
+**PROSAFE** addresses these operational hurdles by connecting frontline personnel with safety managers in real-time through three integrated applications:
+1. **Field Mobile App (Expo / React Native)**: Instant incident reporting with photo/video attachments, GPS tagging, Last-Minute Risk Analysis (LMRA), push emergency broadcasts, and PPE inventory access.
+2. **Web Management Console (React / Vite)**: Interactive Leaflet geospatial incident maps, 5×5 risk matrix, ISO 45001 compliance audits, live KPI analytics, and corrective action workflows.
+3. **Secure Backend Core (NestJS / PostgreSQL)**: Enterprise-grade REST API, bidirectional WebSockets, RS256 asymmetric JWT authentication, automated daily cron jobs, and push/email alert routing.
 
 ---
 
-## 🛠️ Stack Technique
+## 🛠️ Tech Stack
 
-PROSAFE est structuré sous forme de monorepo moderne géré avec **pnpm workspaces** et **Turborepo** :
+PROSAFE is built as a high-performance monorepo managed with **pnpm workspaces** and **Turborepo**:
 
-| Domaine | Technologies | Rôle dans le projet |
+| Layer | Technologies | Responsibilities |
 |---|---|---|
-| **Backend API** | **NestJS 10**, **TypeORM 0.3**, **PostgreSQL 16** | API REST sécurisée, modèle relationnel, migrations, ORM |
-| **Sécurité & Auth** | **JWT RS256**, **Bcrypt**, **Helmet**, **Passport** | Chiffrement asymétrique des tokens, hashing robuste, protection XSS/CORS |
-| **Temps Réel** | **Socket.IO 4.8** | Passerelle WebSocket pour notifications instantanées et messagerie instantanée |
-| **Web Back-Office** | **React 18**, **Vite**, **Tailwind CSS**, **shadcn/ui** | Console d'administration SST, tableaux de bord interactifs, accessibilité WCAG |
-| **Visualisation** | **Recharts**, **React Leaflet**, **Lucide Icons** | Graphiques d'analyse de tendances et cartographie GPS des incidents |
-| **Application Mobile**| **React Native 0.76**, **Expo SDK 52**, **Expo Router 4**| Application mobile cross-platform (iOS, Android, PWA Web) |
-| **Périphériques Mobile**| **Expo Location**, **Image Picker**, **Secure Store**, **Notifications** | Géolocalisation GPS des incidents, capture média photo/vidéo, push notifications |
-| **Rapports & Documents**| **pdfkit**, **exceljs** | Génération automatisée d'exports PDF réglementaires et classeurs Excel |
-| **Internationalisation**| **i18next** | Support complet trilingue : Français (défaut), Anglais et Arabe (RTL) |
+| **Backend API** | **NestJS 10**, **TypeORM 0.3**, **PostgreSQL 16** | Scalable REST API, relational data modeling, migrations, ORM |
+| **Security & Auth** | **JWT RS256**, **Bcrypt**, **Helmet**, **Passport** | Asymmetric key encryption, bcrypt hashing, XSS/CORS hardening |
+| **Realtime Engine** | **Socket.IO 4.8** | Low-latency WebSockets for notifications, live alerts, and instant messaging |
+| **Web Back-Office** | **React 18**, **Vite**, **Tailwind CSS**, **shadcn/ui** | Responsive admin dashboard, high-contrast accessibility (WCAG), data tables |
+| **Data Visualization**| **Recharts**, **React Leaflet**, **Lucide Icons** | Statistical trend charts, incident frequency analysis, geospatial maps |
+| **Mobile App** | **React Native 0.76**, **Expo SDK 52**, **Expo Router 4** | Cross-platform native application (iOS, Android, Web PWA) |
+| **Device Integration**| **Expo Location**, **Image Picker**, **Secure Store**, **Notifications** | GPS coordinates capture, media uploads with magic-byte verification, push tokens |
+| **Reporting & Exports**| **pdfkit**, **exceljs** | Automated PDF generation for OHS committees and Excel spreadsheets for audits |
+| **Internationalization**| **i18next** | Complete trilingual support: French (default), English, and Arabic (RTL) |
 
 ---
 
-## 🚀 Fonctionnalités Clés
+## 🚀 Key Features
 
-### 🚨 1. Signalement & Gestion des Incidents
-- **Déclaration assistée** : Prise de vue photo/vidéo (jusqu'à 5 fichiers avec contrôle magic-byte), horodatage et coordonnées GPS automatiques.
-- **Workflow de traitement** : Cycle de vie complet (*Déclaré → En analyse → En cours d'action → Clôturé* ou *Rejeté*).
-- **Évaluation de criticité** : Calcul automatique du niveau de gravité (Gravité × Probabilité) avec rattachement immédiat d'actions correctives.
-- **Historique & Traçabilité** : Journalisation inaltérable de chaque changement d'état et commentaire de suivi.
+### 🚨 1. Incident Declaration & Workflow
+- **Assisted Reporting**: Multi-file media capture (up to 5 photos/videos with magic-byte validation), automatic GPS coordinates, and timestamping.
+- **Full Lifecycle**: Complete state machine (*Reported → Under Review → In Progress → Closed* or *Rejected*).
+- **Severity Scoring**: Dynamic evaluation matrix (Severity × Probability) triggering automated corrective action assignments.
+- **Audit Trail**: Immutable status history log documenting every review step, note, and closure justification.
 
-### 🛡️ 2. Gestion des Équipements de Protection (EPI)
-- **Catalogue & Inventaire** : Suivi des équipements individuels et collectifs avec statut de conformité.
-- **Maintenance & Alertes d'expiration** : Planification des inspections obligatoires, détection des stocks bas et alertes automatiques pour renouvellement des EPI périmés.
+### 🛡️ 2. Personal Protective Equipment (PPE) & Inventory
+- **Asset Catalog**: Real-time tracking of individual and collective safety equipment.
+- **Inspection & Expiry Tracking**: Maintenance scheduling, stock depletion alerts, and automated notifications for expiring gear.
 
-### 🎓 3. Formations & Habilitations Sécurité
-- **Passeport Sécurité** : Suivi des certifications des opérateurs (CACES, SST, Travail en hauteur, Habilitation électrique...).
-- **Rappels automatiques** : Alertes anticipées avant expiration des validités (J-30, J-7, J-1).
-- **Matrice des compétences** : Identification instantanée des besoins en recyclage et auto-planification des sessions.
+### 🎓 3. Safety Training & Certifications
+- **Worker Safety Passport**: Centralized register of certifications (Forklift/CACES, First Aid, Working at Heights, Electrical Safety).
+- **Automated Renewals**: Proactive expiry warnings (30 days, 7 days, 1 day prior to expiration).
+- **Skills Matrix**: Instant visibility into workforce qualification gaps with automated session planning.
 
-### 📊 4. Évaluation des Risques & LMRA
-- **Matrice 5×5** : Cartographie visuelle des risques par poste de travail avec niveaux d'acceptabilité.
-- **Plans d'actions préventifs** : Affectation des actions à un responsable avec échéancier et alertes de retard.
-- **LMRA (Last Minute Risk Analysis)** : Questionnaire rapide sur mobile avant intervention à haut risque.
+### 📊 4. Risk Assessment & LMRA
+- **5×5 Risk Matrix**: Visual workplace risk catalog mapped by department, probability, and consequence severity.
+- **Preventive Action Plans**: Direct task assignment to owners with deadlines and overdue tracking.
+- **LMRA (Last Minute Risk Analysis)**: Quick mobile safety checklist completed on-site prior to executing high-risk operations.
 
-### 📋 5. Audits & Conformité ISO 45001:2018
-- **Grille de contrôle réglementaire** : Checklist pré-intégrée conforme aux exigences ISO 45001.
-- **Calcul de conformité** : Évaluation du taux de conformité par service ou site.
-- **Gestion documentaire** : Coffre-fort numérique pour les procédures de sécurité, fiches de données de sécurité (FDS) et rapports réglementaires.
+### 📋 5. Audits & ISO 45001:2018 Compliance
+- **Standardized Checklists**: Built-in inspection forms aligned with ISO 45001:2018 requirements.
+- **Compliance Scoring**: Real-time audit scoring by facility, department, or operational unit.
+- **Document Safe**: Secure digital storage for safety protocols, Safety Data Sheets (SDS/FDS), and inspection certificates.
 
-### 📢 6. Gestion des Urgences & Évacuation
-- **Diffusion d'urgence (Broadcast)** : Alerte instantanée push et sonnerie prioritaire vers tous les terminaux mobiles du site.
-- **Fiches réflexes** : Procédures d'intervention par scénario (incendie, fuite chimique, malaise, etc.).
-- **Exercices d'évacuation (Drills)** : Planification, chronométrage et enregistrement des exercices de sécurité.
+### 📢 6. Emergency Alerts & Evacuation Drills
+- **Broadcast System**: High-priority push notifications and siren alerts broadcast to all active mobile devices on-site.
+- **Action Scenarios**: Standard operating procedures (SOPs) for fire, chemical spills, medical emergencies, or structural hazards.
+- **Evacuation Drills**: Scheduling, headcount verification, timer tracking, and post-drill reporting.
 
-### 📈 7. Tableaux de Bord & Analytics
-- **Indicateurs clés de performance** : Taux de fréquence, taux de gravité, répartition par zone et type d'incident.
-- **Prévisions & Détection de pics** : Alertes automatiques en cas d'augmentation anormale de sinistralité.
-- **Exports professionnels** : Génération en un clic de rapports PDF pour les comités SST et de classeurs Excel pour les audits.
+### 📈 7. Analytics & Executive KPIs
+- **Safety Metrics**: Real-time Lost Time Injury Frequency Rate (LTIFR), severity rate, incident distribution heatmaps.
+- **Trend Forecasting & Spike Detection**: Automated detection of anomalous incident clusters.
+- **One-Click Reporting**: Export audit-ready PDF reports and detailed Excel workbooks for safety committees.
 
-### 💬 8. Communication & Inclusion
-- **Messagerie sécurisée** : Échanges directs entre collaborateurs et référents sécurité.
-- **Multi-langues** : Interface disponible en Français, Anglais et Arabe avec support natif du mode RTL (Right-to-Left).
-- **Accessibilité** : Thème à contraste élevé et ajustement dynamique de la taille des textes.
+### 💬 8. Communication & Inclusivity
+- **Direct Messaging**: Private, authenticated communication channels between workers and OHS managers.
+- **Multilingual Support**: Fully localized in English, French, and Arabic with native Right-to-Left (RTL) layout.
+- **Accessibility**: High-contrast mode, accessible color schemes, and dynamic font scaling.
 
 ---
 
-## 🏛️ Architecture
+## 🏛️ System Architecture
 
 ```
                  ┌─────────────────────────┐        ┌────────────────────────┐
-  Collaborateurs │   Mobile App (Expo)     │──┐     │ Web Admin (Vite/React) │ ◄── Responsables SST
-  (Terrain)      │   iOS · Android · Web   │  │     │ Tableaux de bord & SIG │     & Administrateurs
+  Field Workers  │    Mobile App (Expo)    │──┐     │ Web Admin (Vite/React) │ ◄── OHS Managers
+  (On-Site)      │   iOS · Android · Web   │  │     │ Dashboard & GIS Maps   │     & Administrators
                  └─────────────────────────┘  │     └───────────┬────────────┘
                                               │ HTTPS + JWT     │
                                               ▼                 ▼
                                    ┌──────────────────────────────────┐
-                                   │     API Backend (NestJS 10)      │── Swagger Docs (/api/docs)
-                                   │     Socket.IO (/ws) Temps Réel   │
-                                   │     Moteur de tâches cron        │
+                                   │     Backend API (NestJS 10)      │── Swagger Docs (/api/docs)
+                                   │     Socket.IO (/ws) Realtime     │
+                                   │     Automated Cron Scheduler     │
                                    └───────┬────────────┬─────────────┘
                                            │            │
-                                PostgreSQL 16 ◄┘        ▼ Stockage local / Disque
-                                           Expo Push · Serveur SMTP (Emails)
+                                PostgreSQL 16 ◄┘        ▼ Local Disk Storage (Uploads)
+                                           Expo Push · SMTP Mail Server
 ```
 
 ---
 
-## 👥 Rôles et Permissions
+## 👥 Roles and Permissions
 
-| Rôle | Niveau d'accès |
+| Role | Access Level |
 |---|---|
-| 👑 `admin` | Accès complet : gouvernance, gestion des comptes utilisateurs (approbation, blocage, rôles), configuration générale. |
-| 🛡️ `sst_manager` | Supervision SST opérationnelle : incidents, matrice des risques, audits, équipements, formations, alertes et rapports. |
-| 👷 `employee` | Usage terrain : déclaration d'incidents, LMRA, consultation des équipements/formations, messagerie SST, alertes d'urgence. |
-| ⏳ `pending` | Compte fraîchement créé en attente de validation par un administrateur avant toute activation. |
+| 👑 `admin` | Full system control: governance, user lifecycle (approve, block, reassign roles, delete), and system settings. |
+| 🛡️ `sst_manager` | OHS operations: incidents, risk matrix, compliance audits, PPE equipment, trainings, alerts, and analytics. |
+| 👷 `employee` | Field execution: report incidents, submit LMRAs, view assigned equipment/trainings, access emergency procedures. |
+| ⏳ `pending` | Newly registered accounts awaiting administrator approval before accessing platform features. |
 
-> Le tout premier compte créé lors de l'initialisation de l'application reçoit automatiquement le rôle `admin`.
-
----
-
-## ⏰ Tâches Automatisées (Cron Jobs)
-
-Le serveur NestJS exécute quotidiennement des vérifications d'intégrité et de conformité (*fuseau horaire Africa/Algiers*) :
-
-- **06:30** : Détection des pics anormaux d'incidents et émission d'alertes aux managers.
-- **07:00** : Vérification des stocks bas d'EPI, échéances d'inspections, rappels de formation (J-7, J-1) et certifications arrivant à expiration.
-- **07:15** : Rappels programmés des audits de sécurité à venir.
-- **07:20** : Suivi des documents de conformité expirant sous 30 jours.
-- **07:30** : Surveillance et relance des actions correctives en retard.
-- **07:45** : Surveillance et relance des plans d'action SST en retard.
+> The first user registered during initial system setup is automatically granted the `admin` role.
 
 ---
 
-## ⚡ Démarrage Rapide
+## ⏰ Automated Cron Scheduler
 
-### Prérequis
+The NestJS backend runs daily automated compliance and monitoring jobs (*Africa/Algiers timezone*):
+
+- **06:30** : Incident spike detection → generates proactive manager alerts upon unusual activity.
+- **07:00** : Low/depleted PPE stock alerts, maintenance inspection deadlines, training reminders (D-7, D-1), and expiring certifications.
+- **07:15** : Upcoming security audit reminders.
+- **07:20** : Regulatory compliance documents expiring within 30 days.
+- **07:30** : Escalation reminders for overdue corrective actions.
+- **07:45** : Escalation reminders for overdue risk action plans.
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
 - **Node.js** >= 18.0.0
 - **pnpm** >= 9.0.0
-- **Docker** et **Docker Compose** (pour PostgreSQL)
+- **Docker** & **Docker Compose** (for PostgreSQL)
 
-### 1. Installation des dépendances
+### 1. Clone & Install
 ```bash
 git clone https://github.com/Abdelkouddous/prosafe.git
 cd prosafe
 pnpm install
 ```
 
-### 2. Démarrage de la base de données
+### 2. Configure Database & Environment
 ```bash
 cd apps/backend
 docker compose up -d postgres
 cp .env.example .env
-# Renseignez les clés RS256 et paramètres de base dans .env
+# Populate RS256 JWT keys and database parameters in .env
 cd ../..
 ```
 
-### 3. Lancement des applications en développement
+### 3. Launch Development Servers
 ```bash
-# Terminal 1 : Backend API (port 3000)
+# Terminal 1: Backend API (port 3000)
 pnpm --filter backend start:dev
 
-# Terminal 2 : Web Admin (port 5173)
+# Terminal 2: Web Management Console (port 5173)
 pnpm --filter admin dev
 
-# Terminal 3 : Application Mobile Expo
+# Terminal 3: Expo Mobile App
 pnpm --filter mobile start
 ```
 
-- **Documentation Swagger de l'API** : [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
-- **Portail Web d'administration** : [http://localhost:5173](http://localhost:5173)
+- **Interactive API Swagger Docs**: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- **Web Administration Portal**: [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 📂 Structure du Monorepo
+## 📂 Repository Structure
 
 ```
 prosafe/
 ├── apps/
-│   ├── backend/        # API REST NestJS, TypeORM, Socket.IO, Cron & Auth
-│   ├── admin/          # Console Web React/Vite, Tailwind, Recharts, Leaflet
-│   └── mobile/         # Application mobile Expo / React Native
-├── assets/             # Visuels, bannières et ressources graphiques du projet
-├── docs/               # Spécifications détaillées, API contract & guides
-│   ├── SPEC.md         # Statut d'implémentation et matrice d'exigences
-│   ├── API_CONTRACT.md # Spécification formelle de tous les endpoints partagés
-│   ├── TECHNICAL.md    # Documentation d'architecture, sécurité & déploiement
-│   ├── USER_GUIDE.md   # Guide d'utilisation complet (FR)
-│   └── DEPLOY_CHECKLIST.md # Procédure de mise en production
-├── pnpm-workspace.yaml # Configuration de l'espace de travail pnpm
-└── README.md           # Documentation principale du projet
+│   ├── backend/        # NestJS 10 REST API, TypeORM, Socket.IO, Auth & Cron
+│   ├── admin/          # React/Vite Admin Console, Tailwind, Recharts, Leaflet
+│   └── mobile/         # Expo SDK 52 / React Native Cross-Platform App
+├── assets/             # Brand identity, banners, and project media
+├── docs/               # Technical specifications, API contracts & user guides
+│   ├── SPEC.md         # Requirements tracking matrix & project checklist
+│   ├── API_CONTRACT.md # Formal endpoint contract shared across client apps
+│   ├── TECHNICAL.md    # Architecture deep-dive, security, and deployment guide
+│   ├── USER_GUIDE.md   # Detailed user guide (French)
+│   └── DEPLOY_CHECKLIST.md # Step-by-step production rollout checklist
+├── README_fr.md        # Documentation en Français (Archive)
+├── pnpm-workspace.yaml # Monorepo workspace configuration
+└── README.md           # Main project documentation (English)
 ```
 
 ---
 
-## 📚 Documentation Détaillée
+## 📚 Documentation
 
-Consultez les guides spécialisés situés dans le dossier [`docs/`](docs/) :
+Detailed technical references are maintained in the [`docs/`](docs/) directory:
 
-- 📖 [Guide Utilisateur Détaillé](docs/USER_GUIDE.md) : Mode d'emploi pas à pas pour les managers et employés.
-- 📐 [Contrat d'API](docs/API_CONTRACT.md) : Catalogue des routes REST et événements WebSocket.
-- 🏗️ [Architecture Technique](docs/TECHNICAL.md) : Détail des modèles de données, sécurité et tests.
-- 🚀 [Checklist de Déploiement](docs/DEPLOY_CHECKLIST.md) : Étapes de release en environnement de production.
+- 📖 [User Guide (French)](docs/USER_GUIDE.md): Step-by-step instructions for safety managers and field workers.
+- 📐 [Shared API Contract](docs/API_CONTRACT.md): Comprehensive reference for all REST endpoints and WebSocket events.
+- 🏗️ [Technical Architecture](docs/TECHNICAL.md): Detailed database schemas, security posture, and test suites.
+- 🚀 [Production Deployment Checklist](docs/DEPLOY_CHECKLIST.md): Operational guide for production releases.
 
 ---
 
-## 📄 Licence
+## 📄 License
 
-Ce projet est sous licence [MIT](LICENSE).
+This project is licensed under the [MIT License](LICENSE).

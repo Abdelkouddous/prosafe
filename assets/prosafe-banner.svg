@@ -70,10 +70,10 @@
 
     <!-- Main Title & Typography -->
     <text x="125" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="56" font-weight="900" fill="#ffffff" letter-spacing="2">PRO<tspan fill="#10b981">SAFE</tspan></text>
-    <text x="128" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#94a3b8" letter-spacing="1.5">SÉCURITÉ &amp; SANTÉ AU TRAVAIL (SST)</text>
+    <text x="128" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#94a3b8" letter-spacing="1.5">OCCUPATIONAL HEALTH &amp; SAFETY (OHS)</text>
     
     <text x="128" y="142" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">
-      Plateforme intelligente de gestion des risques, conformité ISO 45001 et intervention d'urgence
+      Enterprise platform for risk management, ISO 45001 compliance &amp; emergency response
     </text>
 
     <!-- Category Pill Badges -->
@@ -84,19 +84,19 @@
       <text x="26" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Incidents &amp; LMRA</text>
 
       <!-- Pill 2 -->
-      <rect x="145" y="0" width="145" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <rect x="145" y="0" width="150" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
       <circle cx="159" cy="15" r="4" fill="#38bdf8"/>
-      <text x="171" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Audits ISO 45001</text>
+      <text x="171" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">ISO 45001 Audits</text>
 
       <!-- Pill 3 -->
-      <rect x="300" y="0" width="135" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-      <circle cx="314" cy="15" r="4" fill="#f59e0b"/>
-      <text x="326" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Équipements &amp; EPI</text>
+      <rect x="305" y="0" width="145" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="319" cy="15" r="4" fill="#f59e0b"/>
+      <text x="331" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">PPE &amp; Equipment</text>
 
       <!-- Pill 4 -->
-      <rect x="445" y="0" width="155" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
-      <circle cx="459" cy="15" r="4" fill="#ef4444"/>
-      <text x="471" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Alertes &amp; Urgences</text>
+      <rect x="460" y="0" width="160" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="474" cy="15" r="4" fill="#ef4444"/>
+      <text x="486" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Alerts &amp; Emergencies</text>
     </g>
   </g>
 
@@ -107,21 +107,21 @@
     <circle cx="40" cy="42" r="20" fill="#0f766e" fill-opacity="0.3"/>
     <text x="34" y="48" font-family="sans-serif" font-size="18">📱</text>
     <text x="75" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Mobile App (Expo)</text>
-    <text x="75" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Terrain · Signalement · GPS · LMRA</text>
+    <text x="75" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Field Ops · Reporting · GPS · LMRA</text>
 
     <!-- Card 2: Backend -->
     <rect x="0" y="100" width="270" height="85" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1"/>
     <circle cx="40" cy="142" r="20" fill="#1d4ed8" fill-opacity="0.3"/>
     <text x="34" y="148" font-family="sans-serif" font-size="18">⚙️</text>
     <text x="75" y="136" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Backend API (NestJS)</text>
-    <text x="75" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">PostgreSQL · JWT RS256 · Socket.IO</text>
+    <text x="75" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">PostgreSQL · RS256 JWT · Socket.IO</text>
 
     <!-- Card 3: Admin Web -->
     <rect x="0" y="200" width="270" height="85" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1"/>
     <circle cx="40" cy="242" r="20" fill="#047857" fill-opacity="0.3"/>
     <text x="34" y="248" font-family="sans-serif" font-size="18">🖥️</text>
     <text x="75" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Web Admin (React/Vite)</text>
-    <text x="75" y="258" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Tableau de bord · KPIs · Cartes Leaflet</text>
+    <text x="75" y="258" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Dashboard · KPIs · Leaflet Maps</text>
   </g>
 
   <!-- Bottom Accent Stripe -->
