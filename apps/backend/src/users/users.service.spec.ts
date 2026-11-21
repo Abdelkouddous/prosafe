@@ -44,4 +44,18 @@ describe('UsersService', () => {
     repo.findOne.mockResolvedValue(null);
     await expect(service.findById(99)).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('list: selects no password, filters by role/search and paginates', async () => {
+    const qb: any = {};
+    for (const m of ['select', 'orderBy', 'addOrderBy', 'skip', 'take', 'andWhere']) qb[m] = jest.fn().mockReturnValue(qb);
+    qb.getManyAndCount = jest.fn().mockResolvedValue([[{ id: 1 }], 1]);
+    repo.createQueryBuilder.mockReturnValue(qb);
+    const res = await service.list({ role: Role.EMPLOYEE, search: 'ali', department: 'Prod', page: 2, limit: 10 });
+    expect(res).toEqual({ data: [{ id: 1 }], total: 1, page: 2, limit: 10 });
+    expect(qb.select.mock.calls[0][0]).not.toContain('u.password');
+    expect(qb.select.mock.calls[0][0]).toEqual(expect.arrayContaining(['u.id', 'u.roles', 'u.department', 'u.zone', 'u.isActive']));
+    expect(qb.skip).toHaveBeenCalledWith(10);
+    expect(qb.take).toHaveBeenCalledWith(10);
+    expect(qb.andWhere).toHaveBeenCalledTimes(3);
+  });
 });

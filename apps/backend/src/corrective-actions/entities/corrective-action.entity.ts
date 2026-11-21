@@ -12,7 +12,7 @@ export class CorrectiveAction {
   @Column({ type: 'enum', enum: CorrectiveActionSource })
   sourceType: CorrectiveActionSource;
 
-  /** incident.id (validated), or risk.id / audit.id (no FK: those tables arrive in Phase 4). */
+  /** incident.id, risk.id or audit.id (existence validated on create; no FK, polymorphic). */
   @Column()
   sourceId: number;
 

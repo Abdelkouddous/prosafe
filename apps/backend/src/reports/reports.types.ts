@@ -10,7 +10,7 @@ export class ReportQueryDto {
   @ApiPropertyOptional({ enum: REPORT_FORMATS, default: 'pdf' }) @IsOptional() @IsIn(REPORT_FORMATS) format?: ReportFormat = 'pdf';
   @ApiPropertyOptional({ description: 'Period start (ISO date)' }) @IsOptional() @IsDateString() from?: string;
   @ApiPropertyOptional({ description: 'Period end (ISO date; date-only includes the whole day)' }) @IsOptional() @IsDateString() to?: string;
-  @ApiPropertyOptional({ description: 'incidents: incident type; equipment: category; trainings: training category' })
+  @ApiPropertyOptional({ description: 'incidents: incident type; equipment: category; trainings: training category; risks: hazard category; audits: internal|external' })
   @IsOptional() @IsString() @MaxLength(60) type?: string;
   @ApiPropertyOptional({ description: 'incidents and trainings only' }) @IsOptional() @IsString() @MaxLength(100) department?: string;
 }

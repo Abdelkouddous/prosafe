@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Audit } from '../audits/entities/audit.entity';
 import { Incident } from '../incidents/entities/incident.entity';
 import { InventoryItem } from '../inventory/entities/inventory.entity';
+import { Risk } from '../risks/entities/risk.entity';
 import { Enrollment } from '../trainings/entities/enrollment.entity';
 import { fmtDate, renderPdf, renderXlsx } from './report-renderers';
 import { ReportData, ReportFormat, ReportKind, ReportQueryDto } from './reports.types';
@@ -21,6 +23,10 @@ const L: Record<string, Record<string, string>> = {
     signage: 'Signalisation', tools: 'Outillage', consumables: 'Consommables', other: 'Autre',
   },
   condition: { functional: 'Fonctionnel', non_functional: 'Non fonctionnel' },
+  risklevel: { low: 'Faible', medium: 'Moyen', high: 'Élevé', critical: 'Critique' },
+  riskstatus: { proposed: 'Proposé', validated: 'Validé', mitigated: 'Maîtrisé', archived: 'Archivé' },
+  audittype: { internal: 'Interne', external: 'Externe' },
+  auditstatus: { planned: 'Planifié', in_progress: 'En cours', completed: 'Terminé', cancelled: 'Annulé' },
   enrollment: { registered: 'Inscrit', attended: 'Présent', passed: 'Réussi', failed: 'Échoué', cancelled: 'Annulé' },
 };
 const label = (group: string, v: string | null | undefined) => (v ? (L[group]?.[v] ?? v) : '');
@@ -41,9 +47,11 @@ export class ReportsService {
     @InjectRepository(Incident) private readonly incidentRepo: Repository<Incident>,
     @InjectRepository(InventoryItem) private readonly itemRepo: Repository<InventoryItem>,
     @InjectRepository(Enrollment) private readonly enrollmentRepo: Repository<Enrollment>,
+    @InjectRepository(Risk) private readonly riskRepo: Repository<Risk>,
+    @InjectRepository(Audit) private readonly auditRepo: Repository<Audit>,
   ) {}
 
-  /** Builds the file for `kind`. Risks / audits arrive with Phase 4. */
+  /** Builds the file for `kind`. */
   async generate(kind: ReportKind, q: ReportQueryDto, now = new Date()): Promise<{ buffer: Buffer; filename: string; contentType: string }> {
     const format = q.format ?? 'pdf';
     const data = await this.collect(kind, q);
@@ -60,8 +68,12 @@ export class ReportsService {
         return this.equipment(q);
       case 'trainings':
         return this.trainings(q);
+      case 'risks':
+        return this.risks(q);
+      case 'audits':
+        return this.audits(q);
       default:
-        throw new BadRequestException(`The ${kind} report is not available yet`);
+        throw new BadRequestException(`Unknown report kind: ${kind}`);
     }
   }
 
@@ -186,6 +198,83 @@ export class ReportsService {
       rows: list.map((e) => [
         e.session?.training?.title ?? '', fmtDate(e.session?.startAt), [e.user?.firstName, e.user?.lastName].filter(Boolean).join(' '), e.user?.department ?? '',
         label('enrollment', e.status), e.score ?? '', e.progress, fmtDate(e.expiresAt),
+      ]),
+      truncated: total > list.length,
+    };
+  }
+
+  /** Risk register (snapshot of non-archived risks). `type` = hazard category, `from`/`to` filter the creation date. */
+  private async risks(q: ReportQueryDto): Promise<ReportData> {
+    const { from, to, toExclusive } = this.range(q);
+    const qb = this.riskRepo
+      .createQueryBuilder('r')
+      .where("r.status != 'archived'")
+      .orderBy('r.score', 'DESC')
+      .addOrderBy('r.id', 'ASC');
+    if (from) qb.andWhere('r.createdAt >= :from', { from });
+    if (to) qb.andWhere(`r.createdAt ${toExclusive ? '<' : '<='} :to`, { to });
+    if (q.type) qb.andWhere('r.hazardCategory = :cat', { cat: q.type });
+    if (q.department) qb.andWhere('r.department = :dep', { dep: q.department });
+    const total = await qb.getCount();
+    const list = await qb.take(MAX_ROWS).getMany();
+
+    return {
+      kind: 'risks',
+      title: 'Rapport des risques',
+      periodLabel: this.periodLabel(q),
+      filters: [q.type && `Catégorie de danger : ${q.type}`, q.department && `Département : ${q.department}`].filter(Boolean) as string[],
+      summary: [
+        ['Total des risques', total],
+        ...count(list, (r) => label('risklevel', r.level)).map(([k, n]) => [`Niveau — ${k}`, n] as [string, number]),
+        ...count(list, (r) => label('riskstatus', r.status)).map(([k, n]) => [`Statut — ${k}`, n] as [string, number]),
+      ],
+      columns: [
+        { header: 'Risque', width: 22 }, { header: 'Catégorie', width: 11 }, { header: 'Zone', width: 10 }, { header: 'Département', width: 11 },
+        { header: 'Gravité', width: 7 }, { header: 'Probabilité', width: 8 }, { header: 'Score', width: 6 }, { header: 'Niveau', width: 8 },
+        { header: 'Statut', width: 9 }, { header: 'Mesures recommandées', width: 28 },
+      ],
+      rows: list.map((r) => [
+        r.title, r.hazardCategory, r.zone ?? '', r.department ?? '', r.gravity, r.probability, r.score, label('risklevel', r.level),
+        label('riskstatus', r.status), r.recommendedMeasures ?? '',
+      ]),
+      truncated: total > list.length,
+    };
+  }
+
+  /** Audits in the period (`from`/`to` on the planned date). `type` = internal | external. */
+  private async audits(q: ReportQueryDto): Promise<ReportData> {
+    const { from, to, toExclusive } = this.range(q);
+    const qb = this.auditRepo
+      .createQueryBuilder('a')
+      .leftJoin('a.auditor', 'u')
+      .addSelect(['u.id', 'u.firstName', 'u.lastName'])
+      .orderBy('a.scheduledAt', 'DESC')
+      .addOrderBy('a.id', 'DESC');
+    if (from) qb.andWhere('a.scheduledAt >= :from', { from });
+    if (to) qb.andWhere(`a.scheduledAt ${toExclusive ? '<' : '<='} :to`, { to });
+    if (q.type) qb.andWhere('a.type = :type', { type: q.type });
+    const total = await qb.getCount();
+    const list = await qb.take(MAX_ROWS).getMany();
+    const scored = list.filter((a) => a.status === 'completed' && a.score !== null);
+    const avg = scored.length ? Math.round((scored.reduce((n, a) => n + (a.score as number), 0) / scored.length) * 10) / 10 : null;
+
+    return {
+      kind: 'audits',
+      title: 'Rapport des audits',
+      periodLabel: this.periodLabel(q),
+      filters: [q.type && `Type : ${label('audittype', q.type)}`].filter(Boolean) as string[],
+      summary: [
+        ['Total des audits', total],
+        ...count(list, (a) => label('auditstatus', a.status)).map(([k, n]) => [`Statut — ${k}`, n] as [string, number]),
+        ['Score moyen des audits terminés (%)', avg ?? 'N/A'],
+      ],
+      columns: [
+        { header: 'Audit', width: 22 }, { header: 'Type', width: 8 }, { header: 'Référentiel', width: 12 }, { header: 'Date prévue', width: 10 },
+        { header: 'Auditeur', width: 15 }, { header: 'Zone', width: 10 }, { header: 'Statut', width: 9 }, { header: 'Score (%)', width: 8 },
+      ],
+      rows: list.map((a) => [
+        a.title, label('audittype', a.type), a.standard, fmtDate(a.scheduledAt),
+        a.auditorName || [a.auditor?.firstName, a.auditor?.lastName].filter(Boolean).join(' '), a.zone ?? '', label('auditstatus', a.status), a.score ?? '',
       ]),
       truncated: total > list.length,
     };

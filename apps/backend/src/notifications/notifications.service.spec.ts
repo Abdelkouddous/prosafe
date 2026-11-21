@@ -48,6 +48,13 @@ describe('NotificationsService', () => {
     expect(saved()).toEqual([1]);
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(mailer.sendMail).toHaveBeenCalledTimes(1);
+    expect(mockSend.mock.calls[0][0][0]).toMatchObject({ channelId: 'emergency', priority: 'high', sound: 'default' });
+  });
+
+  it('does not set the emergency channel for other types', async () => {
+    deviceRepo.find.mockResolvedValue([{ id: 1, userId: 1, token: 'ExponentPushToken[a]' }]);
+    await service.notifyUsers([1], payload);
+    expect(mockSend.mock.calls[0][0][0].channelId).toBeUndefined();
   });
 
   it('sends Expo push to valid tokens only and honours push=false', async () => {

@@ -168,13 +168,16 @@ export class NotificationsService {
         this.logger.warn(`Skipping invalid push token (device ${d.id})`);
         continue;
       }
+      const emergency = payload.type === NotificationType.EMERGENCY;
       messages.push({
         to: d.token,
         title: payload.title,
         body: payload.body,
         data: { type: payload.type, ...(payload.data ?? {}) },
-        priority: payload.priority === 'high' || payload.type === NotificationType.EMERGENCY ? 'high' : 'default',
+        priority: payload.priority === 'high' || emergency ? 'high' : 'default',
         sound: 'default',
+        // Android notification channel created by the mobile app (max importance, bypasses silent mode where allowed)
+        ...(emergency ? { channelId: 'emergency' } : {}),
       });
     }
     if (!messages.length) return;

@@ -2,7 +2,9 @@ import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundEx
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, LessThan, Repository } from 'typeorm';
+import { Audit } from '../audits/entities/audit.entity';
 import { Incident } from '../incidents/entities/incident.entity';
+import { Risk } from '../risks/entities/risk.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/enums/notification-type.enum';
 import { User } from '../users/entities/user.entity';
@@ -27,6 +29,8 @@ export class CorrectiveActionsService {
   constructor(
     @InjectRepository(CorrectiveAction) private readonly repo: Repository<CorrectiveAction>,
     @InjectRepository(Incident) private readonly incidentRepo: Repository<Incident>,
+    @InjectRepository(Risk) private readonly riskRepo: Repository<Risk>,
+    @InjectRepository(Audit) private readonly auditRepo: Repository<Audit>,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly notifications: NotificationsService,
   ) {}
@@ -35,6 +39,10 @@ export class CorrectiveActionsService {
     if (dto.sourceType === CorrectiveActionSource.INCIDENT) {
       const exists = await this.incidentRepo.count({ where: { id: dto.sourceId } });
       if (!exists) throw new NotFoundException('Incident not found');
+    } else if (dto.sourceType === CorrectiveActionSource.RISK) {
+      if (!(await this.riskRepo.count({ where: { id: dto.sourceId } }))) throw new NotFoundException('Risk not found');
+    } else if (dto.sourceType === CorrectiveActionSource.AUDIT) {
+      if (!(await this.auditRepo.count({ where: { id: dto.sourceId } }))) throw new NotFoundException('Audit not found');
     }
     if (dto.ownerId !== undefined) await this.assertValidOwner(dto.ownerId);
 

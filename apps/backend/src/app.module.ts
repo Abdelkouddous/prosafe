@@ -28,6 +28,10 @@ import { MessagingModule } from './messaging/messaging.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { StatsModule } from './stats/stats.module';
 import { ReportsModule } from './reports/reports.module';
+import { RisksModule } from './risks/risks.module';
+import { AuditsModule } from './audits/audits.module';
+import { EmergencyModule } from './emergency/emergency.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -80,6 +84,10 @@ import { ReportsModule } from './reports/reports.module';
     MessagingModule,
     StatsModule,
     ReportsModule,
+    RisksModule,
+    AuditsModule,
+    EmergencyModule,
+    FeedbackModule,
     // Training
     // Conferences
   ],
