@@ -23,7 +23,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    // French is the default language of the client; English fills any missing key.
+    fallbackLng: ['fr', 'en'],
     debug: false,
 
     interpolation: {
@@ -31,7 +32,7 @@ i18n
     },
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage'],
       caches: ['localStorage'],
     },
   });

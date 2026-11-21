@@ -117,7 +117,7 @@
   },
   "adminDashboard": {
     "welcome_back": "Welcome back",
-    "dashboard_description": "Here's what's happening with your security today",
+    "dashboard_description": "Here is today's occupational health and safety overview",
     "total_assets": "Total Assets",
     "active_threats": "Active Threats",
     "compliance_score": "Compliance Score",
@@ -192,10 +192,13 @@
       "dashboard": "Dashboard",
       "incidents": "Incidents",
       "users": "Users",
-      "logout": "Logout"
+      "logout": "Logout",
+      "messages": "Messages",
+      "notificationSettings": "Notification settings",
+      "sendNotifications": "Send announcements"
     },
     "page_titles": {
-      "security_dashboard": "Security Dashboard",
+      "security_dashboard": "SST Dashboard",
       "user_management": "User Management",
       "incident_management": "Incident Management"
     },

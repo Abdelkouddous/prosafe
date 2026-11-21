@@ -98,7 +98,7 @@
   },
   "adminDashboard": {
     "welcome_back": "Bon retour",
-    "dashboard_description": "Voici ce qui se passe avec votre sécurité aujourd'hui",
+    "dashboard_description": "Voici la situation santé et sécurité au travail aujourd'hui",
     "total_assets": "Total des Actifs",
     "active_threats": "Menaces Actives",
     "compliance_score": "Score de Conformité",
@@ -153,10 +153,13 @@
       "dashboard": "Tableau de Bord",
       "incidents": "Incidents",
       "users": "Utilisateurs",
-      "logout": "Déconnexion"
+      "logout": "Déconnexion",
+      "messages": "Messages",
+      "notificationSettings": "Paramètres de notification",
+      "sendNotifications": "Envoyer des annonces"
     },
     "page_titles": {
-      "security_dashboard": "Tableau de Bord de Sécurité",
+      "security_dashboard": "Tableau de bord SST",
       "user_management": "Gestion des Utilisateurs",
       "incident_management": "Gestion des Incidents"
     },
