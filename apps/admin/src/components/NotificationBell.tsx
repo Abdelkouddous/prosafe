@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSocketEvent } from "@/hooks/useSocketEvent";
 import {
   notificationApi,
   type AppNotification,
@@ -45,6 +46,9 @@ const NotificationBell = () => {
     return () => clearInterval(id);
   }, [isAuthenticated, refresh]);
 
+  // Instant updates; the 60 s polling above stays as fallback.
+  useSocketEvent("notification:new", refresh, isAuthenticated);
+
   if (!isAuthenticated) return null;
 
   const onItemClick = async (n: AppNotification) => {
@@ -57,7 +61,8 @@ const NotificationBell = () => {
     }
     setOpen(false);
     const data = n.data as { incidentId?: number | string } | null | undefined;
-    if (n.type === "incident" && isManager) navigate("/incidents/manage");
+    if (n.type === "message" && isManager) navigate("/messages");
+    else if (n.type === "incident" && isManager) navigate("/incidents/manage");
     else if (data?.incidentId) navigate("/incidents");
     refresh();
   };

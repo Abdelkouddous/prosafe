@@ -38,7 +38,12 @@
     "services": "Services",
     "contact": "Contact",
     "equipment": "Équipements",
-    "trainings": "Formations"
+    "trainings": "Formations",
+    "correctiveActions": "Actions correctives",
+    "alerts": "Alertes",
+    "reports": "Rapports",
+    "messages": "Messages",
+    "rewards": "Récompenses"
   },
   "auth": {
     "login": "Connexion",
@@ -307,7 +312,12 @@
       "near_miss": "Quasi-accident",
       "equipment_failure": "Panne équipement",
       "other": "Autre"
-    }
+    },
+    "reject": "Rejeter (clôturer)",
+    "rejected": "Signalement rejeté et clôturé",
+    "rejectTitle": "Rejeter ce signalement ?",
+    "rejectDescription": "L'incident sera clôturé comme rejeté et les points de récompense attribués au déclarant pour celui-ci seront révoqués. Cette action est irréversible.",
+    "rejectConfirm": "Rejeter et clôturer"
   },
   "incidentReport": {
     "invalidLat": "Latitude invalide (-90 à 90).",
@@ -621,5 +631,201 @@
       "load": "Impossible de charger le rapport",
       "plan": "Impossible de lancer la planification automatique"
     }
+  },
+  "users": {
+    "select": "Sélectionner un utilisateur"
+  },
+  "overview": {
+    "loadError": "Impossible de charger les données du tableau de bord",
+    "noZone": "Sans zone",
+    "noData": "Aucune donnée pour cette période",
+    "recent": "Incidents récents",
+    "viewAll": "Tout voir",
+    "quick": {
+      "report": "Signaler un incident",
+      "risks": "Risques",
+      "reports": "Rapports"
+    },
+    "kpi": {
+      "total": "Total des incidents",
+      "open": "Ouverts",
+      "investigating": "En cours d'analyse",
+      "resolved": "Résolus",
+      "criticalOpen": "Critiques ouverts",
+      "activeAlerts": "Alertes actives",
+      "meanResolution": "Délai moyen de résolution",
+      "actionsOverdue": "Actions correctives en retard",
+      "equipmentCompliance": "Conformité des équipements",
+      "trainingCompliance": "Conformité des formations",
+      "lowStock": "Articles en stock bas",
+      "overdueMaintenance": "Maintenances en retard",
+      "expiringTrainings": "Formations expirant bientôt"
+    },
+    "charts": {
+      "perMonth": "Incidents par mois",
+      "byType": "Incidents par type",
+      "byZone": "Incidents par zone",
+      "byStatus": "Incidents par statut"
+    }
+  },
+  "reports": {
+    "title": "Rapports et analyses",
+    "subtitle": "Tendances, KPI, prévisions et exports",
+    "loadError": "Impossible de charger les statistiques",
+    "unavailable": "Rapport pas encore disponible",
+    "downloadError": "Échec du téléchargement",
+    "presets": {
+      "30d": "30 jours",
+      "90d": "90 jours",
+      "12m": "12 mois",
+      "year": "Cette année",
+      "custom": "Personnalisé"
+    },
+    "allDepartments": "Tous les départements",
+    "filtersNote": "La période s'applique aux graphiques et aux exports ; le type et le département s'appliquent aux exports.",
+    "download": "Télécharger les rapports",
+    "phase4Note": "Les rapports risques et audits seront disponibles avec les modules correspondants.",
+    "kinds": {
+      "incidents": "Incidents",
+      "equipment": "Équipements",
+      "trainings": "Formations",
+      "risks": "Risques",
+      "audits": "Audits"
+    },
+    "kpi": {
+      "incidents": "Incidents sur la période"
+    },
+    "charts": {
+      "trend": "Tendance mensuelle et prévision",
+      "actual": "Réel",
+      "forecast": "Prévision",
+      "bySeverity": "Par gravité"
+    },
+    "methods": {
+      "linear_regression": "régression linéaire",
+      "moving_average": "moyenne mobile"
+    }
+  },
+  "evaluation": {
+    "title": "Évaluation",
+    "score": "Score de risque",
+    "levels": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "by": "Évalué par {{name}} le {{date}}",
+    "gravity": "Gravité (1-5)",
+    "probability": "Probabilité (1-5)",
+    "computed": "Score de risque :",
+    "rootCause": "Cause racine",
+    "evaluatedSeverity": "Gravité évaluée",
+    "keepReported": "Conserver la gravité déclarée",
+    "save": "Enregistrer l'évaluation",
+    "saved": "Évaluation enregistrée",
+    "saveError": "Impossible d'enregistrer l'évaluation"
+  },
+  "actions": {
+    "title": "Actions correctives",
+    "add": "Ajouter",
+    "titlePlaceholder": "Titre de l'action",
+    "description": "Description",
+    "owner": "Responsable",
+    "dueDate": "Échéance",
+    "due": "Échéance",
+    "overdue": "En retard",
+    "unassigned": "Non assignée",
+    "empty": "Aucune action corrective",
+    "created": "Action corrective créée",
+    "saveError": "Impossible d'enregistrer l'action corrective",
+    "loadError": "Impossible de charger les actions correctives",
+    "statuses": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "done": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "pageTitle": "Actions correctives",
+    "pageSubtitle": "Suivi des actions issues des incidents, risques et audits",
+    "source": "Source",
+    "allSources": "Toutes les sources",
+    "allOwners": "Tous les responsables",
+    "sources": {
+      "incident": "Incident",
+      "risk": "Risque",
+      "audit": "Audit"
+    },
+    "confirmDelete": "Supprimer cette action corrective ?"
+  },
+  "messaging": {
+    "title": "Messagerie",
+    "subtitle": "Conversations avec les employés et les responsables SST",
+    "new": "Nouvelle conversation",
+    "empty": "Aucune conversation",
+    "select": "Sélectionnez une conversation",
+    "placeholder": "Écrire un message...",
+    "send": "Envoyer",
+    "system": "Système",
+    "loadError": "Impossible de charger les messages",
+    "sendError": "Impossible d'envoyer le message",
+    "createError": "Impossible de créer la conversation",
+    "recipient": "Destinataire",
+    "subject": "Objet",
+    "message": "Message"
+  },
+  "rewards": {
+    "title": "Récompenses",
+    "subtitle": "Classement des déclarants d'incidents",
+    "periods": {
+      "month": "Ce mois",
+      "year": "Cette année",
+      "all": "Depuis le début"
+    },
+    "rank": "Rang",
+    "badge": "Badge",
+    "points": "Points",
+    "empty": "Aucun point attribué sur cette période",
+    "loadError": "Impossible de charger le classement",
+    "badges": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or",
+      "platinum": "Platine"
+    }
+  },
+  "alerts": {
+    "title": "Alertes",
+    "subtitle": "Alertes statistiques et opérationnelles",
+    "active": "{{count}} alerte(s) active(s)",
+    "loadError": "Impossible de charger les alertes",
+    "updated": "Alerte mise à jour",
+    "updateError": "Impossible de mettre à jour l'alerte",
+    "confirmDelete": "Supprimer cette alerte ?",
+    "empty": "Aucune alerte",
+    "statuses": {
+      "unresolved": "Non résolue",
+      "investigating": "En analyse",
+      "resolved": "Résolue",
+      "dismissed": "Ignorée"
+    },
+    "types": {
+      "incident_spike": "Pic d'incidents",
+      "critical_incident": "Incident critique",
+      "stock": "Stock",
+      "maintenance": "Maintenance",
+      "training": "Formation",
+      "emergency": "Urgence",
+      "compliance": "Conformité",
+      "risk": "Risque",
+      "system": "Système"
+    },
+    "affectedUser": "Utilisateur concerné",
+    "resolvedBy": "Résolue par {{name}} le {{date}}",
+    "investigate": "Analyser",
+    "resolve": "Résoudre",
+    "dismiss": "Ignorer",
+    "previous": "Précédent",
+    "next": "Suivant"
   }
 }
