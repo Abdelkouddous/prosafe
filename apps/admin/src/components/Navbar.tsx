@@ -108,6 +108,22 @@ const Navbar = () => {
                 {t("navigation.dashboard")}
               </Link>
             )}
+            {isAdmin && (
+              <>
+                <Link
+                  to="/equipment"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.equipment")}
+                </Link>
+                <Link
+                  to="/trainings"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.trainings")}
+                </Link>
+              </>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center gap-4">

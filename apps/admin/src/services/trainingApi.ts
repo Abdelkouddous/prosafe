@@ -1,66 +1,223 @@
 import api from "./api";
 
-// ============ INTERFACES ============
+export type TrainingRole = "admin" | "sst_manager" | "employee";
+export type SessionStatus = "planned" | "ongoing" | "completed" | "cancelled";
+export type EnrollmentStatus =
+  | "registered"
+  | "attended"
+  | "passed"
+  | "failed"
+  | "cancelled";
+
+export interface Paginated<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface Training {
   id: number;
   title: string;
-  description: string;
-  status: {
-    pending: "Pending";
-    inProgress: "In Progress";
-    completed: "Completed";
-    expiring: "Expiring";
-    expired: "Expired";
-  };
-  priority: "Low" | "Medium" | "High";
-  created_at: string;
-  isCompleted: boolean;
-  dueDate: string | null;
-  updatedAt: string;
-  createdBy: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  assignedTo: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
+  description?: string | null;
+  category?: string | null;
+  durationHours?: number | null;
+  validityMonths?: number | null;
+  mandatoryForRoles: TrainingRole[];
+  isActive: boolean;
 }
 
-// craete the training DTO
-export interface TrainingDto {
+export interface TrainingPayload {
   title: string;
-  description: string;
-  priority?: number;
-  dueDate?: string;
-  assignedToUserId: number;
-}
-
-export interface UpdateTrainingDto {
-  title?: string;
   description?: string;
-  status?: "Pending" | "In Progress" | "Completed" | "Overdue";
-  priority?: number;
-  dueDate?: string;
+  category?: string;
+  durationHours?: number;
+  validityMonths?: number;
+  mandatoryForRoles?: TrainingRole[];
+  isActive?: boolean;
 }
 
-export interface AssignTrainingDto {
-  assignedToUserId: number;
+export interface TrainingSession {
+  id: number;
+  trainingId: number;
+  startAt: string;
+  endAt?: string | null;
+  location?: string | null;
+  trainer?: string | null;
+  capacity?: number | null;
+  status: SessionStatus;
+  enrolledCount: number;
+  training?: Training;
 }
 
-export interface TrainingStats {
+export interface SessionPayload {
+  trainingId?: number;
+  startAt?: string;
+  endAt?: string;
+  location?: string;
+  trainer?: string;
+  capacity?: number;
+  status?: SessionStatus;
+}
+
+export interface Enrollment {
+  id: number;
+  sessionId: number;
+  userId: number;
+  status: EnrollmentStatus;
+  score?: number | null;
+  progress: number;
+  completedAt?: string | null;
+  expiresAt?: string | null;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    department?: string | null;
+  };
+}
+
+export interface SkillItem {
+  trainingId: number;
+  title: string;
+  expired?: boolean;
+  expiresAt?: string | null;
+}
+
+export interface SkillsUser {
+  userId: number;
+  firstName: string;
+  lastName: string;
+  department?: string | null;
+  acquired: SkillItem[];
+  expiring: SkillItem[];
+  missing: SkillItem[];
+}
+
+export interface SkillsReport {
+  department: string | null;
+  generatedAt: string;
+  summary: {
+    users: number;
+    compliantUsers: number;
+    complianceRate: number;
+    acquired: number;
+    expiring: number;
+    missing: number;
+  };
+  users: SkillsUser[];
+}
+
+export interface AutoPlanResult {
   total: number;
-  pending: number;
-  inProgress: number;
-  completed: number;
-  overdue: number;
-  expiringThisWeek: number;
+  notified: number;
+  dryRun: boolean;
+  users: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    department?: string | null;
+    missing: (SkillItem & {
+      nextSession?: { id: number; startAt: string } | null;
+    })[];
+  }[];
 }
 
+const clean = (p: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(p).filter(([, v]) => v !== undefined && v !== "" && v !== "all")
+  );
+
+export const trainingApi = {
+  // Catalogue
+  list: (params: { page?: number; limit?: number; search?: string; isActive?: boolean; category?: string } = {}) =>
+    api.get<Paginated<Training>>("/trainings", { params: clean(params) }),
+  create: (data: TrainingPayload) => api.post<Training>("/trainings", data),
+  update: (id: number, data: Partial<TrainingPayload>) =>
+    api.patch<Training>(`/trainings/${id}`, data),
+  remove: (id: number) => api.delete(`/trainings/${id}`),
+
+  // Sessions
+  listSessions: (
+    params: {
+      trainingId?: number;
+      status?: string;
+      from?: string;
+      to?: string;
+      upcoming?: boolean;
+      page?: number;
+      limit?: number;
+    } = {}
+  ) => api.get<Paginated<TrainingSession>>("/trainings/sessions", { params: clean(params) }),
+  createSession: (data: SessionPayload) =>
+    api.post<TrainingSession>("/trainings/sessions", data),
+  updateSession: (id: number, data: SessionPayload) =>
+    api.patch<TrainingSession>(`/trainings/sessions/${id}`, data),
+  deleteSession: (id: number) => api.delete(`/trainings/sessions/${id}`),
+
+  // Enrollments
+  listEnrollments: (sessionId: number) =>
+    api.get<Paginated<Enrollment>>(`/trainings/sessions/${sessionId}/enrollments`, {
+      params: { limit: 100 },
+    }),
+  enroll: (sessionId: number, userId: number) =>
+    api.post<Enrollment>(`/trainings/sessions/${sessionId}/enroll`, { userId }),
+  unenroll: (sessionId: number, userId: number) =>
+    api.delete(`/trainings/sessions/${sessionId}/enroll`, { params: { userId } }),
+  updateEnrollment: (
+    id: number,
+    data: { status?: EnrollmentStatus; score?: number; progress?: number }
+  ) => api.patch<Enrollment>(`/trainings/enrollments/${id}`, data),
+
+  // Compliance
+  skillsReport: (department?: string) =>
+    api.get<SkillsReport>("/trainings/skills-report", {
+      params: clean({ department }),
+    }),
+  autoPlan: (data: { department?: string; dryRun?: boolean }) =>
+    api.post<AutoPlanResult>("/trainings/auto-plan", data),
+};
+
+// ----- Users (for enrollment picker) -----
+export interface PickableUser {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  department?: string | null;
+}
+
+/**
+ * GET /auth/users is admin-only and returns every user; keep approved ones.
+ * SST managers get 403 there, so fall back to the users of the skills report.
+ */
+export async function fetchEnrollableUsers(): Promise<PickableUser[]> {
+  try {
+    const res = await api.get<
+      (PickableUser & { roles?: string[]; isActive?: boolean })[]
+    >("/auth/users");
+    return res.data
+      .filter((u) => !(u.roles || []).includes("pending") && u.isActive !== false)
+      .map(({ id, firstName, lastName, email, department }) => ({
+        id,
+        firstName,
+        lastName,
+        email,
+        department,
+      }));
+  } catch (e) {
+    if ((e as { response?: { status?: number } })?.response?.status !== 403) throw e;
+    const rep = await trainingApi.skillsReport();
+    return rep.data.users.map((u) => ({
+      id: u.userId,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      department: u.department,
+    }));
+  }
+}
+
+/** Minimal user shape used by adminApi. */
 export interface User {
   id: number;
   firstName: string;
@@ -69,101 +226,3 @@ export interface User {
   isActive: boolean;
   roles: string[];
 }
-
-// ============ API FUNCTIONS ============
-export const trainingApi = {
-  // Get all trainings with optional filtering
-  getTrainings: (userId?: number, status?: string) => {
-    const params = new URLSearchParams();
-    if (userId) params.append("userId", userId.toString());
-    if (status) params.append("status", status);
-
-    return api.get<{ message: string; tasks: Training[]; count: number }>(
-      `/tasks?${params.toString()}`
-    );
-  },
-
-  // Get specific training by ID
-  getTraining: (id: number) => {
-    return api.get<{ message: string; task: Training }>(`/tasks/${id}`);
-  },
-
-  // Create new training (admin only)
-  createTraining: (data: TrainingDto) => {
-    return api.post<{ message: string; task: Training }>("/tasks", data);
-  },
-
-  // Update training
-  updateTraining: (id: number, data: UpdateTrainingDto) => {
-    return api.patch<{ message: string; task: Training }>(`/tasks/${id}`, data);
-  },
-
-  // Mark training as complete
-  completeTraining: (id: number) => {
-    return api.patch<{ message: string; task: Training }>(
-      `/tasks/${id}/complete`
-    );
-  },
-
-  // Assign training to user (admin only)
-  assignTraining: (id: number, data: AssignTrainingDto) => {
-    return api.patch<{ message: string; task: Training }>(
-      `/tasks/${id}/assign`,
-      data
-    );
-  },
-
-  // Delete training (admin only)
-  deleteTraining: (id: number) => {
-    return api.delete<{ message: string }>(`/tasks/${id}`);
-  },
-
-  // Get user's assigned trainings
-  getUserTrainings: (userId: number) => {
-    return api.get<{ message: string; tasks: Training[]; count: number }>(
-      `/tasks/user/${userId}`
-    );
-  },
-
-  // Get admin's created trainings
-  getAdminTrainings: () => {
-    return api.get<{ message: string; tasks: Training[]; count: number }>(
-      "/tasks/admin/created"
-    );
-  },
-
-  // Get training statistics
-  getTrainingStats: () => {
-    return api.get<{ message: string; stats: TrainingStats }>("/tasks/stats");
-  },
-
-  // Get all users for assignment
-  getUsers: () => {
-    return api.get<User[]>("/admin/users");
-  },
-
-  // Get trainings expiring within a week (for notifications)
-  getExpiringTrainings: () => {
-    const oneWeekFromNow = new Date();
-    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
-
-    return trainingApi.getTrainings().then((response) => {
-      const expiringTrainings = response.data.tasks.filter((training) => {
-        if (!training.dueDate) return false;
-        const dueDate = new Date(training.dueDate);
-        const today = new Date();
-        return (
-          dueDate >= today && dueDate <= oneWeekFromNow && !training.isCompleted
-        );
-      });
-
-      return {
-        data: {
-          message: "Expiring trainings retrieved successfully",
-          tasks: expiringTrainings,
-          count: expiringTrainings.length,
-        },
-      };
-    });
-  },
-};

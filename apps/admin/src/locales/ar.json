@@ -16,7 +16,9 @@
     "logout": "تسجيل الخروج",
     "about": "عن",
     "services": "خدمات",
-    "contact": "اتصال"
+    "contact": "اتصال",
+    "equipment": "المعدات",
+    "trainings": "التكوينات"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -308,5 +310,275 @@
     "phone": "الهاتف",
     "department": "القسم",
     "zone": "المنطقة"
+  },
+  "common": {
+    "actions": "الإجراءات",
+    "totalCount": "{{count}} نتيجة",
+    "no": "لا",
+    "yes": "نعم"
+  },
+  "manager": {
+    "backToDashboard": "العودة إلى لوحة القيادة"
+  },
+  "equipment": {
+    "title": "المخزون",
+    "subtitle": "معدات السلامة والمخزون والحالة",
+    "nav": {
+      "inventory": "المخزون",
+      "maintenance": "الصيانة والفحوصات",
+      "history": "السجل"
+    },
+    "add": "إضافة معدات",
+    "edit": "تعديل المعدات",
+    "saved": "تم حفظ المعدات",
+    "deleted": "تم حذف المعدات",
+    "searchPlaceholder": "بحث بالاسم أو المرجع...",
+    "allCategories": "كل الفئات",
+    "allStatuses": "كل الحالات",
+    "allConditions": "كل الأوضاع",
+    "empty": "لا توجد معدات",
+    "min": "الحد الأدنى",
+    "increase": "زيادة المخزون",
+    "decrease": "تخفيض المخزون",
+    "expired": "منتهية الصلاحية",
+    "expiresIn": "خلال {{count}} يوم",
+    "deleteTitle": "حذف المعدات",
+    "deleteConfirm": "حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "stats": {
+      "total": "إجمالي المعدات",
+      "lowStock": "مخزون منخفض",
+      "outOfStock": "نفاد المخزون",
+      "nonFunctional": "معطلة",
+      "value": "قيمة المخزون"
+    },
+    "fields": {
+      "name": "الاسم",
+      "sku": "المرجع",
+      "description": "الوصف",
+      "category": "الفئة",
+      "status": "حالة المخزون",
+      "condition": "الحالة",
+      "quantity": "الكمية",
+      "min_stock_level": "الحد الأدنى للمخزون",
+      "price": "سعر الوحدة",
+      "expiryDate": "تاريخ الانتهاء",
+      "lastInspectionAt": "آخر فحص",
+      "nextInspectionAt": "الفحص القادم",
+      "supplier": "المورد",
+      "location": "الموقع"
+    },
+    "category": {
+      "ppe": "معدات الوقاية الشخصية",
+      "fire_extinguisher": "طفايات الحريق",
+      "first_aid": "الإسعافات الأولية",
+      "detection": "أجهزة الكشف",
+      "signage": "اللافتات",
+      "tools": "الأدوات",
+      "consumables": "المستهلكات",
+      "other": "أخرى"
+    },
+    "status": {
+      "active": "متوفر",
+      "inactive": "غير نشط",
+      "out_of_stock": "نفاد المخزون",
+      "discontinued": "متوقف",
+      "low_stock": "مخزون منخفض"
+    },
+    "condition": {
+      "functional": "يعمل",
+      "non_functional": "معطل"
+    },
+    "errors": {
+      "load": "تعذر تحميل المعدات",
+      "save": "تعذر حفظ المعدات",
+      "delete": "تعذر حذف المعدات",
+      "required": "الاسم والوصف مطلوبان"
+    }
+  },
+  "maintenance": {
+    "title": "الصيانة والفحوصات",
+    "subtitle": "الصيانة المبرمجة والمتأخرة مجمعة حسب الأسبوع",
+    "add": "برمجة صيانة",
+    "pickItem": "اختر المعدات",
+    "complete": "إنهاء",
+    "cancel": "إلغاء",
+    "empty": "لا توجد صيانة مبرمجة",
+    "created": "تمت برمجة الصيانة",
+    "completed": "تم إنهاء الصيانة",
+    "cancelled": "تم إلغاء الصيانة",
+    "overdueSection": "متأخرة ({{count}})",
+    "week": "أسبوع {{from}} إلى {{to}}",
+    "fields": {
+      "item": "المعدات",
+      "type": "النوع",
+      "scheduledAt": "التاريخ المبرمج",
+      "doneAt": "تاريخ الإنجاز",
+      "result": "النتيجة",
+      "notes": "ملاحظات",
+      "nextScheduledAt": "الصيانة القادمة (اختياري)"
+    },
+    "type": {
+      "inspection": "فحص",
+      "preventive": "وقائية",
+      "corrective": "تصحيحية"
+    },
+    "status": {
+      "planned": "مبرمجة",
+      "done": "منجزة",
+      "overdue": "متأخرة",
+      "cancelled": "ملغاة"
+    },
+    "result": {
+      "ok": "مطابق",
+      "issues": "تم رصد مشاكل",
+      "failed": "فشل"
+    },
+    "resultHint": {
+      "ok": "سيتم تعيين المعدات كصالحة للعمل.",
+      "issues": "حالة المعدات لن تتغير.",
+      "failed": "سيتم تعيين المعدات كمعطلة."
+    },
+    "errors": {
+      "load": "تعذر تحميل الصيانة",
+      "save": "تعذر حفظ الصيانة",
+      "required": "المعدات والتاريخ مطلوبان"
+    }
+  },
+  "history": {
+    "title": "سجل الصيانة",
+    "subtitle": "الصيانة والفحوصات المنجزة",
+    "allItems": "كل المعدات",
+    "from": "من",
+    "to": "إلى",
+    "performedBy": "أنجزها",
+    "empty": "لا توجد صيانة منجزة"
+  },
+  "trainings": {
+    "title": "فهرس التكوينات",
+    "subtitle": "التكوينات ومدة الصلاحية والأدوار المعنية",
+    "nav": {
+      "catalogue": "الفهرس",
+      "sessions": "الدورات",
+      "compliance": "مطابقة الكفاءات"
+    },
+    "add": "إضافة تكوين",
+    "edit": "تعديل التكوين",
+    "saved": "تم حفظ التكوين",
+    "deleted": "تم حذف التكوين",
+    "empty": "لا توجد تكوينات",
+    "searchPlaceholder": "بحث عن تكوين...",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "noExpiry": "بدون انتهاء",
+    "deleteTitle": "حذف التكوين",
+    "deleteConfirm": "حذف \"{{name}}\"؟",
+    "fields": {
+      "title": "العنوان",
+      "description": "الوصف",
+      "category": "الفئة",
+      "durationHours": "المدة (ساعة)",
+      "validityMonths": "الصلاحية (أشهر)",
+      "mandatoryForRoles": "إلزامي للأدوار",
+      "status": "الحالة"
+    },
+    "roles": {
+      "admin": "مدير",
+      "sst_manager": "مسؤول السلامة والصحة المهنية",
+      "employee": "موظف"
+    },
+    "errors": {
+      "load": "تعذر تحميل التكوينات",
+      "save": "تعذر حفظ التكوين",
+      "delete": "تعذر حذف التكوين",
+      "titleRequired": "العنوان مطلوب",
+      "hasEnrollments": "هذا التكوين لديه تسجيلات: قم بتعطيله بدل حذفه."
+    }
+  },
+  "sessions": {
+    "title": "الدورات",
+    "subtitle": "برمجة الدورات وإدارة التسجيلات",
+    "add": "إضافة دورة",
+    "edit": "تعديل الدورة",
+    "saved": "تم حفظ الدورة",
+    "deleted": "تم حذف الدورة",
+    "cancelled": "تم إلغاء الدورة",
+    "cancel": "إلغاء الدورة",
+    "empty": "لا توجد دورات",
+    "allTrainings": "كل التكوينات",
+    "allStatuses": "كل الحالات",
+    "pickTraining": "اختر تكوينا",
+    "unlimited": "غير محدودة",
+    "cancelTitle": "إلغاء الدورة",
+    "cancelConfirm": "سيتم تعيين الدورة كملغاة.",
+    "deleteTitle": "حذف الدورة",
+    "deleteConfirm": "حذف هذه الدورة؟",
+    "enrollments": "التسجيلات",
+    "pickUser": "اختر مشاركا",
+    "enroll": "تسجيل",
+    "enrolled": "تم تسجيل المشارك",
+    "noEnrollments": "لا يوجد مشاركون بعد",
+    "enrollmentSaved": "تم تحديث التسجيل",
+    "expiresAt": "صالح حتى {{date}}",
+    "fields": {
+      "training": "التكوين",
+      "startAt": "البداية",
+      "endAt": "النهاية",
+      "location": "المكان",
+      "trainer": "المكوّن",
+      "capacity": "السعة",
+      "enrolled": "المسجلون",
+      "status": "الحالة",
+      "score": "العلامة",
+      "progress": "التقدم (%)"
+    },
+    "status": {
+      "planned": "مبرمجة",
+      "ongoing": "جارية",
+      "completed": "منتهية",
+      "cancelled": "ملغاة"
+    },
+    "enrollmentStatus": {
+      "registered": "مسجل",
+      "attended": "حاضر",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "cancelled": "ملغى"
+    },
+    "errors": {
+      "load": "تعذر تحميل الدورات",
+      "save": "تعذر الحفظ",
+      "delete": "تعذر حذف الدورة",
+      "required": "التكوين وتاريخ البداية مطلوبان",
+      "hasEnrollments": "هذه الدورة لديها تسجيلات: قم بإلغائها بدل حذفها.",
+      "loadEnrollments": "تعذر تحميل التسجيلات",
+      "loadUsers": "تعذر تحميل المستخدمين",
+      "enroll": "تعذر تسجيل المشارك"
+    }
+  },
+  "compliance": {
+    "title": "مطابقة الكفاءات",
+    "subtitle": "التكوينات الإلزامية لكل موظف",
+    "autoPlan": "برمجة تلقائية",
+    "rate": "نسبة المطابقة",
+    "compliantUsers": "الموظفون المطابقون",
+    "acquired": "مكتسبة",
+    "expiring": "قيد الانتهاء",
+    "missing": "ناقصة",
+    "expired": "منتهية",
+    "user": "الموظف",
+    "department": "القسم",
+    "departmentFilter": "تصفية حسب القسم",
+    "empty": "لا توجد بيانات",
+    "previewTitle": "البرمجة التلقائية (معاينة)",
+    "previewDesc": "{{count}} موظف لا يملكون كل التكوينات الإلزامية السارية وسيتم إشعارهم.",
+    "previewNone": "كل الموظفين مطابقون.",
+    "nextSession": "الدورة القادمة {{date}}",
+    "noSession": "لا توجد دورة مبرمجة",
+    "confirmNotify": "تأكيد وإشعار",
+    "planDone": "تم إشعار {{count}} موظف",
+    "errors": {
+      "load": "تعذر تحميل التقرير",
+      "plan": "تعذر تشغيل البرمجة التلقائية"
+    }
   }
 }

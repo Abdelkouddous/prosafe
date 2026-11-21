@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import {
   ProtectedRoute,
@@ -20,7 +20,12 @@ import Features from "./pages/Features";
 import IncidentReport from "./pages/IncidentReport";
 import IncidentsManagement from "./pages/incidents/IncidentsManagement";
 import Index from "./pages/Index";
-import InventoryManagement from "./pages/InventoryManagement";
+import EquipmentInventory from "./pages/equipment/EquipmentInventory";
+import MaintenancePlanning from "./pages/equipment/MaintenancePlanning";
+import MaintenanceHistory from "./pages/equipment/MaintenanceHistory";
+import TrainingCatalogue from "./pages/trainings/TrainingCatalogue";
+import TrainingSessions from "./pages/trainings/TrainingSessions";
+import TrainingCompliance from "./pages/trainings/TrainingCompliance";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
@@ -74,7 +79,13 @@ function App() {
               {/* Admin-only routes */}
               <Route element={<AdminRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/inventory" element={<InventoryManagement />} />
+                <Route path="/inventory" element={<Navigate to="/equipment" replace />} />
+                <Route path="/equipment" element={<EquipmentInventory />} />
+                <Route path="/equipment/maintenance" element={<MaintenancePlanning />} />
+                <Route path="/equipment/history" element={<MaintenanceHistory />} />
+                <Route path="/trainings" element={<TrainingCatalogue />} />
+                <Route path="/trainings/sessions" element={<TrainingSessions />} />
+                <Route path="/trainings/compliance" element={<TrainingCompliance />} />
                 <Route path="/incidents/manage" element={<IncidentsManagement />} />
               </Route>
 
