@@ -87,13 +87,13 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 
 | ID | Requirement | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| G1.1 | User data encryption; prevent SQL injection & XSS | B M A | partial | bcrypt + TypeORM params + ValidationPipe + helmet OK. **Committed secrets** in `apps/backend/.env_backup`, `.env.local_backup_*`; tokens in AsyncStorage/localStorage and logged; no rate limiting |
+| G1.1 | User data encryption; prevent SQL injection & XSS | B M A | partial | bcrypt + TypeORM params + ValidationPipe + helmet OK. **Committed secrets** in `apps/backend/.env_backup`, `.env.local_backup_*`; mobile: tokens now in SecureStore (web fallback), token logging removed; no rate limiting |
 | G1.2 | JWT authentication | B | partial | RS256 works; registration with `admin@prosafe.dz` becomes admin; many admin routes lack role checks |
 | G2 | Functional & user tests | B M A | missing | Boilerplate specs only (likely failing) |
 | G3.1 | Technical documentation & user guide | — | missing | README is generic/boilerplate |
 | G3.2 | API documentation with Swagger | B | partial | Mounted but titled "Prime Nestjs", no tags/DTO docs |
 | G4 | In-app user feedback after deployment | B M A | missing | |
-| G5 | Ready for deployment (migrations, env, builds) | B M A | partial | No migrations for prod; Dockerfile/compose inconsistent; mobile identity `com.anonymous.mobile`, debug keystore, no `eas.json` |
+| G5 | Ready for deployment (migrations, env, builds) | B M A | partial | No migrations for prod; Dockerfile/compose inconsistent; mobile identity set to `com.prosafe.app` + `eas.json` added (needs `expo prebuild`; release keystore still to do) |
 
 ## Roadmap (execution order)
 
