@@ -87,13 +87,13 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 
 | ID | Requirement | Apps | Status | Gap notes |
 |---|---|---|---|---|
-| G1.1 | User data encryption; prevent SQL injection & XSS | B M A | partial | bcrypt + TypeORM params + ValidationPipe + helmet OK. **Committed secrets** in `apps/backend/.env_backup`, `.env.local_backup_*`; mobile: tokens now in SecureStore (web fallback), token logging removed; no rate limiting |
-| G1.2 | JWT authentication | B | partial | RS256 works; registration with `admin@prosafe.dz` becomes admin; many admin routes lack role checks |
-| G2 | Functional & user tests | B M A | missing | Boilerplate specs only (likely failing) |
+| G1.1 | User data encryption; prevent SQL injection & XSS | B M A | partial | bcrypt (single lib) + TypeORM params + ValidationPipe + helmet OK; password column `select:false`; backend: committed env backups removed from the tree + `@nestjs/throttler` (100/min global, 5/min login/register) + configurable CORS. **Still to do: secrets remain in git history, rotate the old RSA keys/DB credentials**; mobile: tokens in SecureStore (web fallback), token logging removed |
+| G1.2 | JWT authentication | B | done | RS256; roles `admin`/`sst_manager`/`employee`/`pending`; first user = admin, no email-based admin; all routes guarded via `JwtAuthGuard` + `RolesGuard` + `@Roles`; `RolesGuard` throws 403; admin web/mobile still to be aligned with the new role names (Phase 1 clients) |
+| G2 | Functional & user tests | B M A | partial | Backend: unit specs with mocked repos (roles guard, auth, users, incidents, messages, tasks) + e2e health-check; mobile/admin tests missing |
 | G3.1 | Technical documentation & user guide | — | missing | README is generic/boilerplate |
-| G3.2 | API documentation with Swagger | B | partial | Mounted but titled "Prime Nestjs", no tags/DTO docs |
+| G3.2 | API documentation with Swagger | B | done | `/api/docs`, "PROSAFE API" v1.0, bearer auth, `@ApiTags`/`@ApiBearerAuth` on all controllers, `@ApiProperty` on all DTOs (response schemas not yet typed) |
 | G4 | In-app user feedback after deployment | B M A | missing | |
-| G5 | Ready for deployment (migrations, env, builds) | B M A | partial | No migrations for prod; Dockerfile/compose inconsistent; mobile identity set to `com.prosafe.app` + `eas.json` added (needs `expo prebuild`; release keystore still to do) |
+| G5 | Ready for deployment (migrations, env, builds) | B M A | partial | Backend done: migrations (`Init`, `MapLegacyRoles`), `synchronize` off, `migrationsRun`, monorepo-root Dockerfile + compose, `.env.example` with placeholders, README. Existing prod DB must baseline `Init` (see backend README); `railway.json` untouched. Mobile identity set to `com.prosafe.app` + `eas.json` added (needs `expo prebuild`; release keystore still to do) |
 
 ## Roadmap (execution order)
 

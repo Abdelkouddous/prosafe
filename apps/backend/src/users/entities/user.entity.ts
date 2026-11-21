@@ -25,7 +25,9 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  // Never selected by default so it cannot leak through relations (reporter, sender...).
+  // Use UsersService.findOne / findByIdWithPassword where the hash is needed.
+  @Column({ select: false })
   password: string;
 
   @Column({ default: true })
@@ -36,7 +38,7 @@ export class User {
 
   @Column({
     type: 'simple-array',
-    default: Role.pending,
+    default: Role.PENDING,
   })
   roles: Role[];
 

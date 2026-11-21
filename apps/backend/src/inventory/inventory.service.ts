@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InventoryItem } from './entities/inventory.entity';
@@ -62,7 +62,7 @@ export class InventoryService {
   async update(id: number, updateInventoryDto: UpdateInventoryDto): Promise<InventoryItem> {
     const item = await this.findOne(id);
     if (!item) {
-      throw new Error('Inventory item not found');
+      throw new NotFoundException('Inventory item not found');
     }
 
     // Auto-update status based on quantity

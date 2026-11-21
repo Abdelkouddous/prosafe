@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -6,7 +6,6 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { User } from '../users/entities/user.entity';
 import { TaskStatus } from './enum/task-status.enum';
-import { Role } from '../users/enums/role.enum';
 
 /**
  * Tasks Service
@@ -36,10 +35,6 @@ export class TasksService {
 
     if (!admin) {
       throw new NotFoundException('Admin user not found');
-    }
-
-    if (!admin.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admin users can create training announcements');
     }
 
     // Create training announcement
@@ -109,13 +104,6 @@ export class TasksService {
       throw new NotFoundException('User not found');
     }
 
-    const isAdmin = user.roles.includes(Role.admin);
-
-    // Only admins can update training announcements
-    if (!isAdmin) {
-      throw new ForbiddenException('Only admin users can update training announcements');
-    }
-
     // Update training announcement
     Object.assign(task, updateTaskDto);
 
@@ -136,12 +124,6 @@ export class TasksService {
    * @param adminId - ID of the admin deleting the announcement
    */
   async remove(id: number, adminId: number): Promise<void> {
-    const admin = await this.userRepository.findOne({ where: { id: adminId } });
-
-    if (!admin || !admin.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admin users can delete training announcements');
-    }
-
     const task = await this.findOne(id);
     await this.taskRepository.remove(task);
   }

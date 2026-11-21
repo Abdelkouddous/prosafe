@@ -12,12 +12,11 @@ import {
   HttpStatus,
   HttpCode,
   BadRequestException,
-  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
-import { UsersDTO as CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { AdminCreateUserDto as CreateUserDto } from '../users/dto/create-user.dto';
+import { AdminUpdateUserDto as UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateTaskDto } from '../tasks/dto/create-task.dto';
 import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
 import { CreateMessageDto, UpdateMessageDto } from '../messages/dto/message.dto';
@@ -28,14 +27,20 @@ import { CreateAlertDto } from '../alerts/dto/create-alert.dto';
 import { UpdateAlertDto } from '../alerts/dto/update-alert.dto';
 import { CreateIncidentDto } from '../incidents/dto/create-incident.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
+import { RolesGuard } from '../auth/strategy/roles.guard';
+import { Roles } from '../custom.decorator';
 import { Role } from '../users/enums/role.enum';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 /**
  * Admin Controller
  * Handles all admin-specific routes with /admin prefix
  */
+@ApiTags('admin')
+@ApiBearerAuth()
 @Controller('admin')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.ADMIN, Role.SST_MANAGER)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -45,11 +50,6 @@ export class AdminController {
     const adminId = req.user?.id;
     if (!adminId) {
       throw new BadRequestException('User not authenticated');
-    }
-
-    // Check if user is admin
-    if (!req.user.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Admin access required');
     }
 
     return await this.adminService.getDashboardStats();
@@ -63,11 +63,6 @@ export class AdminController {
       throw new BadRequestException('User not authenticated');
     }
 
-    // Check if user is admin
-    if (!req.user.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Admin access required');
-    }
-
     return await this.adminService.getUsers();
   }
 
@@ -78,14 +73,10 @@ export class AdminController {
       throw new BadRequestException('User not authenticated');
     }
 
-    // Check if user is admin
-    if (!req.user.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Admin access required');
-    }
-
     return await this.adminService.getUser(email);
   }
 
+  @Roles(Role.ADMIN)
   @Post('users')
   @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() createUserDto: CreateUserDto, @Request() req) {
@@ -94,14 +85,10 @@ export class AdminController {
       throw new BadRequestException('User not authenticated');
     }
 
-    // Check if user is admin
-    if (!req.user.roles.includes(Role.admin)) {
-      throw new ForbiddenException('Admin access required');
-    }
-
     return await this.adminService.createUser(createUserDto, adminId);
   }
 
+  @Roles(Role.ADMIN)
   @Patch('users/:email')
   async updateUser(@Param('email') email: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
     const adminId = req.user?.id;
@@ -111,6 +98,7 @@ export class AdminController {
     return await this.adminService.updateUser(email, updateUserDto, adminId);
   }
 
+  @Roles(Role.ADMIN)
   @Delete('users/:email')
   async deleteUser(@Param('email') email: string, @Request() req) {
     const adminId = req.user?.id;
@@ -312,6 +300,7 @@ export class AdminController {
     return await this.adminService.updateInventoryItem(id, updateInventoryDto, adminId);
   }
 
+  @Roles(Role.ADMIN)
   @Delete('inventory/:id')
   async deleteInventoryItem(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const adminId = req.user?.id;

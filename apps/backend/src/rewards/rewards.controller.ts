@@ -1,8 +1,12 @@
 import { Controller, Get, UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/strategy/roles.guard';
 import { RewardsService } from './rewards.service';
 
-@UseGuards(JwtAuthGuard)
+@ApiTags('rewards')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('rewards')
 export class RewardsController {
   constructor(private rewards: RewardsService) {}
