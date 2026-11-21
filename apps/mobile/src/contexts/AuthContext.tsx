@@ -264,6 +264,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             errorData?.message ||
             "Invalid request";
           throw new Error(errorMsg);
+        } else if (status === 403) {
+          const serverMsg: string =
+            errorData?.msg?.msg || errorData?.msg || errorData?.message || "";
+          if (/pending/i.test(serverMsg)) throw new Error("ACCOUNT_PENDING_APPROVAL");
+          throw new Error(serverMsg || "ACCOUNT_BLOCKED");
+        } else if (status === 429) {
+          throw new Error("Too many attempts. Please wait a minute and try again.");
         } else if (status >= 500) {
           throw new Error("Server error. Please try again later.");
         }

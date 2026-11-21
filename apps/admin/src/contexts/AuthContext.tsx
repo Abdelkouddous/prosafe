@@ -90,10 +90,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return { ...data, user: userData };
     } catch (error: any) {
-      if (error.response?.data?.msg) {
+      const rawMsg = error.response?.data?.msg;
+      const loginMsg =
+        typeof rawMsg === "string" ? rawMsg : rawMsg?.msg ?? error.response?.data?.message;
+      if (typeof loginMsg === "string" && loginMsg) {
         toast({
           title: "Login Failed",
-          description: error.response.data.msg,
+          description: loginMsg,
           variant: "destructive",
           duration: 5000,
         });
