@@ -56,8 +56,37 @@ export interface IncidentHistoryEntry {
   changedBy?: { firstName?: string; lastName?: string } | null;
 }
 
+export interface PersonRef {
+  id?: number;
+  firstName?: string | null;
+  lastName?: string | null;
+}
+
+export interface IncidentEvaluation {
+  gravity: number;
+  probability: number;
+  riskScore: number;
+  rootCause?: string | null;
+  evaluatedSeverity?: IncidentSeverity | null;
+  evaluatedAt?: string | null;
+  evaluatedBy?: PersonRef | null;
+}
+
+export type CorrectiveActionStatus = "todo" | "in_progress" | "done" | "cancelled";
+
+export interface CorrectiveAction {
+  id: number;
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  status: CorrectiveActionStatus;
+  owner?: PersonRef | null;
+}
+
 export interface IncidentDetail extends Incident {
   history?: IncidentHistoryEntry[];
+  evaluation?: IncidentEvaluation | null;
+  correctiveActions?: CorrectiveAction[];
 }
 
 export interface Paginated<T> {

@@ -7,7 +7,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { TouchableOpacity } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAppTheme } from "@/contexts/AccessibilityContext";
@@ -17,11 +18,20 @@ import {
   IncidentType,
 } from "@/services/incidentApi";
 import { fetchRewardsSummary, RewardsSummary } from "@/services/rewardsApi";
+import {
+  fetchStatsForecast,
+  fetchStatsIncidents,
+  fetchStatsKpis,
+  StatsBucket,
+  StatsForecast,
+  StatsKpis,
+} from "@/services/statsApi";
 import { TranslationKey } from "@/constants/Languages";
 
 interface MonthBar {
   label: string;
   count: number;
+  forecast?: boolean;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -44,16 +54,22 @@ function lastMonths(n: number, locale: string) {
   return out;
 }
 
-const badgeLabel = (b: RewardsSummary["badge"]) =>
-  !b ? "-" : typeof b === "string" ? b : b.label || b.name || b.key || "-";
+const monthLabel = (key: string, locale: string) => {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, 1).toLocaleDateString(locale, { month: "short" });
+};
+
+const KPI_NONE = "-";
 
 function BarChart({
   data,
   color,
   textColor,
   fs,
+  lightColor,
 }: {
   data: MonthBar[];
+  lightColor?: string;
   color: string;
   textColor: string;
   fs: (n: number) => number;
@@ -64,14 +80,17 @@ function BarChart({
       {data.map((d, i) => (
         <View key={`${d.label}-${i}`} style={styles.barCol}>
           <Text style={{ color: textColor, fontSize: fs(12), fontWeight: "700" }}>
-            {d.count}
+            {Number.isInteger(d.count) ? d.count : d.count.toFixed(1)}
           </Text>
           <View style={styles.barTrack}>
             <View
               style={{
                 height: `${(d.count / max) * 100}%`,
                 minHeight: d.count > 0 ? 4 : 0,
-                backgroundColor: color,
+                backgroundColor: d.forecast ? lightColor ?? color : color,
+                borderWidth: d.forecast ? 1 : 0,
+                borderStyle: "dashed",
+                borderColor: color,
                 borderRadius: 4,
               }}
             />
@@ -90,21 +109,75 @@ export default function ReportsScreen() {
   const [months, setMonths] = useState<MonthBar[] | null>(null);
   const [types, setTypes] = useState<{ type: IncidentType; count: number }[] | null>(null);
   const [rewards, setRewards] = useState<RewardsSummary | null>(null);
-  const [errors, setErrors] = useState({ months: false, types: false, rewards: false });
+  const [zones, setZones] = useState<StatsBucket[] | null>(null);
+  const [kpis, setKpis] = useState<StatsKpis | null>(null);
+  const [forecast, setForecast] = useState<MonthBar[] | null>(null);
+  const [errors, setErrors] = useState({
+    months: false,
+    types: false,
+    rewards: false,
+    zones: false,
+    kpis: false,
+    forecast: false,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const isManager = user?.role === "admin" || user?.role === "sst_manager";
 
-  const load = useCallback(async () => {
-    const range = lastMonths(6, currentLanguage === "ar-DZ" ? "ar" : currentLanguage);
+  const loadManager = useCallback(
+    async (range: ReturnType<typeof lastMonths>, locale: string) => {
+      const from = range[0].from;
+      const [monthRes, typeRes, zoneRes, kpiRes, fcRes, rewardRes] = await Promise.allSettled([
+        fetchStatsIncidents({ groupBy: "month", from }),
+        fetchStatsIncidents({ groupBy: "type", from }),
+        fetchStatsIncidents({ groupBy: "zone", from }),
+        fetchStatsKpis(),
+        fetchStatsForecast(3),
+        fetchRewardsSummary(),
+      ]);
+      if (monthRes.status === "fulfilled") {
+        const byKey = new Map(monthRes.value.map((b) => [b.key, b.count]));
+        setMonths(
+          range.map((m) => ({ label: m.label, count: byKey.get(m.from.slice(0, 7)) ?? 0 }))
+        );
+      } else setMonths(null);
+      setTypes(
+        typeRes.status === "fulfilled"
+          ? typeRes.value
+              .filter((b) => (INCIDENT_TYPES as readonly string[]).includes(b.key))
+              .map((b) => ({ type: b.key as IncidentType, count: b.count }))
+          : null
+      );
+      setZones(zoneRes.status === "fulfilled" ? zoneRes.value.slice(0, 6) : null);
+      setKpis(kpiRes.status === "fulfilled" ? kpiRes.value : null);
+      if (fcRes.status === "fulfilled") {
+        const fc: StatsForecast = fcRes.value;
+        setForecast([
+          ...fc.history.slice(-6).map((h) => ({ label: monthLabel(h.month, locale), count: h.count })),
+          ...fc.forecast
+            .filter((f) => f.method === "linear_regression")
+            .map((f) => ({ label: monthLabel(f.month, locale), count: f.count, forecast: true })),
+        ]);
+      } else setForecast(null);
+      setRewards(rewardRes.status === "fulfilled" ? rewardRes.value : null);
+      setErrors({
+        months: monthRes.status === "rejected",
+        types: typeRes.status === "rejected",
+        zones: zoneRes.status === "rejected",
+        kpis: kpiRes.status === "rejected",
+        forecast: fcRes.status === "rejected",
+        rewards: rewardRes.status === "rejected",
+      });
+    },
+    []
+  );
+
+  const loadEmployee = useCallback(async (range: ReturnType<typeof lastMonths>) => {
+    // /stats/incidents is manager-only: employees keep per-month / per-type counts
     const [monthRes, typeRes, rewardRes] = await Promise.all([
-      Promise.allSettled(
-        range.map((m) => fetchIncidents({ limit: 1, from: m.from, to: m.to }))
-      ),
-      Promise.allSettled(
-        INCIDENT_TYPES.map((type) => fetchIncidents({ limit: 1, type }))
-      ),
+      Promise.allSettled(range.map((m) => fetchIncidents({ limit: 1, from: m.from, to: m.to }))),
+      Promise.allSettled(INCIDENT_TYPES.map((type) => fetchIncidents({ limit: 1, type }))),
       Promise.allSettled([fetchRewardsSummary()]),
     ]);
     const monthsFailed = monthRes.some((r) => r.status === "rejected");
@@ -127,13 +200,21 @@ export default function ReportsScreen() {
     );
     const rw = rewardRes[0];
     setRewards(rw.status === "fulfilled" ? rw.value : null);
-    setErrors({
+    setErrors((e) => ({
+      ...e,
       months: monthsFailed,
       types: typesFailed,
       rewards: rw.status === "rejected",
-    });
+    }));
+  }, []);
+
+  const load = useCallback(async () => {
+    const locale = currentLanguage === "ar-DZ" ? "ar" : currentLanguage;
+    const range = lastMonths(6, locale);
+    if (isManager) await loadManager(range, locale);
+    else await loadEmployee(range);
     setLoading(false);
-  }, [currentLanguage]);
+  }, [currentLanguage, isManager, loadManager, loadEmployee]);
 
   useFocusEffect(
     useCallback(() => {
@@ -147,6 +228,8 @@ export default function ReportsScreen() {
     setRefreshing(false);
   };
 
+  const rateColor = (v: number | null) =>
+    v == null ? colors.textSecondary : v >= 80 ? colors.success : v >= 50 ? colors.warning : colors.danger;
   const card = [styles.card, { backgroundColor: colors.surface, borderColor: colors.border }];
   const title = [styles.cardTitle, { color: colors.text, fontSize: fs(16) }];
   const errorText = (
@@ -200,6 +283,93 @@ export default function ReportsScreen() {
         )}
       </View>
 
+      {isManager && (
+        <>
+          <View style={card}>
+            <Text style={title}>{t("reportsByZone")}</Text>
+            {errors.zones ? (
+              errorText
+            ) : zones && zones.length === 0 ? (
+              <Text style={{ color: colors.textSecondary, fontSize: fs(14) }}>{t("reportsNoData")}</Text>
+            ) : (
+              zones?.map((row) => (
+                <View key={row.key} style={styles.typeRow}>
+                  <Text style={{ color: colors.text, fontSize: fs(14), flex: 1 }}>{row.key}</Text>
+                  <Text style={{ color: colors.warning, fontSize: fs(16), fontWeight: "700" }}>
+                    {row.count}
+                  </Text>
+                </View>
+              ))
+            )}
+          </View>
+
+          <View style={card}>
+            <Text style={title}>{t("reportsKpis")}</Text>
+            {errors.kpis ? (
+              errorText
+            ) : kpis ? (
+              <View style={styles.kpiGrid}>
+                {[
+                  {
+                    label: t("kpiMeanResolution"),
+                    value:
+                      kpis.meanResolutionHours == null
+                        ? KPI_NONE
+                        : `${Math.round(kpis.meanResolutionHours * 10) / 10} ${t("reportsHoursUnit")}`,
+                    color: colors.primary,
+                  },
+                  {
+                    label: t("kpiEquipmentCompliance"),
+                    value: kpis.equipmentComplianceRate == null ? KPI_NONE : `${kpis.equipmentComplianceRate}%`,
+                    color: rateColor(kpis.equipmentComplianceRate),
+                  },
+                  {
+                    label: t("kpiTrainingCompliance"),
+                    value: kpis.trainingComplianceRate == null ? KPI_NONE : `${kpis.trainingComplianceRate}%`,
+                    color: rateColor(kpis.trainingComplianceRate),
+                  },
+                  {
+                    label: t("kpiOverdueActions"),
+                    value: String(kpis.correctiveActionsOverdue),
+                    color: kpis.correctiveActionsOverdue > 0 ? colors.danger : colors.success,
+                  },
+                ].map((k) => (
+                  <View
+                    key={k.label}
+                    style={[styles.kpi, { borderColor: colors.border, backgroundColor: colors.background }]}
+                  >
+                    <Text style={{ color: k.color, fontSize: fs(20), fontWeight: "800" }}>{k.value}</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: fs(11), textAlign: "center" }}>
+                      {k.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+          </View>
+
+          <View style={card}>
+            <Text style={title}>{t("reportsForecast")}</Text>
+            {errors.forecast ? (
+              errorText
+            ) : forecast ? (
+              <>
+                <BarChart
+                  data={forecast}
+                  color={colors.warning}
+                  lightColor={colors.warning + "55"}
+                  textColor={colors.text}
+                  fs={fs}
+                />
+                <Text style={{ color: colors.textSecondary, fontSize: fs(12), marginTop: 8 }}>
+                  {t("reportsForecastHint")}
+                </Text>
+              </>
+            ) : null}
+          </View>
+        </>
+      )}
+
       <View style={card}>
         <Text style={title}>{t("reportsRewards")}</Text>
         {errors.rewards ? (
@@ -225,7 +395,7 @@ export default function ReportsScreen() {
               </View>
               <View style={styles.stat}>
                 <Text style={[styles.statValue, { color: colors.text, fontSize: fs(18) }]}>
-                  {badgeLabel(rewards.badge)}
+                  {rewards.badge ? t(`badge_${rewards.badge}` as TranslationKey) : "-"}
                 </Text>
                 <Text style={{ color: colors.textSecondary, fontSize: fs(12) }}>
                   {t("reportsBadge")}
@@ -237,6 +407,11 @@ export default function ReportsScreen() {
                 {t("reportsNextBadge").replace("{points}", String(rewards.nextBadgeAt))}
               </Text>
             )}
+            <TouchableOpacity onPress={() => router.push("/(extra)/rewards")} style={{ marginTop: 10 }}>
+              <Text style={{ color: colors.primary, fontSize: fs(14), fontWeight: "700" }}>
+                {t("reportsSeeRewards")}
+              </Text>
+            </TouchableOpacity>
           </>
         ) : null}
       </View>
@@ -256,5 +431,16 @@ const styles = StyleSheet.create({
   typeRow: { flexDirection: "row", alignItems: "center", paddingVertical: 4 },
   statRow: { flexDirection: "row" },
   stat: { flex: 1, alignItems: "center" },
+  kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  kpi: {
+    width: "48%",
+    flexGrow: 1,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+    alignItems: "center",
+    gap: 4,
+  },
   statValue: { fontWeight: "800" },
 });

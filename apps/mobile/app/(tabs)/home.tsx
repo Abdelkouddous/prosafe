@@ -12,25 +12,11 @@ import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAppTheme } from "@/contexts/AccessibilityContext";
-import { fetchIncidents, IncidentStatus } from "@/services/incidentApi";
+import { fetchStatsOverview } from "@/services/statsApi";
 import { fetchNotifications } from "@/services/notificationApi";
 import { TranslationKey } from "@/constants/Languages";
 
-type Counts = {
-  total: number | null;
-  open: number | null;
-  investigating: number | null;
-  resolved: number | null;
-  unread: number | null;
-};
-
-const EMPTY: Counts = {
-  total: null,
-  open: null,
-  investigating: null,
-  resolved: null,
-  unread: null,
-};
+type Overview = Awaited<ReturnType<typeof fetchStatsOverview>>;
 
 interface Module {
   id: string;
@@ -40,14 +26,12 @@ interface Module {
   href: string;
 }
 
-const totalOf = (r: PromiseSettledResult<{ total: number }>) =>
-  r.status === "fulfilled" ? r.value.total : null;
-
 export default function HomeScreen() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { colors, fs } = useAppTheme();
-  const [counts, setCounts] = useState<Counts>(EMPTY);
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [unread, setUnread] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -55,23 +39,13 @@ export default function HomeScreen() {
   const firstName = (user?.name || "").split(" ")[0];
 
   const load = useCallback(async () => {
-    const byStatus = (status?: IncidentStatus) =>
-      fetchIncidents({ limit: 1, status });
-    const results = await Promise.allSettled([
-      byStatus(),
-      byStatus("open"),
-      byStatus("investigating"),
-      byStatus("resolved"),
+    const [ov, un] = await Promise.allSettled([
+      fetchStatsOverview(),
       fetchNotifications({ unread: true, limit: 1 }),
     ]);
-    setCounts({
-      total: totalOf(results[0]),
-      open: totalOf(results[1]),
-      investigating: totalOf(results[2]),
-      resolved: totalOf(results[3]),
-      unread: totalOf(results[4]),
-    });
-    setFailed(results.some((r) => r.status === "rejected"));
+    setOverview(ov.status === "fulfilled" ? ov.value : null);
+    setUnread(un.status === "fulfilled" ? un.value.total : null);
+    setFailed(ov.status === "rejected" || un.status === "rejected");
   }, []);
 
   useFocusEffect(
@@ -89,6 +63,7 @@ export default function HomeScreen() {
   const modules: Module[] = [
     { id: "trainings", labelKey: "moduleTrainings", icon: "school", color: colors.primary, href: "/(tabs)/trainings" },
     { id: "messages", labelKey: "moduleMessages", icon: "chatbubbles", color: colors.info, href: "/(tabs)/messages" },
+    { id: "rewards", labelKey: "moduleRewards", icon: "trophy", color: colors.warning, href: "/(extra)/rewards" },
     { id: "stock", labelKey: "moduleStock", icon: "construct", color: colors.warning, href: "/(extra)/stock" },
     { id: "emergency", labelKey: "moduleEmergency", icon: "alert-circle", color: colors.danger, href: "/(extra)/emergency" },
     { id: "lmra", labelKey: "moduleLmra", icon: "shield-checkmark", color: colors.success, href: "/(extra)/lmra" },
@@ -101,11 +76,20 @@ export default function HomeScreen() {
 
   const show = (n: number | null) => (n === null ? "-" : String(n));
 
+  const inc = overview?.incidents;
   const cards: { key: TranslationKey; value: number | null; color: string }[] = [
-    { key: "homeMyIncidents", value: counts.total, color: colors.primary },
-    { key: "homeStatusPending", value: counts.open, color: colors.warning },
-    { key: "homeStatusInProgress", value: counts.investigating, color: colors.info },
-    { key: "homeStatusResolved", value: counts.resolved, color: colors.success },
+    { key: "homeMyIncidents", value: inc?.total ?? null, color: colors.primary },
+    { key: "homeStatusPending", value: inc?.open ?? null, color: colors.warning },
+    { key: "homeStatusInProgress", value: inc?.investigating ?? null, color: colors.info },
+    { key: "homeStatusResolved", value: inc?.resolved ?? null, color: colors.success },
+  ];
+  const alerts = overview?.activeAlerts ?? null;
+  const alertColor = alerts !== null && alerts > 0 ? colors.danger : colors.success;
+  const managerCards: { key: TranslationKey; value: number | null; hot: boolean }[] = [
+    { key: "homeCriticalOpen", value: overview?.criticalOpen ?? null, hot: true },
+    { key: "homeLowStock", value: overview?.lowStock ?? null, hot: false },
+    { key: "homeOverdueMaintenance", value: overview?.overdueMaintenance ?? null, hot: false },
+    { key: "homeExpiringTrainings", value: overview?.expiringTrainings ?? null, hot: false },
   ];
 
   return (
@@ -141,6 +125,41 @@ export default function HomeScreen() {
       </View>
 
       <TouchableOpacity
+        style={[
+          styles.notifCard,
+          { backgroundColor: colors.surface, borderColor: alertColor, borderWidth: 2, marginBottom: 10 },
+        ]}
+        onPress={() => router.push("/(extra)/emergency")}
+      >
+        <Ionicons name="warning" size={22} color={alertColor} />
+        <Text style={[styles.notifLabel, { color: colors.text, fontSize: fs(15) }]}>
+          {t("homeActiveAlerts")}
+        </Text>
+        <Text style={[styles.notifValue, { color: alertColor, fontSize: fs(18) }]}>
+          {show(alerts)}
+        </Text>
+      </TouchableOpacity>
+
+      {isManager && (
+        <View style={styles.cardRow}>
+          {managerCards.map((c) => {
+            const color = c.value !== null && c.value > 0 ? (c.hot ? colors.danger : colors.warning) : colors.success;
+            return (
+              <View
+                key={c.key}
+                style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                <Text style={[styles.cardValue, { color, fontSize: fs(22) }]}>{show(c.value)}</Text>
+                <Text style={[styles.cardLabel, { color: colors.textSecondary, fontSize: fs(10) }]}>
+                  {t(c.key)}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      <TouchableOpacity
         style={[styles.notifCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={() => router.push("/(extra)/notifications")}
       >
@@ -149,7 +168,7 @@ export default function HomeScreen() {
           {t("homeUnreadNotifications")}
         </Text>
         <Text style={[styles.notifValue, { color: colors.warning, fontSize: fs(18) }]}>
-          {show(counts.unread)}
+          {show(unread)}
         </Text>
       </TouchableOpacity>
 
