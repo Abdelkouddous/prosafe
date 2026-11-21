@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Req, Res } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
 
@@ -169,19 +169,8 @@ export class AppController {
     res.send(html);
   }
 
-  // Add this new endpoint
-  @Get('/test-connection')
-  testConnection(): { message: string } {
-    return { message: 'Backend connection successful!' };
-  }
-
   @Get('/health-check')
   healthCheck(): string {
     return this.appService.healthCheck();
-  }
-
-  @Get('/echo')
-  getEcho(@Req() req, @Res() res, @Body() body) {
-    res.status(200).json(body);
   }
 }

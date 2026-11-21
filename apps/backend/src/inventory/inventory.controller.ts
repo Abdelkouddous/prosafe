@@ -1,14 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from '../auth/strategy/roles.guard';
 import { Roles } from '../custom.decorator';
 import { Role } from '../users/enums/role.enum';
-import { InventoryCategory } from './enums/inventory-category.enum';
-import { InventoryStatus } from './enums/inventory-status.enum';
+import { ListInventoryQueryDto, ReportDefectDto } from './dto/inventory-query.dto';
 
 @ApiTags('inventory')
 @ApiBearerAuth()
@@ -25,13 +24,8 @@ export class InventoryController {
   }
 
   @Get()
-  async findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('category') category?: InventoryCategory,
-    @Query('status') status?: InventoryStatus,
-  ) {
-    return this.inventoryService.findAll(+page, +limit, category, status);
+  async findAll(@Query() query: ListInventoryQueryDto) {
+    return this.inventoryService.findAll(query);
   }
 
   @Get('stats')
@@ -42,6 +36,14 @@ export class InventoryController {
   @Get('low-stock')
   async getLowStock() {
     return this.inventoryService.getLowStockItems();
+  }
+
+  @Roles(Role.ADMIN, Role.SST_MANAGER, Role.EMPLOYEE)
+  @Post(':id/report-defect')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Report a defective item: sets condition=non_functional and notifies managers' })
+  async reportDefect(@Param('id', ParseIntPipe) id: number, @Body() dto: ReportDefectDto, @Req() req) {
+    return this.inventoryService.reportDefect(id, dto.description, req.user.id);
   }
 
   @Get(':id')

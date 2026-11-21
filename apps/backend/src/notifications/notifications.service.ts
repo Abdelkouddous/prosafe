@@ -67,6 +67,54 @@ export class NotificationsService {
   }
 
   /**
+   * Like notifyUsers but skips users who already received a notification of the same type and
+   * `data.key` in the last `windowHours` (default 24h), so scheduled jobs / double clicks never spam.
+   * Returns the ids actually notified. Never throws.
+   */
+  async notifyUsersOnce(
+    userIds: number[],
+    payload: NotificationPayload & { data: { key: string } },
+    windowHours = 24,
+  ): Promise<number[]> {
+    try {
+      const ids = [...new Set(userIds)].filter((id) => Number.isInteger(id));
+      if (!ids.length) return [];
+      const hours = Math.max(1, Math.floor(Number(windowHours)) || 24);
+      const recent: { userId: number }[] = await this.notifRepo
+        .createQueryBuilder('n')
+        .select('n.userId', 'userId')
+        .where('n.userId IN (:...ids)', { ids })
+        .andWhere('n.type = :type', { type: payload.type })
+        .andWhere("n.data ->> 'key' = :key", { key: payload.data.key })
+        .andWhere(`n."createdAt" > now() - interval '${hours} hours'`)
+        .getRawMany();
+      const already = new Set(recent.map((r) => Number(r.userId)));
+      const toNotify = ids.filter((id) => !already.has(id));
+      if (toNotify.length) await this.notifyUsers(toNotify, payload);
+      return toNotify;
+    } catch (err) {
+      this.logger.error(`notifyUsersOnce failed: ${(err as Error).message}`);
+      return [];
+    }
+  }
+
+  /** Role-based variant of notifyUsersOnce. Never throws. */
+  async notifyRolesOnce(
+    roles: Role[],
+    payload: NotificationPayload & { data: { key: string } },
+    windowHours = 24,
+  ): Promise<number[]> {
+    try {
+      const users = await this.userRepo.find({ where: { isActive: true }, select: ['id', 'roles'] });
+      const ids = users.filter((u) => u.roles?.some((r) => roles.includes(r))).map((u) => u.id);
+      return await this.notifyUsersOnce(ids, payload, windowHours);
+    } catch (err) {
+      this.logger.error(`notifyRolesOnce failed: ${(err as Error).message}`);
+      return [];
+    }
+  }
+
+  /**
    * Notify users: honours per-type preference (emergency is always delivered), stores a DB row,
    * sends Expo push (when `push` pref on) and an email (when `email` pref on and priority high / emergency).
    * Never throws: failures are logged.

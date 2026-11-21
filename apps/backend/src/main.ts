@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -8,26 +9,29 @@ import { RequestMethod } from '@nestjs/common';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     const configService = app.get(ConfigService);
 
     // Security middleware
-    app.use(helmet());
+    // Behind Railway's proxy: trust N hops so req.ip (used by the throttler) is the real client IP.
+    app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
+    // cross-origin resource policy so the admin web (other origin) can display /files/:id media
+    app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
     // CORS: CORS_ORIGINS (comma-separated) overrides the defaults.
     const envOrigins = (process.env.CORS_ORIGINS ?? '')
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean);
-    const defaultOrigins =
-      process.env.NODE_ENV === 'production'
-        ? [
+    // Restrictive by default; permissive (any origin) only when NODE_ENV === 'development'.
+    const defaultOrigins: (string | RegExp)[] | string =
+      process.env.NODE_ENV === 'development'
+        ? '*'
+        : [
             'https://prosafe-admin-psi.vercel.app',
             'https://prosafe-admin-92x9gdh09-abdelkouddous-projects.vercel.app',
             'https://prosafe-admin.vercel.app',
             /^https:\/\/prosafe-admin-.*\.vercel\.app$/, // Vercel preview deployments
-            /^http:\/\/localhost:\d+$/, // local development ports
-          ]
-        : '*';
+          ];
     app.enableCors({
       origin: envOrigins.length > 0 ? envOrigins : defaultOrigins,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],

@@ -5,6 +5,7 @@ import { unlink } from 'fs/promises';
 import { basename } from 'path';
 import { Repository } from 'typeorm';
 import { StoredFile } from './entities/stored-file.entity';
+import { fileMatchesMime } from './magic-bytes';
 import { FILE_RULES, ensureUploadsDir, kindOfMime, resolveStoredPath, FileKind } from './upload.config';
 
 @Injectable()
@@ -28,6 +29,10 @@ export class FilesService implements OnModuleInit {
     if (file.size > FILE_RULES[kind].maxSize) {
       await this.removeFromDisk(file.filename);
       throw new BadRequestException(`${kind} files must be at most ${FILE_RULES[kind].maxSize / (1024 * 1024)} MB`);
+    }
+    if (file.path && !(await fileMatchesMime(file.path, file.mimetype))) {
+      await this.removeFromDisk(file.filename);
+      throw new BadRequestException('File content does not match its declared type');
     }
     return this.repo.save(
       this.repo.create({

@@ -151,7 +151,7 @@ export class AdminService {
 
   // Inventory Management
   async getInventory(page: number, limit: number, category?: string, status?: string) {
-    return await this.inventoryService.findAll(page, limit, category as any, status as any);
+    return await this.inventoryService.findAll({ page, limit, category: category as any, status: status as any });
   }
 
   async getInventoryStats() {
