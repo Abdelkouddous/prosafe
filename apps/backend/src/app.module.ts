@@ -23,6 +23,11 @@ import { FilesModule } from './files/files.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { TrainingsModule } from './trainings/trainings.module';
+import { CorrectiveActionsModule } from './corrective-actions/corrective-actions.module';
+import { MessagingModule } from './messaging/messaging.module';
+import { RealtimeModule } from './realtime/realtime.module';
+import { StatsModule } from './stats/stats.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -70,6 +75,11 @@ import { TrainingsModule } from './trainings/trainings.module';
     NotificationsModule,
     MaintenanceModule,
     TrainingsModule,
+    RealtimeModule,
+    CorrectiveActionsModule,
+    MessagingModule,
+    StatsModule,
+    ReportsModule,
     // Training
     // Conferences
   ],

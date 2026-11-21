@@ -9,6 +9,7 @@ import { buildMulterOptions } from '../files/upload.config';
 import { CleanupUploadsOnErrorInterceptor } from '../files/cleanup-uploads.interceptor';
 import { IncidentsService, MAX_MEDIA } from './incidents.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
+import { EvaluateIncidentDto } from './dto/evaluate-incident.dto';
 import { UpdateIncidentStatusDto } from './dto/update-incident-status.dto';
 import { ListIncidentsQueryDto } from './dto/list-incidents-query.dto';
 
@@ -69,5 +70,12 @@ export class IncidentsController {
   @Roles(Role.ADMIN, Role.SST_MANAGER)
   async updateStatus(@Param('incidentId') incidentId: string, @Body() updateStatusDto: UpdateIncidentStatusDto, @Request() req: any) {
     return this.incidentsService.updateStatus(incidentId, updateStatusDto, req.user.id);
+  }
+
+  /** A4: manager evaluation. riskScore = gravity * probability. */
+  @Patch(':incidentId/evaluation')
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
+  async evaluate(@Param('incidentId') incidentId: string, @Body() dto: EvaluateIncidentDto, @Request() req: any) {
+    return this.incidentsService.evaluate(incidentId, dto, req.user.id);
   }
 }
