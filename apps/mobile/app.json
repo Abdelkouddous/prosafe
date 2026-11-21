@@ -57,6 +57,12 @@
           "recordAudioAndroid": true
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "color": "#DC2626"
+        }
+      ],
       "expo-secure-store",
       [
         "expo-splash-screen",
@@ -66,7 +72,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true

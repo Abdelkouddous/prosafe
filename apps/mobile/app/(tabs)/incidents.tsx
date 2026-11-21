@@ -1,788 +1,538 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
+  ActivityIndicator,
   Alert,
   Image,
-  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
-  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { Ionicons } from "@expo/vector-icons";
-import api from "@/services/api";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Chip } from "@/components/Chip";
+import { SEVERITY_COLORS } from "@/constants/incidentUi";
+import {
+  ALLOWED_IMAGE_MIMES,
+  ALLOWED_VIDEO_MIMES,
+  INCIDENT_SEVERITIES,
+  INCIDENT_TYPES,
+  IncidentSeverity,
+  IncidentType,
+  LocalMediaFile,
+  MAX_IMAGE_BYTES,
+  MAX_MEDIA,
+  MAX_VIDEO_BYTES,
+  createIncident,
+  rewardPoints,
+} from "@/services/incidentApi";
 
-// Enums matching backend
-enum IncidentType {
-  SAFETY = "safety",
-  SECURITY = "security",
-  HR_VIOLATION = "hr_violation",
-}
+const MIME_BY_EXT: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+};
 
-enum IncidentSeverity {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-}
+const pad = (n: number) => String(n).padStart(2, "0");
 
-interface IncidentForm {
-  description: string;
-  type: IncidentType | "";
-  severity: IncidentSeverity | "";
-  location: {
-    lat?: number;
-    long?: number;
-    manualAddress: string;
+const toLocalMedia = (a: ImagePicker.ImagePickerAsset, idx: number): LocalMediaFile => {
+  const uriName = a.uri.split("?")[0].split("/").pop() ?? "";
+  const ext = (a.fileName ?? uriName).split(".").pop()?.toLowerCase() ?? "";
+  const isVideo = a.type === "video" || a.mimeType?.startsWith("video/");
+  let mimeType = a.mimeType ?? MIME_BY_EXT[ext] ?? (isVideo ? "video/mp4" : "image/jpeg");
+  if (mimeType === "image/jpg") mimeType = "image/jpeg";
+  const finalExt = Object.keys(MIME_BY_EXT).find((k) => MIME_BY_EXT[k] === mimeType) ?? ext;
+  return {
+    uri: a.uri,
+    name: a.fileName ?? `media-${Date.now()}-${idx}.${finalExt || "jpg"}`,
+    mimeType,
+    size: a.fileSize,
+    kind: mimeType.startsWith("video/") ? "video" : "image",
   };
-  date?: string;
-  photo?: ImagePicker.ImagePickerAsset;
-}
+};
 
-// function CreateIncident() component
-const CreateIncident = () => {
-  const [form, setForm] = useState<IncidentForm>({
-    description: "",
-    type: "",
-    severity: "",
-    location: {
-      manualAddress: "",
-    },
-  });
+export default function ReportIncidentScreen() {
+  const { t, isRTL } = useLanguage();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGeolocating, setIsGeolocating] = useState(false);
+  const [type, setType] = useState<IncidentType | null>(null);
+  const [severity, setSeverity] = useState<IncidentSeverity | null>(null);
+  const [description, setDescription] = useState("");
+  const [notes, setNotes] = useState("");
+  const [dayMode, setDayMode] = useState<"now" | "today" | "yesterday">("now");
+  const [timeText, setTimeText] = useState("");
+  const [zone, setZone] = useState("");
+  const [department, setDepartment] = useState("");
+  const [manualAddress, setManualAddress] = useState("");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoAddress, setGeoAddress] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [media, setMedia] = useState<LocalMediaFile[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const [isTypeOpen, setIsTypeOpen] = useState(false);
-  const [isSeverityOpen, setIsSeverityOpen] = useState(false);
-
-  useEffect(() => {
-    requestPermissions();
-  }, []);
-
-  const requestPermissions = async () => {
+  const locate = useCallback(async () => {
+    setLocating(true);
     try {
-      const { status: cameraStatus } =
-        await ImagePicker.requestCameraPermissionsAsync();
-      const { status: mediaStatus } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      const { status: locationStatus } =
-        await Location.requestForegroundPermissionsAsync();
-
-      if (cameraStatus !== "granted" || mediaStatus !== "granted") {
-        Alert.alert(
-          "Permissions Required",
-          "Camera and photo library access are needed to attach photos to incidents."
-        );
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== "granted") {
+        setCoords(null);
+        return;
       }
-
-      if (locationStatus !== "granted") {
-        Alert.alert(
-          "Location Permission",
-          "Location access helps provide accurate incident reporting."
-        );
-      }
-    } catch (error) {
-      console.error("Error requesting permissions:", error);
-    }
-  };
-
-  const formatAddress = (a: Location.LocationGeocodedAddress) => {
-    const parts = [a.name || a.street, a.city, a.region, a.postalCode, a.country].filter(Boolean);
-    return parts.join(", ");
-  };
-
-  const getGeolocation = async () => {
-    try {
-      setIsGeolocating(true);
-
-      // Ensure permission is granted before requesting location
-      let perm = await Location.getForegroundPermissionsAsync();
-      if (!perm.granted) {
-        perm = await Location.requestForegroundPermissionsAsync();
-        if (!perm.granted) {
-          Alert.alert("Location Permission", "Please allow location access to use current location.");
-          return;
-        }
-      }
-
-      const current = await Location.getCurrentPositionAsync({
+      const pos = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
-
-      const { latitude, longitude } = current.coords;
-
-      setForm((prev) => ({
-        ...prev,
-        location: {
-          ...prev.location,
-          lat: latitude,
-          long: longitude,
-        },
-      }));
-
-      // Reverse geocode to auto-fill the address text input
+      setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       try {
-        const res = await Location.reverseGeocodeAsync({ latitude, longitude });
-        const addr = res && res[0] ? formatAddress(res[0]) : "";
+        const [addr] = await Location.reverseGeocodeAsync({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
         if (addr) {
-          setForm((prev) => ({
-            ...prev,
-            location: { ...prev.location, manualAddress: addr },
-          }));
+          const parts = [addr.name, addr.street, addr.city, addr.region].filter(Boolean);
+          setGeoAddress([...new Set(parts)].join(", ").slice(0, 200));
         }
       } catch {
-        // If reverse geocoding fails, leave the address empty; coordinates still set
+        // reverse geocoding unavailable: coordinates are enough
       }
-    } catch (error) {
-      console.error("Error getting location:", error);
-      Alert.alert("Location Error", "Unable to get current location");
+    } catch {
+      setCoords(null);
     } finally {
-      setIsGeolocating(false);
+      setLocating(false);
     }
+  }, []);
+
+  useEffect(() => {
+    locate();
+  }, [locate]);
+
+  const resetForm = () => {
+    setType(null);
+    setSeverity(null);
+    setDescription("");
+    setNotes("");
+    setDayMode("now");
+    setTimeText("");
+    setZone("");
+    setDepartment("");
+    setManualAddress("");
+    setMedia([]);
+    setProgress(0);
+    setError(null);
+    locate();
   };
 
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setForm((prev) => ({ ...prev, photo: result.assets[0] }));
+  const addAssets = (assets: ImagePicker.ImagePickerAsset[]) => {
+    let next = [...media];
+    let problem: string | null = null;
+    assets.forEach((a, i) => {
+      const m = toLocalMedia(a, i);
+      if (next.length >= MAX_MEDIA) {
+        problem = t("mediaMax");
+        return;
       }
-    } catch (error) {
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "Failed to pick image");
-    }
+      if (m.kind === "image" && !ALLOWED_IMAGE_MIMES.includes(m.mimeType)) {
+        problem = t("mediaUnsupported");
+        return;
+      }
+      if (m.kind === "video" && !ALLOWED_VIDEO_MIMES.includes(m.mimeType)) {
+        problem = t("mediaUnsupported");
+        return;
+      }
+      if (m.size !== undefined && m.kind === "image" && m.size > MAX_IMAGE_BYTES) {
+        problem = t("mediaTooLargeImage");
+        return;
+      }
+      if (m.size !== undefined && m.kind === "video" && m.size > MAX_VIDEO_BYTES) {
+        problem = t("mediaTooLargeVideo");
+        return;
+      }
+      next.push(m);
+    });
+    setMedia(next);
+    if (problem) Alert.alert(t("error"), problem);
   };
 
-  const removePhoto = () => {
-    setForm((prev) => ({ ...prev, photo: undefined }));
-  };
-
-  const submitIncident = async () => {
-    if (!form.description.trim() || !form.type || !form.severity) {
-      Alert.alert("Missing Information", "Please fill in all required fields");
+  const capture = async (kind: "photo" | "video") => {
+    if (media.length >= MAX_MEDIA) {
+      Alert.alert(t("error"), t("mediaMax"));
       return;
     }
-
-    try {
-      setIsSubmitting(true);
-
-      const formData = new FormData();
-      formData.append("description", form.description);
-      formData.append("type", form.type);
-      formData.append("severity", form.severity);
-      formData.append("date", new Date().toISOString());
-
-      // Location data needs to be nested under 'location' object
-      if (form.location.lat && form.location.long) {
-        formData.append("location[lat]", form.location.lat.toString());
-        formData.append("location[long]", form.location.long.toString());
+    if (Platform.OS !== "web") {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t("error"), t("permissionCamera"));
+        return;
       }
-      if (form.location.manualAddress) {
-        formData.append("location[manualAddress]", form.location.manualAddress);
+    }
+    const res = await ImagePicker.launchCameraAsync({
+      mediaTypes:
+        kind === "photo"
+          ? ImagePicker.MediaTypeOptions.Images
+          : ImagePicker.MediaTypeOptions.Videos,
+      videoMaxDuration: 60,
+      quality: 0.7,
+    });
+    if (!res.canceled) addAssets(res.assets);
+  };
+
+  const pickFromGallery = async () => {
+    const remaining = MAX_MEDIA - media.length;
+    if (remaining <= 0) {
+      Alert.alert(t("error"), t("mediaMax"));
+      return;
+    }
+    if (Platform.OS === "ios") {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert(t("error"), t("permissionGallery"));
+        return;
       }
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.7,
+      videoMaxDuration: 60,
+    });
+    if (!res.canceled) addAssets(res.assets);
+  };
 
-      if (form.photo) {
-        formData.append("photo", {
-          uri: form.photo.uri,
-          type: "image/jpeg",
-          name: "incident-photo.jpg",
-        } as any);
-      }
+  const computeDate = (): Date => {
+    const now = new Date();
+    if (dayMode === "now") return now;
+    const m = /^(\d{1,2}):(\d{2})$/.exec(timeText.trim());
+    const d = new Date(now);
+    if (dayMode === "yesterday") d.setDate(d.getDate() - 1);
+    if (m && +m[1] < 24 && +m[2] < 60) d.setHours(+m[1], +m[2], 0, 0);
+    return d > now ? now : d; // never in the future
+  };
 
-      const response = await api.post("/incidents", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.status === 201) {
-        const reward = response.data?.reward;
-        const pointsMsg =
-          reward && reward.pointsAwarded > 0
-            ? `You earned ${reward.pointsAwarded} points! Total: ${reward.totalPoints}.`
-            : undefined;
-
-        Alert.alert(
-          "Success",
-          pointsMsg
-            ? `Incident reported successfully.\n${pointsMsg}`
-            : "Incident reported successfully",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setForm({
-                  description: "",
-                  type: "",
-                  severity: "",
-                  location: { manualAddress: "" },
-                });
-              },
-            },
-          ]
-        );
-      }
-    } catch (error: any) {
-      console.error("Error submitting incident:", error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Failed to submit incident"
-      );
-    } finally {
-      setIsSubmitting(false);
+  const selectDay = (mode: "now" | "today" | "yesterday") => {
+    setDayMode(mode);
+    if (mode !== "now" && !timeText) {
+      const n = new Date();
+      setTimeText(`${pad(n.getHours())}:${pad(n.getMinutes())}`);
     }
   };
 
+  const validate = (): string | null => {
+    if (!type) return t("typeRequired");
+    if (!severity) return t("severityRequired");
+    if (!description.trim()) return t("descriptionRequired");
+    if (description.length > 200) return t("descriptionTooLong");
+    return null;
+  };
+
+  const submit = async () => {
+    const problem = validate();
+    setError(problem);
+    if (problem || !type || !severity) return;
+    setSubmitting(true);
+    setProgress(0);
+    try {
+      const res = await createIncident(
+        {
+          type,
+          severity,
+          description: description.trim(),
+          notes: notes.trim() || undefined,
+          date: computeDate(),
+          latitude: coords?.lat,
+          longitude: coords?.lng,
+          manualAddress: manualAddress.trim() || geoAddress || undefined,
+          zone: zone.trim() || undefined,
+          department: department.trim() || undefined,
+          media,
+        },
+        setProgress
+      );
+      const pts = rewardPoints(res.reward);
+      const lines = [`${t("incidentSentRef")}: ${res.incidentId}`];
+      if (pts) lines.push(t("rewardEarned").replace("{points}", String(pts)));
+      resetForm();
+      Alert.alert(t("incidentSent"), lines.join("\n"));
+    } catch (e: any) {
+      const msg = e?.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join("\n") : msg || t("incidentSendFailed"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const dir = { direction: isRTL ? ("rtl" as const) : ("ltr" as const) };
+  const align = { textAlign: isRTL ? ("right" as const) : ("left" as const) };
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>PROSAFE</Text>
-              <Text style={styles.logoSubtext}>Signaler un incident</Text>
-            </View>
-          </View>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, dir]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={[styles.title, align]}>{t("reportIncident")}</Text>
+
+        <Text style={[styles.label, align]}>{t("incidentType")} *</Text>
+        <View style={styles.row}>
+          {INCIDENT_TYPES.map((v) => (
+            <Chip
+              key={v}
+              label={t(`type_${v}` as const)}
+              selected={type === v}
+              onPress={() => setType(v)}
+            />
+          ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Report New Incident</Text>
-
-        <View style={styles.form}>
-          {/* Description */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Description *</Text>
-            <TextInput
-              style={styles.textArea}
-              placeholder="Describe the incident in detail..."
-              value={form.description}
-              onChangeText={(text) =>
-                setForm((prev) => ({ ...prev, description: text }))
-              }
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
+        <Text style={[styles.label, align]}>{t("incidentSeverity")} *</Text>
+        <View style={styles.row}>
+          {INCIDENT_SEVERITIES.map((v) => (
+            <Chip
+              key={v}
+              label={t(`severity_${v}` as const)}
+              selected={severity === v}
+              color={SEVERITY_COLORS[v]}
+              onPress={() => setSeverity(v)}
             />
-          </View>
+          ))}
+        </View>
 
-          {/* Type */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Incident Type *</Text>
-            <TouchableOpacity
-              style={styles.selectInput}
-              onPress={() => {
-                setIsSeverityOpen(false);
-                setIsTypeOpen(true);
-              }}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.selectText,
-                  !form.type && styles.selectPlaceholder,
-                ]}
-              >
-                {getTypeLabel(form.type)}
-              </Text>
-              <Ionicons name="chevron-down" size={16} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+        <Text style={[styles.label, align]}>{t("descriptionLabel")} *</Text>
+        <TextInput
+          style={[styles.input, align]}
+          value={description}
+          onChangeText={setDescription}
+          placeholder={t("descriptionPlaceholder")}
+          maxLength={200}
+          multiline
+        />
+        <Text style={[styles.counter, align]}>{description.length}/200</Text>
 
-          {/* Severity */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Severity *</Text>
-            <TouchableOpacity
-              style={styles.selectInput}
-              onPress={() => {
-                setIsTypeOpen(false);
-                setIsSeverityOpen(true);
-              }}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.selectText,
-                  !form.severity && styles.selectPlaceholder,
-                ]}
-              >
-                {getSeverityLabel(form.severity)}
-              </Text>
-              <Ionicons name="chevron-down" size={16} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+        <Text style={[styles.label, align]}>{t("notesLabel")}</Text>
+        <TextInput
+          style={[styles.input, styles.multiline, align]}
+          value={notes}
+          onChangeText={setNotes}
+          placeholder={t("notesPlaceholder")}
+          maxLength={5000}
+          multiline
+        />
 
-          {/* Type Selector Modal */}
-          <Modal transparent animationType="fade" visible={isTypeOpen}>
-            <TouchableOpacity
-              style={styles.dropdownOverlay}
-              activeOpacity={1}
-              onPress={() => setIsTypeOpen(false)}
-            >
-              <View style={styles.dropdownSheet}>
-                <Text style={styles.dropdownTitle}>Select Incident Type</Text>
-                {[
-                  { label: "Safety", value: IncidentType.SAFETY },
-                  { label: "Security", value: IncidentType.SECURITY },
-                  { label: "HR Violation", value: IncidentType.HR_VIOLATION },
-                ].map((opt) => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={styles.dropdownOption}
-                    onPress={() => {
-                      setForm((prev) => ({ ...prev, type: opt.value }));
-                      setIsTypeOpen(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownOptionText}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-
-          {/* Severity Selector Modal */}
-          <Modal transparent animationType="fade" visible={isSeverityOpen}>
-            <TouchableOpacity
-              style={styles.dropdownOverlay}
-              activeOpacity={1}
-              onPress={() => setIsSeverityOpen(false)}
-            >
-              <View style={styles.dropdownSheet}>
-                <Text style={styles.dropdownTitle}>Select Severity</Text>
-                {[
-                  { label: "Low", value: IncidentSeverity.LOW },
-                  { label: "Medium", value: IncidentSeverity.MEDIUM },
-                  { label: "High", value: IncidentSeverity.HIGH },
-                  { label: "Critical", value: IncidentSeverity.CRITICAL },
-                ].map((opt) => (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={styles.dropdownOption}
-                    onPress={() => {
-                      setForm((prev) => ({ ...prev, severity: opt.value }));
-                      setIsSeverityOpen(false);
-                    }}
-                  >
-                    <Text style={styles.dropdownOptionText}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-
-          {/* Location */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Location</Text>
+        <Text style={[styles.label, align]}>{t("incidentDate")}</Text>
+        <View style={styles.row}>
+          <Chip label={t("dateNow")} selected={dayMode === "now"} onPress={() => selectDay("now")} />
+          <Chip label={t("dateToday")} selected={dayMode === "today"} onPress={() => selectDay("today")} />
+          <Chip label={t("dateYesterday")} selected={dayMode === "yesterday"} onPress={() => selectDay("yesterday")} />
+          {dayMode !== "now" && (
             <TextInput
-              style={styles.input}
-              placeholder="Incident address"
-              value={form.location.manualAddress}
-              onChangeText={(text) =>
-                setForm((prev) => ({
-                  ...prev,
-                  location: { ...prev.location, manualAddress: text },
-                }))
-              }
+              style={[styles.input, styles.timeInput]}
+              value={timeText}
+              onChangeText={setTimeText}
+              placeholder="HH:MM"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
             />
-            <TouchableOpacity
-              style={styles.locationButton}
-              onPress={getGeolocation}
-              disabled={isGeolocating}
-            >
-              {isGeolocating ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Ionicons name="location" size={20} color="#FFFFFF" />
-              )}
-              <Text style={styles.locationButtonText}>
-                {isGeolocating ? "Getting Location..." : "Use Current Location"}
-              </Text>
-            </TouchableOpacity>
-            {form.location.lat && form.location.long && (
-              <Text style={styles.coordinates}>
-                📍 {form.location.lat.toFixed(6)},{" "}
-                {form.location.long.toFixed(6)}
-              </Text>
-            )}
-          </View>
+          )}
+        </View>
 
-          {/* Photo */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Photo (Optional)</Text>
-            {form.photo ? (
-              <View style={styles.photoContainer}>
-                <Image source={{ uri: form.photo.uri }} style={styles.photo} />
-                <TouchableOpacity
-                  style={styles.removePhotoButton}
-                  onPress={removePhoto}
-                >
-                  <Ionicons name="close-circle" size={24} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity style={styles.photoButton} onPress={pickImage}>
-                <Ionicons name="camera" size={24} color="#6B7280" />
-                <Text style={styles.photoButtonText}>Add Photo</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        <Text style={[styles.label, align]}>{t("zoneLabel")}</Text>
+        <TextInput
+          style={[styles.input, align]}
+          value={zone}
+          onChangeText={setZone}
+          placeholder={t("zonePlaceholder")}
+          maxLength={100}
+        />
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[
-              styles.submitButton,
-              isSubmitting && styles.submitButtonDisabled,
-            ]}
-            onPress={submitIncident}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-            )}
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? "Submitting..." : "Report Incident"}
+        <Text style={[styles.label, align]}>{t("departmentLabel")}</Text>
+        <TextInput
+          style={[styles.input, align]}
+          value={department}
+          onChangeText={setDepartment}
+          placeholder={t("departmentPlaceholder")}
+          maxLength={100}
+        />
+
+        <Text style={[styles.label, align]}>{t("locationLabel")}</Text>
+        <View style={styles.locationBox}>
+          {locating ? (
+            <View style={styles.inlineRow}>
+              <ActivityIndicator size="small" color="#2563EB" />
+              <Text style={styles.locationText}>{t("locating")}</Text>
+            </View>
+          ) : coords ? (
+            <Text style={styles.locationText}>
+              {t("locationFound")}: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+              {geoAddress ? `\n${geoAddress}` : ""}
             </Text>
+          ) : (
+            <Text style={[styles.locationText, { color: "#EA580C" }]}>
+              {t("locationUnavailable")}
+            </Text>
+          )}
+          <TouchableOpacity onPress={locate} disabled={locating}>
+            <Text style={styles.link}>{t("locationRefresh")}</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+        <TextInput
+          style={[styles.input, align]}
+          value={manualAddress}
+          onChangeText={setManualAddress}
+          placeholder={t("manualAddressPlaceholder")}
+          maxLength={200}
+        />
+
+        <Text style={[styles.label, align]}>
+          {t("mediaLabel")} ({media.length}/{MAX_MEDIA})
+        </Text>
+        <View style={styles.row}>
+          <MediaButton icon="camera" label={t("takePhoto")} onPress={() => capture("photo")} />
+          <MediaButton icon="videocam" label={t("recordVideo")} onPress={() => capture("video")} />
+          <MediaButton icon="images" label={t("gallery")} onPress={pickFromGallery} />
+        </View>
+        <View style={styles.row}>
+          {media.map((m, i) => (
+            <View key={`${m.uri}-${i}`} style={styles.thumbWrap}>
+              {m.kind === "image" ? (
+                <Image source={{ uri: m.uri }} style={styles.thumb} />
+              ) : (
+                <View style={[styles.thumb, styles.videoThumb]}>
+                  <Ionicons name="play-circle" size={32} color="#FFFFFF" />
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.removeBtn}
+                accessibilityLabel={t("removeMedia")}
+                onPress={() => setMedia((cur) => cur.filter((_, j) => j !== i))}
+              >
+                <Ionicons name="close" size={14} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        {submitting && (
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressBar, { width: `${Math.round(progress * 100)}%` }]} />
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[styles.submit, submitting && { opacity: 0.6 }]}
+          onPress={submit}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <Text style={styles.submitText}>
+              {t("submitting")} {Math.round(progress * 100)}%
+            </Text>
+          ) : (
+            <Text style={styles.submitText}>{t("submitIncident")}</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-};
+}
 
-// styles object
+function MediaButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.mediaBtn} onPress={onPress}>
+      <Ionicons name={icon} size={20} color="#2563EB" />
+      <Text style={styles.mediaBtnText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  scrollContent: {
-    paddingBottom: 50,
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1F2937",
-    letterSpacing: 2,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  logoSubtext: {
-    fontSize: 10,
-    color: "#6B7280",
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 5,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "white",
-    opacity: 0.9,
-  },
-  form: {
-    padding: 20,
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-  },
+  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  content: { padding: 20, paddingTop: 56, paddingBottom: 60 },
+  title: { fontSize: 22, fontWeight: "bold", color: "#1F2937", marginBottom: 8 },
+  label: { fontSize: 15, fontWeight: "600", color: "#374151", marginTop: 16, marginBottom: 8 },
+  row: { flexDirection: "row", flexWrap: "wrap", alignItems: "center" },
   input: {
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#FFFFFF",
+    color: "#111827",
   },
-  textArea: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
+  multiline: { minHeight: 90, textAlignVertical: "top" },
+  counter: { fontSize: 12, color: "#6B7280", marginTop: 4 },
+  timeInput: { width: 90, paddingVertical: 8, marginBottom: 8 },
+  locationBox: {
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     padding: 12,
-    fontSize: 16,
-    backgroundColor: "#FFFFFF",
-    minHeight: 100,
-  },
-  selectInput: {
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 12,
-    height: 50,
+    borderColor: "#E5E7EB",
+  },
+  inlineRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  locationText: { fontSize: 14, color: "#374151" },
+  link: { color: "#2563EB", marginTop: 6, fontSize: 14, fontWeight: "600" },
+  mediaBtn: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
-  selectText: {
-    fontSize: 16,
-    color: "#1F2937",
-  },
-  selectPlaceholder: {
-    color: "#9CA3AF",
-  },
-  dropdownOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  dropdownSheet: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-  },
-  dropdownTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  dropdownOption: {
+    gap: 6,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  dropdownOptionText: {
-    fontSize: 16,
-    color: "#374151",
-  },
-  locationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#3B82F6",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  locationButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  coordinates: {
-    fontSize: 14,
-    color: "#10B981",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  photoButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#D1D5DB",
-    borderStyle: "dashed",
-    borderRadius: 8,
-    padding: 20,
-    backgroundColor: "#F9FAFB",
-  },
-  photoButtonText: {
-    color: "#6B7280",
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  photoContainer: {
-    position: "relative",
-  },
-  photo: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-  },
-  removePhotoButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-  },
-  submitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#DC2626",
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  submitButtonDisabled: {
-    backgroundColor: "#9CA3AF",
-  },
-  submitButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  recentIncidents: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 16,
-  },
-  loader: {
-    marginVertical: 20,
-  },
-  incidentCard: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  incidentHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  incidentType: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  severityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  severityText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  incidentDescription: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 8,
-  },
-  incidentDate: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  noIncidents: {
-    textAlign: "center",
-    color: "#6B7280",
-    fontSize: 16,
-    marginVertical: 20,
-  },
-  // Missing styles for search component
-  searchContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  searchInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
     marginRight: 8,
+    marginBottom: 8,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: "#1F2937",
+  mediaBtnText: { color: "#1D4ED8", fontSize: 14, fontWeight: "500" },
+  thumbWrap: { marginRight: 8, marginBottom: 8 },
+  thumb: { width: 76, height: 76, borderRadius: 8 },
+  videoThumb: { backgroundColor: "#374151", alignItems: "center", justifyContent: "center" },
+  removeBtn: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  clearButton: {
-    padding: 4,
+  error: { color: "#DC2626", marginTop: 12, fontSize: 14 },
+  progressTrack: { height: 6, backgroundColor: "#E5E7EB", borderRadius: 3, marginTop: 16 },
+  progressBar: { height: 6, backgroundColor: "#16A34A", borderRadius: 3 },
+  submit: {
+    backgroundColor: "#DC2626",
+    borderRadius: 10,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 20,
   },
-  incidentLocation: {
-    fontSize: 12,
-    color: "#10B981",
-    marginBottom: 4,
-  },
+  submitText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
 });
-
-export default CreateIncident;
-
-// function CreateIncident() component
-
-const getTypeLabel = (type: IncidentType | "") => {
-  switch (type) {
-    case IncidentType.SAFETY:
-      return "Safety";
-    case IncidentType.SECURITY:
-      return "Security";
-    case IncidentType.HR_VIOLATION:
-      return "HR Violation";
-    default:
-      return "Select Type";
-  }
-};
-
-const getSeverityLabel = (severity: IncidentSeverity | "") => {
-  switch (severity) {
-    case IncidentSeverity.LOW:
-      return "Low";
-    case IncidentSeverity.MEDIUM:
-      return "Medium";
-    case IncidentSeverity.HIGH:
-      return "High";
-    case IncidentSeverity.CRITICAL:
-      return "Critical";
-    default:
-      return "Select Severity";
-  }
-};

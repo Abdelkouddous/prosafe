@@ -1,16 +1,59 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  NotificationPreferences,
+  fetchPreferences,
+  updatePreferences,
+} from "@/services/notificationApi";
+
+const PREF_KEYS = [
+  ["incidents", "prefIncidents"],
+  ["trainings", "prefTrainings"],
+  ["audits", "prefAudits"],
+  ["inventory", "prefInventory"],
+  ["emergency", "prefEmergency"],
+  ["messages", "prefMessages"],
+  ["push", "prefPush"],
+  ["email", "prefEmail"],
+] as const;
 
 export default function ProfileScreen() {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
+  const [prefsError, setPrefsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchPreferences()
+      .then(setPrefs)
+      .catch(() => setPrefsError(t("prefLoadFailed")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const togglePref = async (key: keyof NotificationPreferences, value: boolean) => {
+    if (!prefs) return;
+    const previous = prefs;
+    const next = { ...prefs, [key]: value };
+    setPrefs(next);
+    setPrefsError(null);
+    try {
+      setPrefs(await updatePreferences(next));
+    } catch {
+      setPrefs(previous);
+      setPrefsError(t("prefSaveFailed"));
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -38,12 +81,34 @@ export default function ProfileScreen() {
           <Text style={styles.label}>Role / Rôle:</Text>
           <Text style={styles.value}>{user?.role || "N/A"}</Text>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>{t("notificationPreferences")}</Text>
+          {prefsError && <Text style={{ color: "#DC2626", marginBottom: 6 }}>{prefsError}</Text>}
+          {!prefs && !prefsError && <ActivityIndicator />}
+          {prefs &&
+            PREF_KEYS.map(([key, label]) => (
+              <View key={key} style={styles.prefRow}>
+                <Text style={styles.value}>{t(label)}</Text>
+                <Switch
+                  value={!!prefs[key]}
+                  onValueChange={(v) => togglePref(key, v)}
+                />
+              </View>
+            ))}
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  prefRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

@@ -26,6 +26,7 @@ export default function RootLayout() {
               <Stack.Screen name="dashboard" />
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(extra)" />
+              <Stack.Screen name="incident/[id]" />
               <Stack.Screen name="+not-found" />
             </Stack>
           </RouteGuard>

@@ -1,545 +1,307 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   FlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import api, { fetchMyRewardsSummary } from "@/services/api";
-import { RefreshControl } from "react-native-gesture-handler";
-import * as Location from "expo-location";
+import { router } from "expo-router";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Chip } from "@/components/Chip";
+import { SEVERITY_COLORS, STATUS_COLORS } from "@/constants/incidentUi";
+import { fetchMyRewardsSummary } from "@/services/api";
+import {
+  INCIDENT_TYPES,
+  Incident,
+  IncidentStatus,
+  IncidentType,
+  fetchIncidents,
+} from "@/services/incidentApi";
 
-interface UserIncident {
-  id: string;
-  description: string;
-  type: IncidentType;
-  severity: IncidentSeverity;
-  status: "pending" | "investigating" | "resolved" | "closed";
-  manualAddress?: string;
-  geoLatitude?: number;
-  geoLongitude?: number;
-  createdAt: string;
-  updatedAt: string;
-}
+const PAGE_SIZE = 15;
 
-enum IncidentType {
-  SAFETY = "safety",
-  SECURITY = "security",
-  HR_VIOLATION = "hr_violation",
-}
+type StatusFilter = IncidentStatus | "all";
+type Period = "7" | "30" | "all";
 
-enum IncidentSeverity {
-  LOW = "low",
-  MEDIUM = "medium",
-  HIGH = "high",
-  CRITICAL = "critical",
-}
+const STATUS_CHIPS: { value: StatusFilter; key: "all" | "statusPending" | "statusInProgress" | "statusResolvedPlural" | "statusClosedPlural" }[] = [
+  { value: "all", key: "all" },
+  { value: "open", key: "statusPending" },
+  { value: "investigating", key: "statusInProgress" },
+  { value: "resolved", key: "statusResolvedPlural" },
+  { value: "closed", key: "statusClosedPlural" },
+];
 
-const GetIncidents = () => {
-  const [userIncidents, setUserIncidents] = useState<UserIncident[]>([]);
-  const [isLoadingIncidents, setIsLoadingIncidents] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredIncidents, setFilteredIncidents] = useState<UserIncident[]>(
-    []
-  );
+export default function IncidentsListScreen() {
+  const { t, isRTL, currentLanguage } = useLanguage();
+
+  const [items, setItems] = useState<Incident[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
-  const [totalPoints, setTotalPoints] = useState<number>(0);
-  const [addressCache, setAddressCache] = useState<Record<string, string>>({});
-  const formatAddress = (a: Location.LocationGeocodedAddress) => {
-    const parts = [
-      a.name || a.street,
-      a.city,
-      a.region,
-      a.postalCode,
-      a.country,
-    ].filter(Boolean);
-    return parts.join(", ");
-  };
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [type, setType] = useState<IncidentType | "all">("all");
+  const [period, setPeriod] = useState<Period>("all");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
+  const [points, setPoints] = useState<number | null>(null);
+  const requestSeq = useRef(0);
+
+  // debounce search
   useEffect(() => {
-    const loadAddresses = async () => {
-      const toFetch = userIncidents.filter(
-        (i) =>
-          i.geoLatitude &&
-          i.geoLongitude &&
-          !i.manualAddress &&
-          !addressCache[i.id]
-      );
+    const id = setTimeout(() => setSearch(searchInput.trim()), 400);
+    return () => clearTimeout(id);
+  }, [searchInput]);
 
-      for (const incident of toFetch) {
-        try {
-          const res = await Location.reverseGeocodeAsync({
-            latitude: incident.geoLatitude as number,
-            longitude: incident.geoLongitude as number,
-          });
-          const addr =
-            res && res[0]
-              ? formatAddress(res[0])
-              : `${incident.geoLatitude?.toFixed(6)}, ${incident.geoLongitude?.toFixed(6)}`;
-
-          setAddressCache((prev) => ({ ...prev, [incident.id]: addr }));
-        } catch {
-          // silent fail; keep coordinates if reverse geocode fails
-        }
-      }
-    };
-
-    loadAddresses();
-  }, [userIncidents]);
-  useEffect(() => {
-    const loadRewards = async () => {
+  const load = useCallback(
+    async (targetPage: number, mode: "replace" | "append") => {
+      const seq = ++requestSeq.current;
       try {
-        const summary = await fetchMyRewardsSummary();
-        if (summary && typeof summary.totalPoints === "number") {
-          setTotalPoints(summary.totalPoints);
+        const from =
+          period === "all"
+            ? undefined
+            : new Date(Date.now() - Number(period) * 86400000).toISOString();
+        const res = await fetchIncidents({
+          page: targetPage,
+          limit: PAGE_SIZE,
+          status: status === "all" ? undefined : status,
+          type: type === "all" ? undefined : type,
+          from,
+          search: search || undefined,
+        });
+        if (seq !== requestSeq.current) return; // stale response
+        setItems((cur) => (mode === "append" ? [...cur, ...res.data] : res.data));
+        setTotal(res.total);
+        setPage(targetPage);
+        setError(false);
+      } catch {
+        if (seq === requestSeq.current) setError(true);
+      } finally {
+        if (seq === requestSeq.current) {
+          setLoading(false);
+          setLoadingMore(false);
+          setRefreshing(false);
         }
-      } catch (e) {
-        // silent fail for UI
       }
-    };
+    },
+    [status, type, period, search]
+  );
 
-    loadRewards();
-    fetchUserIncidents();
+  useEffect(() => {
+    setLoading(true);
+    load(1, "replace");
+  }, [load]);
+
+  const loadPoints = useCallback(async () => {
+    try {
+      const s = await fetchMyRewardsSummary();
+      if (typeof s?.totalPoints === "number") setPoints(s.totalPoints);
+    } catch {
+      // points card is optional: do not block the list
+    }
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredIncidents(userIncidents);
-    } else {
-      const filtered = userIncidents.filter(
-        (incident) =>
-          incident.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          incident.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          incident.severity.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          incident.status.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (incident.manualAddress &&
-            incident.manualAddress
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()))
-      );
-      setFilteredIncidents(filtered);
-    }
-  }, [searchQuery, userIncidents]);
+    loadPoints();
+  }, [loadPoints]);
 
-  const fetchUserIncidents = async () => {
-    try {
-      setIsLoadingIncidents(true);
-      const response = await api.get("/incidents");
-
-      if (response.data && Array.isArray(response.data)) {
-        setUserIncidents(response.data);
-        setFilteredIncidents(response.data);
-      } else {
-        console.warn("Unexpected response format:", response.data);
-        setUserIncidents([]);
-        setFilteredIncidents([]);
-      }
-    } catch (error: any) {
-      console.error("Error fetching incidents:", error);
-      setUserIncidents([]);
-      setFilteredIncidents([]);
-    } finally {
-      setIsLoadingIncidents(false);
-    }
-  };
-
-  const onRefresh = async () => {
+  const onRefresh = () => {
     setRefreshing(true);
-    await fetchUserIncidents();
-    setRefreshing(false);
+    load(1, "replace");
+    loadPoints();
   };
 
-  const getTypeLabel = (type: IncidentType) => {
-    switch (type) {
-      case IncidentType.SAFETY:
-        return "Safety";
-      case IncidentType.SECURITY:
-        return "Security";
-      case IncidentType.HR_VIOLATION:
-        return "HR Violation";
-      default:
-        return "Unknown";
-    }
+  const onEndReached = () => {
+    if (loading || loadingMore || error || items.length >= total) return;
+    setLoadingMore(true);
+    load(page + 1, "append");
   };
 
-  const getSeverityLabel = (severity: IncidentSeverity) => {
-    switch (severity) {
-      case IncidentSeverity.LOW:
-        return "Low";
-      case IncidentSeverity.MEDIUM:
-        return "Medium";
-      case IncidentSeverity.HIGH:
-        return "High";
-      case IncidentSeverity.CRITICAL:
-        return "Critical";
-      default:
-        return "Normal";
-    }
-  };
+  const locale = currentLanguage === "ar-DZ" ? "ar-DZ" : currentLanguage;
+  const dir = { direction: isRTL ? ("rtl" as const) : ("ltr" as const) };
 
-  const getSeverityColor = (severity: IncidentSeverity) => {
-    switch (severity) {
-      case IncidentSeverity.LOW:
-        return "#10B981";
-      case IncidentSeverity.MEDIUM:
-        return "#F59E0B";
-      case IncidentSeverity.HIGH:
-        return "#EF4444";
-      case IncidentSeverity.CRITICAL:
-        return "#DC2626";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "#F59E0B";
-      case "investigating":
-        return "#3B82F6";
-      case "resolved":
-        return "#10B981";
-      case "closed":
-        return "#6B7280";
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return (
-        date.toLocaleDateString() +
-        " " +
-        date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      );
-    } catch (error) {
-      return "Invalid Date";
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-  };
-
-  const renderIncidentItem = ({ item }: { item: UserIncident }) => (
-    <View style={styles.incidentCard}>
-      <View style={styles.incidentHeader}>
-        <Text style={styles.incidentType}>{getTypeLabel(item.type)}</Text>
-        <View style={styles.badgeContainer}>
-          <View
-            style={[
-              styles.severityBadge,
-              { backgroundColor: getSeverityColor(item.severity) },
-            ]}
-          >
-            <Text style={styles.severityText}>
-              {getSeverityLabel(item.severity)}
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(item.status) },
-            ]}
-          >
-            <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
-          </View>
+  const renderItem = ({ item }: { item: Incident }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        router.push({ pathname: "/incident/[id]", params: { id: String(item.id) } })
+      }
+    >
+      <View style={styles.cardHeader}>
+        <Text style={styles.code}>{item.incidentId}</Text>
+        <Text style={styles.date}>
+          {new Date(item.timestamp ?? item.createdAt).toLocaleDateString(locale)}
+        </Text>
+      </View>
+      <Text style={styles.cardTitle}>{t(`type_${item.type}` as const)}</Text>
+      {!!item.description && (
+        <Text style={styles.desc} numberOfLines={2}>
+          {item.description}
+        </Text>
+      )}
+      <View style={styles.badges}>
+        <View style={[styles.badge, { backgroundColor: SEVERITY_COLORS[item.severity] }]}>
+          <Text style={styles.badgeText}>{t(`severity_${item.severity}` as const)}</Text>
         </View>
+        <View style={[styles.badge, { backgroundColor: STATUS_COLORS[item.status] }]}>
+          <Text style={styles.badgeText}>{t(`status_${item.status}` as const)}</Text>
+        </View>
+        {!!item.media?.length && (
+          <Text style={styles.mediaCount}>{item.media.length} 📎</Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+
+  const header = (
+    <View>
+      <View style={styles.pointsCard}>
+        <Text style={styles.pointsLabel}>{t("points")}</Text>
+        <Text style={styles.pointsValue}>
+          {points ?? "-"} {t("pts")}
+        </Text>
       </View>
 
-      <Text style={styles.incidentDescription} numberOfLines={3}>
-        {item.description}
-      </Text>
+      <TextInput
+        style={[styles.search, { textAlign: isRTL ? "right" : "left" }]}
+        value={searchInput}
+        onChangeText={setSearchInput}
+        placeholder={t("searchIncidents")}
+        returnKeyType="search"
+      />
 
-      {item.manualAddress ? (
-        <Text style={styles.incidentLocation}>📍 {item.manualAddress}</Text>
-      ) : addressCache[item.id] ? (
-        <Text style={styles.incidentLocation}>📍 {addressCache[item.id]}</Text>
-      ) : null}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
+        {STATUS_CHIPS.map((c) => (
+          <Chip
+            key={c.value}
+            label={t(c.key)}
+            selected={status === c.value}
+            color={c.value === "all" ? "#2563EB" : STATUS_COLORS[c.value as IncidentStatus]}
+            onPress={() => setStatus(c.value)}
+          />
+        ))}
+      </ScrollView>
 
-      {/* {item.geoLatitude && item.geoLongitude && (
-        <Text style={styles.incidentCoordinates}>
-          🌍 {item.geoLatitude.toFixed(6)}, {item.geoLongitude.toFixed(6)}
-        </Text>
-      )} */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
+        <Chip label={t("all")} selected={type === "all"} onPress={() => setType("all")} />
+        {INCIDENT_TYPES.map((v) => (
+          <Chip
+            key={v}
+            label={t(`type_${v}` as const)}
+            selected={type === v}
+            onPress={() => setType(v)}
+          />
+        ))}
+      </ScrollView>
 
-      <View style={styles.incidentFooter}>
-        <Text style={styles.incidentDate}>
-          Created: {formatDate(item.createdAt)}
-        </Text>
-        {item.updatedAt !== item.createdAt && (
-          <Text style={styles.incidentDate}>
-            Updated: {formatDate(item.updatedAt)}
-          </Text>
-        )}
+      <View style={styles.periodRow}>
+        <Text style={styles.periodLabel}>{t("period")}:</Text>
+        <Chip label={t("period7")} selected={period === "7"} onPress={() => setPeriod("7")} />
+        <Chip label={t("period30")} selected={period === "30"} onPress={() => setPeriod("30")} />
+        <Chip label={t("periodAll")} selected={period === "all"} onPress={() => setPeriod("all")} />
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>PROSAFE</Text>
-            <Text style={styles.logoSubtext}>RECENT INCIDENTS</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Rewards Summary */}
-      <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-        <View
-          style={{
-            backgroundColor: "#F3F4F6",
-            borderRadius: 12,
-            padding: 12,
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ fontSize: 16, fontWeight: "600", color: "#111827" }}>
-            Points
-          </Text>
-          <Text style={{ fontSize: 16, fontWeight: "700", color: "#DC2626" }}>
-            {totalPoints} pts
-          </Text>
-        </View>
-      </View>
-
-      {/* Search */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#6B7280"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search incidents..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#9CA3AF"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#6B7280" />
+    <View style={[styles.container, dir]}>
+      <Text style={styles.title}>{t("myIncidents")}</Text>
+      <FlatList
+        data={items}
+        keyExtractor={(i) => String(i.id)}
+        renderItem={renderItem}
+        ListHeaderComponent={header}
+        contentContainerStyle={styles.list}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.4}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={
+          loading ? (
+            <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
+          ) : error ? (
+            <View style={styles.center}>
+              <Text style={styles.errorText}>{t("loadFailed")}</Text>
+              <TouchableOpacity onPress={() => { setLoading(true); load(1, "replace"); }}>
+                <Text style={styles.link}>{t("retry")}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Text style={[styles.center, styles.emptyText]}>{t("noIncidents")}</Text>
+          )
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator style={{ margin: 16 }} color="#2563EB" />
+          ) : items.length > 0 && items.length < total ? (
+            <TouchableOpacity onPress={onEndReached}>
+              <Text style={[styles.link, { textAlign: "center", margin: 16 }]}>{t("loadMore")}</Text>
             </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Incidents List */}
-      <View style={styles.incidentsContainer}>
-        <Text style={styles.sectionTitle}>
-          My Incidents ({filteredIncidents.length})
-        </Text>
-
-        {isLoadingIncidents ? (
-          <ActivityIndicator
-            size="large"
-            color="#DC2626"
-            style={styles.loader}
-          />
-        ) : (
-          <FlatList
-            data={filteredIncidents}
-            renderItem={renderIncidentItem}
-            keyExtractor={(item) => item.id}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={
-              <Text style={styles.noIncidents}>
-                {searchQuery
-                  ? "No incidents match your search."
-                  : "No incidents found."}
-              </Text>
-            }
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-      </View>
+          ) : null
+        }
+      />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  header: {
-    backgroundColor: "#FFFFFF",
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1F2937",
-    letterSpacing: 2,
-  },
-  logoSubtext: {
-    fontSize: 10,
-    color: "#6B7280",
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  searchContainer: {
-    backgroundColor: "#FFFFFF",
+  container: { flex: 1, backgroundColor: "#F5F5F5", paddingTop: 50 },
+  title: { fontSize: 22, fontWeight: "bold", color: "#1F2937", paddingHorizontal: 16, marginBottom: 8 },
+  list: { paddingHorizontal: 16, paddingBottom: 40 },
+  pointsCard: {
+    backgroundColor: "#16A34A",
+    borderRadius: 12,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  searchInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    color: "#1F2937",
-  },
-  clearButton: {
-    padding: 4,
-  },
-  incidentsContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#1F2937",
-    marginBottom: 16,
-  },
-  loader: {
-    marginVertical: 20,
-  },
-  incidentCard: {
-    backgroundColor: "#FFFFFF",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  incidentHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  incidentType: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2937",
-    flex: 1,
+  pointsLabel: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  pointsValue: { color: "#FFFFFF", fontSize: 22, fontWeight: "bold" },
+  search: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 15,
+    marginBottom: 10,
   },
-  badgeContainer: {
-    flexDirection: "row",
-    gap: 8,
+  chipsRow: { flexGrow: 0, marginBottom: 2 },
+  periodRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", marginBottom: 8 },
+  periodLabel: { fontSize: 14, color: "#374151", marginRight: 8, marginBottom: 8 },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
   },
-  severityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  severityText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  incidentDescription: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  incidentLocation: {
-    fontSize: 12,
-    color: "#10B981",
-    marginBottom: 4,
-  },
-  incidentCoordinates: {
-    fontSize: 12,
-    color: "#3B82F6",
-    marginBottom: 4,
-  },
-  incidentFooter: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
-  },
-  incidentDate: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginBottom: 2,
-  },
-  noIncidents: {
-    textAlign: "center",
-    color: "#6B7280",
-    fontSize: 16,
-    marginVertical: 40,
-    fontStyle: "italic",
-  },
+  cardHeader: { flexDirection: "row", justifyContent: "space-between" },
+  code: { fontSize: 13, color: "#6B7280", fontWeight: "600" },
+  date: { fontSize: 13, color: "#6B7280" },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#111827", marginTop: 4 },
+  desc: { fontSize: 14, color: "#4B5563", marginTop: 4 },
+  badges: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 },
+  badge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
+  mediaCount: { fontSize: 12, color: "#6B7280" },
+  center: { alignItems: "center", marginTop: 40 },
+  emptyText: { color: "#6B7280", fontSize: 15, textAlign: "center" },
+  errorText: { color: "#DC2626", fontSize: 15, marginBottom: 8 },
+  link: { color: "#2563EB", fontSize: 15, fontWeight: "600" },
 });
-
-export default GetIncidents;

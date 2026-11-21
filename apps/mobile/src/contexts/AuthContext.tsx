@@ -7,6 +7,12 @@ import React, {
 } from "react";
 import api, { onUnauthorized } from "@/services/api";
 import { storage } from "@/services/storage";
+import {
+  configureNotificationHandler,
+  registerForPush,
+  subscribeToNotificationTaps,
+  unregisterFromPush,
+} from "@/services/push";
 import { Platform, ToastAndroid } from "react-native";
 
 interface User {
@@ -68,6 +74,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     });
   }, []);
+
+  // Push notifications: register the device once authenticated (no-op on web)
+  useEffect(() => {
+    configureNotificationHandler();
+    if (!isAuthenticated) return;
+    registerForPush();
+    return subscribeToNotificationTaps();
+  }, [isAuthenticated]);
 
   const checkAuthStatus = async () => {
     try {
@@ -300,6 +314,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       setIsLoading(true);
+
+      // Unregister the push token while the bearer token is still available
+      if (isAuthenticated) await unregisterFromPush();
 
       // Clear stored data
       await storage.clear();

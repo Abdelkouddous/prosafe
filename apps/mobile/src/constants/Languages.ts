@@ -1,3 +1,8 @@
+import {
+  INCIDENT_TRANSLATIONS,
+  IncidentTranslationKey,
+} from "./IncidentTranslations";
+
 export interface Language {
   code: string;
   name: string;
@@ -43,7 +48,8 @@ export type TranslationKey =
   | "accountBlocked"
   | "adminDashboard"
   | "pageNotFound"
-  | "goHome";
+  | "goHome"
+  | IncidentTranslationKey;
 
 export const LANGUAGES: Language[] = [
   {
@@ -69,7 +75,7 @@ export const LANGUAGES: Language[] = [
   },
 ];
 
-export const TRANSLATIONS = {
+const BASE_TRANSLATIONS = {
   "ar-DZ": {
     // App
     prosafe: "بروسيف",
@@ -219,3 +225,9 @@ export const TRANSLATIONS = {
     goHome: "Back to home",
   },
 };
+
+export const TRANSLATIONS = {
+  "ar-DZ": { ...BASE_TRANSLATIONS["ar-DZ"], ...INCIDENT_TRANSLATIONS["ar-DZ"] },
+  fr: { ...BASE_TRANSLATIONS.fr, ...INCIDENT_TRANSLATIONS.fr },
+  en: { ...BASE_TRANSLATIONS.en, ...INCIDENT_TRANSLATIONS.en },
+} as Record<LanguageCode, Record<TranslationKey, string>>;
