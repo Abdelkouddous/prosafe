@@ -49,6 +49,34 @@ openssl rsa -in private.pem -pubout -out public.pem
 | `pnpm test` / `pnpm test:cov` | Unit tests (mocked repositories) |
 | `pnpm test:e2e` | E2E tests, need PostgreSQL; use the `prosafe_test` database (override with `POSTGRES_DB_TEST`) |
 | `pnpm lint` / `pnpm format` | ESLint / Prettier |
+| `pnpm seed` | Load the demo dataset (see [Demo data](#demo-data)) |
+
+## Demo data
+
+`pnpm seed` fills the database configured in `.env` with a realistic demo site (industrial plant in Tébessa, French content):
+9 users, ~40 incidents over the last 12 months (history, evaluations, corrective actions, rewards), 25 equipment items
+with maintenance plan, 5 trainings with sessions / enrollments / certificates, 12 risks with action plans, 3 LMRA records,
+2 audits (one scored on the ISO 45001 template), 2 compliance documents (placeholder PDFs in `UPLOADS_DIR`), 2 drills,
+a conversation, announcements, feedback and notifications. There is no active emergency event.
+
+```bash
+pnpm migration:run   # the seed also runs pending migrations
+pnpm seed
+```
+
+The seed is skipped when the marker user `admin@prosafe.demo` already exists (to re-seed, empty the database first,
+e.g. `pnpm drop:database && pnpm migration:run`). It refuses to run with `NODE_ENV=production` unless `--force` is passed
+(`pnpm seed -- --force`).
+
+All accounts use the password **`Prosafe2026!`**:
+
+| Role | Email |
+|---|---|
+| `admin` | `admin@prosafe.demo` |
+| `sst_manager` | `salima.ouali@prosafe.demo`, `mourad.kaci@prosafe.demo` |
+| `employee` | `karim.benali@prosafe.demo` (Production, Atelier A), `amina.boudiaf@prosafe.demo` (Production, Atelier B), `yacine.messaoudi@prosafe.demo` (Maintenance, Atelier A), `sofiane.hamdi@prosafe.demo` (Logistique, Entrepôt), `nadia.cherif@prosafe.demo` (Administration, Bureaux), `rachid.taleb@prosafe.demo` (Maintenance, Atelier B) |
+
+> **Warning: demo data only. Never run the seed against a production database; the accounts above have a publicly documented password.**
 
 ## Roles
 

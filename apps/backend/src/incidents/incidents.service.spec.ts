@@ -136,6 +136,16 @@ describe('IncidentsService', () => {
       expect(notifications.notifyUsers.mock.calls[0][1].data).toMatchObject({ rejected: true, pointsRevoked: 15 });
     });
 
+    it('persists rejected=true on close and resets it when the status leaves closed/rejected', async () => {
+      repo.findOne.mockResolvedValue(incident(IncidentStatus.OPEN));
+      const closed: any = await service.updateStatus('INC-1', { status: IncidentStatus.CLOSED, rejected: true }, 9);
+      expect(closed.rejected).toBe(true);
+      const stale: any = { ...incident(IncidentStatus.RESOLVED), rejected: true };
+      repo.findOne.mockResolvedValue(stale);
+      const reopened: any = await service.updateStatus('INC-1', { status: IncidentStatus.INVESTIGATING }, 9);
+      expect(reopened.rejected).toBe(false);
+    });
+
     it('does not revoke on a plain close', async () => {
       repo.findOne.mockResolvedValue(incident(IncidentStatus.OPEN));
       await service.updateStatus('INC-1', { status: IncidentStatus.CLOSED }, 9);

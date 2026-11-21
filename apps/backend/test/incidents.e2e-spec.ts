@@ -210,6 +210,9 @@ describe('Incidents, files and rewards (e2e)', () => {
         .send({ status: 'closed', rejected: true, comment: 'Faux signalement' })
         .expect(200);
       expect(res.body.status).toBe('closed');
+      expect(res.body.rejected).toBe(true);
+      const detail = await http().get(`/api/incidents/${b1.id}`).set(auth(u.manager)).expect(200);
+      expect(detail.body.rejected).toBe(true);
       const after = await http().get('/api/rewards/me/summary').set(auth(u.empB)).expect(200);
       expect(after.body.totalPoints).toBe(0);
       // the other employee keeps their points

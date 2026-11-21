@@ -86,6 +86,10 @@ export class Incident {
   @JoinColumn({ name: 'resolvedBy' })
   resolver: User;
 
+  /** True when the report was closed as rejected (reward points revoked). Reset when reopened. */
+  @Column({ type: 'boolean', default: false })
+  rejected: boolean;
+
   // ---- Manager evaluation (A4) ----
   /** 1-5 */
   @Column({ type: 'int', nullable: true })
