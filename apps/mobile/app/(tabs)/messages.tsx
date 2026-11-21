@@ -13,8 +13,8 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { fetchMyMessages, fetchMyUser } from "../services/api";
-import { useAuth } from "../contexts/AuthContext";
+import { fetchMyMessages, fetchMyUser } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const { width } = Dimensions.get("window");
 

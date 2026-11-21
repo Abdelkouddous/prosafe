@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import { StyleSheet } from "react-native";
-import { useColorScheme } from "../../hooks/useColorScheme";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function TabBarBackground() {
   const colorScheme = useColorScheme();

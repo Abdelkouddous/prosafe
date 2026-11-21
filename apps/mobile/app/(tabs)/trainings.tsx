@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { trainingApi, Training } from "../services/trainingApi";
+import { trainingApi, Training } from "@/services/trainingApi";
 
 export default function TrainingsScreen() {
   const [trainings, setTrainings] = useState<Training[]>([]);

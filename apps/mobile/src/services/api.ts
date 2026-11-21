@@ -1,6 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Platform } from "react-native";
+import { storage } from "./storage";
 
 // Platform-specific API URL logic
 const getApiUrl = () => {
@@ -23,16 +23,26 @@ const getApiUrl = () => {
 
 export const API_BASE_URL = getApiUrl();
 
+// Listeners notified when the API answers 401 (session expired / invalid)
+type UnauthorizedListener = () => void;
+const unauthorizedListeners = new Set<UnauthorizedListener>();
+export const onUnauthorized = (listener: UnauthorizedListener) => {
+  unauthorizedListeners.add(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
+};
+
 // connect frontend to backend
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 5000,
+  timeout: 30000,
 });
 
 // Add a request interceptor to include the token in headers
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem("authToken");
+    const token = await storage.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -48,12 +58,12 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     // Handle 401 errors globally
-    if (error.response?.status === 401) {
-      // Clear stored data
-      await AsyncStorage.multiRemove(["authToken", "userData"]);
-      // Clear axios headers
+    // (the login endpoint itself returns 401 for bad credentials: ignore it)
+    const url: string = error.config?.url ?? "";
+    if (error.response?.status === 401 && !url.includes("/auth/login")) {
+      await storage.clear();
       delete api.defaults.headers.common["Authorization"];
-      // You might want to trigger navigation to login screen here
+      unauthorizedListeners.forEach((l) => l());
     }
     return Promise.reject(error);
   }

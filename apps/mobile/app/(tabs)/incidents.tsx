@@ -14,7 +14,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../services/api";
+import api from "@/services/api";
 
 // Enums matching backend
 enum IncidentType {
@@ -255,7 +255,7 @@ const CreateIncident = () => {
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>PROSAFE</Text>
-              <Text style={styles.logoSubtext}>NEW INCIDENT</Text>
+              <Text style={styles.logoSubtext}>Signaler un incident</Text>
             </View>
           </View>
         </View>

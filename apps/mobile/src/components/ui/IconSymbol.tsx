@@ -1,7 +1,7 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { SymbolWeight, SymbolView } from "expo-symbols";
+import { SymbolWeight, SymbolView, SymbolViewProps } from "expo-symbols";
 import React from "react";
-import { OpaqueColorValue, Platform, StyleProp, ViewStyle } from "react-native";
+import { OpaqueColorValue, Platform, StyleProp, TextStyle, ViewStyle } from "react-native";
 
 const MAPPING = {
   "camera.fill": "camera",
@@ -40,7 +40,7 @@ export function IconSymbol({
         weight={weight}
         // tintColor={color}
         resizeMode="scaleAspectFit"
-        name={name}
+        name={name as SymbolViewProps["name"]}
         style={[
           {
             width: size,
@@ -57,7 +57,12 @@ export function IconSymbol({
     }
 
     return (
-      <MaterialIcons color={color} size={size} name={iconName} style={style} />
+      <MaterialIcons
+        color={color}
+        size={size}
+        name={iconName}
+        style={style as StyleProp<TextStyle>}
+      />
     );
   }
 }
