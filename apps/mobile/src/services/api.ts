@@ -18,7 +18,7 @@ const getApiUrl = () => {
     }
   }
 
-  return "https://api.example.com"; // Production fallback
+  return "https://api.example.com/api"; // Production fallback (set EXPO_PUBLIC_API_URL)
 };
 
 export const API_BASE_URL = getApiUrl();

@@ -71,11 +71,11 @@ const Login = () => {
       });
       toast({
         title: "Registration Successful",
-        description: result?.message || "Your account has been created.",
+        description: result?.msg || "Your account has been created. An administrator must approve it before you can log in.",
       });
       navigate("/login");
     } catch (error: any) {
-      const msg = error?.response?.data?.message;
+      const msg = error?.response?.data?.msg ?? error?.response?.data?.message;
       toast({
         title: "Registration Failed",
         description:
