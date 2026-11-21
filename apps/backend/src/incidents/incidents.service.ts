@@ -161,6 +161,7 @@ export class IncidentsService {
     this.validateStatusTransition(previous, dto.status);
 
     incident.status = dto.status;
+    incident.rejected = dto.status === IncidentStatus.CLOSED && !!dto.rejected;
     if (dto.status === IncidentStatus.RESOLVED || dto.status === IncidentStatus.CLOSED) {
       incident.resolvedAt = new Date();
       incident.resolvedBy = userId;
