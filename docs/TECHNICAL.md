@@ -125,15 +125,15 @@ pnpm --filter backend start:dev                  # http://localhost:3000/api, do
 pnpm --filter admin dev                          # http://localhost:5173 (add it to CORS_ORIGINS)
 pnpm --filter mobile start                       # Expo (Android emulator uses http://10.0.2.2:3000/api)
 ```
-The first account registered becomes admin.
+The first account registered becomes admin. For a ready-made demo dataset run `pnpm --filter backend seed` (dev databases only).
 
 ## 7. Tests & quality
 ```bash
 pnpm --filter backend test        # unit tests (mocked repositories)
 pnpm --filter backend test:e2e    # API tests against PostgreSQL database prosafe_test
 pnpm --filter backend lint
-pnpm --filter admin build && pnpm --filter admin lint && pnpm --filter admin check-types
-cd apps/mobile && npx tsc --noEmit && pnpm lint && npx expo export --platform web
+pnpm --filter admin build && pnpm --filter admin lint && pnpm --filter admin check-types && pnpm --filter admin test
+cd apps/mobile && npx tsc --noEmit && pnpm lint && npx jest && npx expo export --platform web --clear
 ```
 
 ## 8. Deployment

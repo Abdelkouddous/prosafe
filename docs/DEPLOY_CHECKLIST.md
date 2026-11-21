@@ -25,11 +25,15 @@
 - [ ] `cd apps/mobile && eas init` (adds `extra.eas.projectId`, required for push).
 - [ ] Replace `REPLACE-ME` URLs in `eas.json` with `https://<backend>/api`.
 - [ ] `npx expo prebuild --clean` (applies `com.prosafe.app`, permissions, notification channels).
+- [ ] For local exports always pass `--clear` (`npx expo export --clear`): Metro caches inlined `EXPO_PUBLIC_*` values and can otherwise ship the placeholder API URL. EAS cloud builds start clean.
 - [ ] Push credentials: FCM (Android) / APNs (iOS) configured in EAS.
 - [ ] `eas build -p android --profile preview` → install APK, test: login, report incident with photo/video + GPS, receive push, emergency alert, trainings enrollment, messaging.
 - [ ] `eas build --profile production` and submit to the stores.
 
-## 4. Post-deployment
+## 4. Demo / acceptance environment (optional)
+- [ ] On a non-production database: `pnpm --filter backend seed` creates demo accounts (`admin@prosafe.demo`, SST managers, employees — password in `apps/backend/README.md`) and a year of realistic data for the client walkthrough. Never run it on production.
+
+## 5. Post-deployment
 - [ ] Create SST manager accounts, approve employees.
 - [ ] Fill equipment inventory, maintenance plan, training catalogue and sessions, risk catalogue, emergency scenario contacts and assembly points (seeded scenarios are generic).
 - [ ] Ask a native Arabic speaker to review the Arabic translations.
