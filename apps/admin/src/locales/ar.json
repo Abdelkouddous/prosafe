@@ -1,22 +1,33 @@
 {
   "navigation": {
-    "home": "بيت",
+    "home": "الرئيسية",
     "dashboard": "لوحة القيادة",
-    "inventory": "جرد",
-    "goToHome": "اذهب إلى المنزل",
+    "inventory": "المخزون",
+    "goToHome": "العودة إلى الرئيسية",
     "myProfile": "ملفي الشخصي",
     "settings": "إعدادات",
     "notifications": "إشعارات",
     "incidents": "الحوادث",
-    "training": "تمرين",
+    "training": "التكوين",
     "adminAccess": "وصول المسؤول",
-    "userManagement": "إدارة المستخدم",
+    "userManagement": "إدارة المستخدمين",
     "roleManagement": "إدارة الأدوار",
     "permissions": "أذونات",
     "logout": "تسجيل الخروج",
     "about": "عن",
     "services": "خدمات",
-    "contact": "اتصال"
+    "contact": "اتصال",
+    "equipment": "المعدات",
+    "trainings": "التكوينات",
+    "correctiveActions": "الإجراءات التصحيحية",
+    "alerts": "التنبيهات",
+    "reports": "التقارير",
+    "messages": "الرسائل",
+    "rewards": "المكافآت",
+    "risks": "المخاطر",
+    "audits": "التدقيق",
+    "emergency": "الطوارئ",
+    "feedback": "الآراء"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -84,7 +95,7 @@
   },
   "adminDashboard": {
     "welcome_back": "مرحباً بعودتك",
-    "dashboard_description": "إليك ما يحدث مع أمانك اليوم",
+    "dashboard_description": "إليك وضع الصحة والسلامة المهنية اليوم",
     "total_assets": "إجمالي الأصول",
     "active_threats": "التهديدات النشطة",
     "compliance_score": "نقاط الامتثال",
@@ -139,10 +150,13 @@
       "dashboard": "لوحة التحكم",
       "incidents": "الحوادث",
       "users": "المستخدمون",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "messages": "الرسائل",
+      "notificationSettings": "إعدادات الإشعارات",
+      "sendNotifications": "إرسال إعلانات"
     },
     "page_titles": {
-      "security_dashboard": "لوحة تحكم الأمان",
+      "security_dashboard": "لوحة قيادة الصحة والسلامة المهنية",
       "user_management": "إدارة المستخدمين",
       "incident_management": "إدارة الحوادث"
     },
@@ -185,7 +199,8 @@
     "email": "بريد إلكتروني",
     "role": "دور",
     "status": "حالة",
-    "lastLogin": "تسجيل الدخول"
+    "lastLogin": "تسجيل الدخول",
+    "select": "اختر مستخدماً"
   },
   "training": {
     "title": "تمرين",
@@ -198,10 +213,941 @@
   "incidents": {
     "title": "الحوادث",
     "report": "تقرير الحادث",
-    "severity": "خطورة",
-    "type": "يكتب",
-    "description": "وصف",
-    "status": "حالة",
-    "assignedTo": "تعيين ل"
+    "severity": "الخطورة",
+    "type": "النوع",
+    "description": "الوصف",
+    "status": "الحالة",
+    "assignedTo": "تعيين ل",
+    "managementTitle": "إدارة الحوادث",
+    "managementSubtitle": "مراجعة الحوادث المبلغ عنها وتصفيتها ومعالجتها",
+    "detail": "تفاصيل الحادث",
+    "loadError": "تعذر تحميل الحوادث",
+    "statusUpdated": "تم تحديث الحالة",
+    "statusUpdateError": "تعذر تحديث الحالة",
+    "notes": "ملاحظات",
+    "reporter": "المبلّغ",
+    "date": "التاريخ",
+    "zone": "المنطقة",
+    "department": "القسم",
+    "address": "العنوان",
+    "resolvedAt": "تاريخ الحل",
+    "media": "الصور والفيديوهات",
+    "location": "الموقع",
+    "history": "السجل",
+    "noHistory": "لا يوجد سجل بعد",
+    "changeStatus": "تغيير الحالة",
+    "noTransition": "لا يمكن إجراء أي انتقال آخر.",
+    "selectStatus": "الحالة الجديدة",
+    "comment": "تعليق (اختياري)",
+    "updateStatus": "تحديث الحالة",
+    "search": "بحث...",
+    "allStatuses": "كل الحالات",
+    "allTypes": "كل الأنواع",
+    "allSeverities": "كل درجات الخطورة",
+    "from": "من",
+    "to": "إلى",
+    "resetFilters": "إعادة تعيين المرشحات",
+    "map": "الخريطة",
+    "mapTitle": "{{count}} حادث بإحداثيات",
+    "openDetail": "فتح التفاصيل",
+    "id": "المعرّف",
+    "empty": "لا توجد حوادث",
+    "totalCount": "{{count}} حادث",
+    "statuses": {
+      "open": "قيد الانتظار",
+      "investigating": "قيد المعالجة",
+      "resolved": "تم الحل",
+      "closed": "مغلق"
+    },
+    "severities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    },
+    "types": {
+      "safety": "السلامة",
+      "security": "الأمن",
+      "hr_violation": "مخالفة الموارد البشرية",
+      "environment": "البيئة",
+      "near_miss": "حادث وشيك",
+      "equipment_failure": "عطل المعدات",
+      "other": "أخرى"
+    },
+    "reject": "رفض (إغلاق)",
+    "rejected": "تم رفض البلاغ وإغلاقه",
+    "rejectTitle": "رفض هذا البلاغ؟",
+    "rejectDescription": "سيتم إغلاق الحادث كمرفوض وسحب نقاط المكافأة الممنوحة للمبلّغ عنه. لا يمكن التراجع عن هذا الإجراء.",
+    "rejectConfirm": "رفض وإغلاق"
+  },
+  "incidentReport": {
+    "invalidLat": "خط العرض غير صالح (من -90 إلى 90).",
+    "invalidLng": "خط الطول غير صالح (من -180 إلى 180).",
+    "fileTypeInvalid": "{{name}}: نوع الملف غير مدعوم",
+    "fileTooLarge": "{{name}}: الملف كبير جدًا (الصور 10 ميغابايت، الفيديو 50 ميغابايت)",
+    "maxFiles": "الحد الأقصى {{count}} ملفات",
+    "notes": "ملاحظات إضافية",
+    "date": "التاريخ والوقت",
+    "zone": "المنطقة",
+    "department": "القسم",
+    "media": "صور / فيديوهات (اختياري)",
+    "mediaHelp": "حتى {{count}} ملفات: صور (10 ميغابايت كحد أقصى) أو فيديو mp4/mov (50 ميغابايت كحد أقصى)",
+    "addFiles": "إضافة ملفات"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تعيين الكل كمقروء",
+    "empty": "لا توجد إشعارات",
+    "settingsTitle": "إعدادات الإشعارات",
+    "settingsDesc": "اختر الإشعارات التي تتلقاها والقناة المستخدمة.",
+    "loadError": "تعذر تحميل التفضيلات",
+    "saved": "تم حفظ التفضيلات",
+    "saveError": "تعذر حفظ التفضيلات",
+    "save": "حفظ التفضيلات",
+    "saving": "جارٍ الحفظ...",
+    "prefs": {
+      "incidents": "الحوادث",
+      "incidentsDesc": "حوادث جديدة وتغييرات الحالة",
+      "trainings": "التدريبات",
+      "trainingsDesc": "الجلسات والتذكيرات وانتهاء الصلاحية",
+      "audits": "التدقيق",
+      "auditsDesc": "عمليات التدقيق المخططة والمنجزة",
+      "inventory": "المعدات",
+      "inventoryDesc": "الأعطال والفحوصات والمخزون",
+      "emergency": "الطوارئ",
+      "emergencyDesc": "تنبيهات الطوارئ",
+      "messages": "الرسائل",
+      "messagesDesc": "رسائل وإعلانات جديدة",
+      "push": "الإشعارات الفورية",
+      "pushDesc": "تلقي الإشعارات على هاتفك",
+      "email": "البريد الإلكتروني",
+      "emailDesc": "تلقي الإشعارات عبر البريد الإلكتروني"
+    }
+  },
+  "profile": {
+    "phone": "الهاتف",
+    "department": "القسم",
+    "zone": "المنطقة"
+  },
+  "common": {
+    "actions": "الإجراءات",
+    "totalCount": "{{count}} نتيجة",
+    "no": "لا",
+    "yes": "نعم",
+    "search": "بحث",
+    "error": "خطأ",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "loading": "جار التحميل...",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "date": "التاريخ",
+    "name": "الاسم"
+  },
+  "manager": {
+    "backToDashboard": "العودة إلى لوحة القيادة"
+  },
+  "equipment": {
+    "title": "المخزون",
+    "subtitle": "معدات السلامة والمخزون والحالة",
+    "nav": {
+      "inventory": "المخزون",
+      "maintenance": "الصيانة والفحوصات",
+      "history": "السجل"
+    },
+    "add": "إضافة معدات",
+    "edit": "تعديل المعدات",
+    "saved": "تم حفظ المعدات",
+    "deleted": "تم حذف المعدات",
+    "searchPlaceholder": "بحث بالاسم أو المرجع...",
+    "allCategories": "كل الفئات",
+    "allStatuses": "كل الحالات",
+    "allConditions": "كل الأوضاع",
+    "empty": "لا توجد معدات",
+    "min": "الحد الأدنى",
+    "increase": "زيادة المخزون",
+    "decrease": "تخفيض المخزون",
+    "expired": "منتهية الصلاحية",
+    "expiresIn": "خلال {{count}} يوم",
+    "deleteTitle": "حذف المعدات",
+    "deleteConfirm": "حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "stats": {
+      "total": "إجمالي المعدات",
+      "lowStock": "مخزون منخفض",
+      "outOfStock": "نفاد المخزون",
+      "nonFunctional": "معطلة",
+      "value": "قيمة المخزون"
+    },
+    "fields": {
+      "name": "الاسم",
+      "sku": "المرجع",
+      "description": "الوصف",
+      "category": "الفئة",
+      "status": "حالة المخزون",
+      "condition": "الحالة",
+      "quantity": "الكمية",
+      "min_stock_level": "الحد الأدنى للمخزون",
+      "price": "سعر الوحدة",
+      "expiryDate": "تاريخ الانتهاء",
+      "lastInspectionAt": "آخر فحص",
+      "nextInspectionAt": "الفحص القادم",
+      "supplier": "المورد",
+      "location": "الموقع"
+    },
+    "category": {
+      "ppe": "معدات الوقاية الشخصية",
+      "fire_extinguisher": "طفايات الحريق",
+      "first_aid": "الإسعافات الأولية",
+      "detection": "أجهزة الكشف",
+      "signage": "اللافتات",
+      "tools": "الأدوات",
+      "consumables": "المستهلكات",
+      "other": "أخرى"
+    },
+    "status": {
+      "active": "متوفر",
+      "inactive": "غير نشط",
+      "out_of_stock": "نفاد المخزون",
+      "discontinued": "متوقف",
+      "low_stock": "مخزون منخفض"
+    },
+    "condition": {
+      "functional": "يعمل",
+      "non_functional": "معطل"
+    },
+    "errors": {
+      "load": "تعذر تحميل المعدات",
+      "save": "تعذر حفظ المعدات",
+      "delete": "تعذر حذف المعدات",
+      "required": "الاسم والوصف مطلوبان"
+    }
+  },
+  "maintenance": {
+    "title": "الصيانة والفحوصات",
+    "subtitle": "الصيانة المبرمجة والمتأخرة مجمعة حسب الأسبوع",
+    "add": "برمجة صيانة",
+    "pickItem": "اختر المعدات",
+    "complete": "إنهاء",
+    "cancel": "إلغاء",
+    "empty": "لا توجد صيانة مبرمجة",
+    "created": "تمت برمجة الصيانة",
+    "completed": "تم إنهاء الصيانة",
+    "cancelled": "تم إلغاء الصيانة",
+    "overdueSection": "متأخرة ({{count}})",
+    "week": "أسبوع {{from}} إلى {{to}}",
+    "fields": {
+      "item": "المعدات",
+      "type": "النوع",
+      "scheduledAt": "التاريخ المبرمج",
+      "doneAt": "تاريخ الإنجاز",
+      "result": "النتيجة",
+      "notes": "ملاحظات",
+      "nextScheduledAt": "الصيانة القادمة (اختياري)"
+    },
+    "type": {
+      "inspection": "فحص",
+      "preventive": "وقائية",
+      "corrective": "تصحيحية"
+    },
+    "status": {
+      "planned": "مبرمجة",
+      "done": "منجزة",
+      "overdue": "متأخرة",
+      "cancelled": "ملغاة"
+    },
+    "result": {
+      "ok": "مطابق",
+      "issues": "تم رصد مشاكل",
+      "failed": "فشل"
+    },
+    "resultHint": {
+      "ok": "سيتم تعيين المعدات كصالحة للعمل.",
+      "issues": "حالة المعدات لن تتغير.",
+      "failed": "سيتم تعيين المعدات كمعطلة."
+    },
+    "errors": {
+      "load": "تعذر تحميل الصيانة",
+      "save": "تعذر حفظ الصيانة",
+      "required": "المعدات والتاريخ مطلوبان"
+    }
+  },
+  "history": {
+    "title": "سجل الصيانة",
+    "subtitle": "الصيانة والفحوصات المنجزة",
+    "allItems": "كل المعدات",
+    "from": "من",
+    "to": "إلى",
+    "performedBy": "أنجزها",
+    "empty": "لا توجد صيانة منجزة"
+  },
+  "trainings": {
+    "title": "فهرس التكوينات",
+    "subtitle": "التكوينات ومدة الصلاحية والأدوار المعنية",
+    "nav": {
+      "catalogue": "الفهرس",
+      "sessions": "الدورات",
+      "compliance": "مطابقة الكفاءات"
+    },
+    "add": "إضافة تكوين",
+    "edit": "تعديل التكوين",
+    "saved": "تم حفظ التكوين",
+    "deleted": "تم حذف التكوين",
+    "empty": "لا توجد تكوينات",
+    "searchPlaceholder": "بحث عن تكوين...",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "noExpiry": "بدون انتهاء",
+    "deleteTitle": "حذف التكوين",
+    "deleteConfirm": "حذف \"{{name}}\"؟",
+    "fields": {
+      "title": "العنوان",
+      "description": "الوصف",
+      "category": "الفئة",
+      "durationHours": "المدة (ساعة)",
+      "validityMonths": "الصلاحية (أشهر)",
+      "mandatoryForRoles": "إلزامي للأدوار",
+      "status": "الحالة"
+    },
+    "roles": {
+      "admin": "مدير",
+      "sst_manager": "مسؤول السلامة والصحة المهنية",
+      "employee": "موظف"
+    },
+    "errors": {
+      "load": "تعذر تحميل التكوينات",
+      "save": "تعذر حفظ التكوين",
+      "delete": "تعذر حذف التكوين",
+      "titleRequired": "العنوان مطلوب",
+      "hasEnrollments": "هذا التكوين لديه تسجيلات: قم بتعطيله بدل حذفه."
+    }
+  },
+  "sessions": {
+    "title": "الدورات",
+    "subtitle": "برمجة الدورات وإدارة التسجيلات",
+    "add": "إضافة دورة",
+    "edit": "تعديل الدورة",
+    "saved": "تم حفظ الدورة",
+    "deleted": "تم حذف الدورة",
+    "cancelled": "تم إلغاء الدورة",
+    "cancel": "إلغاء الدورة",
+    "empty": "لا توجد دورات",
+    "allTrainings": "كل التكوينات",
+    "allStatuses": "كل الحالات",
+    "pickTraining": "اختر تكوينا",
+    "unlimited": "غير محدودة",
+    "cancelTitle": "إلغاء الدورة",
+    "cancelConfirm": "سيتم تعيين الدورة كملغاة.",
+    "deleteTitle": "حذف الدورة",
+    "deleteConfirm": "حذف هذه الدورة؟",
+    "enrollments": "التسجيلات",
+    "pickUser": "اختر مشاركا",
+    "enroll": "تسجيل",
+    "enrolled": "تم تسجيل المشارك",
+    "noEnrollments": "لا يوجد مشاركون بعد",
+    "enrollmentSaved": "تم تحديث التسجيل",
+    "expiresAt": "صالح حتى {{date}}",
+    "fields": {
+      "training": "التكوين",
+      "startAt": "البداية",
+      "endAt": "النهاية",
+      "location": "المكان",
+      "trainer": "المكوّن",
+      "capacity": "السعة",
+      "enrolled": "المسجلون",
+      "status": "الحالة",
+      "score": "العلامة",
+      "progress": "التقدم (%)"
+    },
+    "status": {
+      "planned": "مبرمجة",
+      "ongoing": "جارية",
+      "completed": "منتهية",
+      "cancelled": "ملغاة"
+    },
+    "enrollmentStatus": {
+      "registered": "مسجل",
+      "attended": "حاضر",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "cancelled": "ملغى"
+    },
+    "errors": {
+      "load": "تعذر تحميل الدورات",
+      "save": "تعذر الحفظ",
+      "delete": "تعذر حذف الدورة",
+      "required": "التكوين وتاريخ البداية مطلوبان",
+      "hasEnrollments": "هذه الدورة لديها تسجيلات: قم بإلغائها بدل حذفها.",
+      "loadEnrollments": "تعذر تحميل التسجيلات",
+      "loadUsers": "تعذر تحميل المستخدمين",
+      "enroll": "تعذر تسجيل المشارك"
+    }
+  },
+  "compliance": {
+    "title": "مطابقة الكفاءات",
+    "subtitle": "التكوينات الإلزامية لكل موظف",
+    "autoPlan": "برمجة تلقائية",
+    "rate": "نسبة المطابقة",
+    "compliantUsers": "الموظفون المطابقون",
+    "acquired": "مكتسبة",
+    "expiring": "قيد الانتهاء",
+    "missing": "ناقصة",
+    "expired": "منتهية",
+    "user": "الموظف",
+    "department": "القسم",
+    "departmentFilter": "تصفية حسب القسم",
+    "empty": "لا توجد بيانات",
+    "previewTitle": "البرمجة التلقائية (معاينة)",
+    "previewDesc": "{{count}} موظف لا يملكون كل التكوينات الإلزامية السارية وسيتم إشعارهم.",
+    "previewNone": "كل الموظفين مطابقون.",
+    "nextSession": "الدورة القادمة {{date}}",
+    "noSession": "لا توجد دورة مبرمجة",
+    "confirmNotify": "تأكيد وإشعار",
+    "planDone": "تم إشعار {{count}} موظف",
+    "errors": {
+      "load": "تعذر تحميل التقرير",
+      "plan": "تعذر تشغيل البرمجة التلقائية"
+    }
+  },
+  "overview": {
+    "loadError": "تعذر تحميل بيانات لوحة القيادة",
+    "noZone": "بدون منطقة",
+    "noData": "لا توجد بيانات لهذه الفترة",
+    "recent": "أحدث الحوادث",
+    "viewAll": "عرض الكل",
+    "quick": {
+      "report": "الإبلاغ عن حادث",
+      "risks": "المخاطر",
+      "reports": "التقارير"
+    },
+    "kpi": {
+      "total": "إجمالي الحوادث",
+      "open": "مفتوحة",
+      "investigating": "قيد التحقيق",
+      "resolved": "تمت المعالجة",
+      "criticalOpen": "حرجة مفتوحة",
+      "activeAlerts": "التنبيهات النشطة",
+      "meanResolution": "متوسط مدة المعالجة",
+      "actionsOverdue": "إجراءات تصحيحية متأخرة",
+      "equipmentCompliance": "مطابقة المعدات",
+      "trainingCompliance": "مطابقة التكوينات",
+      "lowStock": "مواد منخفضة المخزون",
+      "overdueMaintenance": "صيانة متأخرة",
+      "expiringTrainings": "تكوينات قاربت على الانتهاء",
+      "auditCompliance": "الامتثال في التدقيق"
+    },
+    "charts": {
+      "perMonth": "الحوادث حسب الشهر",
+      "byType": "الحوادث حسب النوع",
+      "byZone": "الحوادث حسب المنطقة",
+      "byStatus": "الحوادث حسب الحالة"
+    }
+  },
+  "reports": {
+    "title": "التقارير والتحليلات",
+    "subtitle": "اتجاهات الحوادث ومؤشرات الأداء والتوقعات والتصدير",
+    "loadError": "تعذر تحميل الإحصائيات",
+    "unavailable": "التقرير غير متاح بعد",
+    "downloadError": "فشل التنزيل",
+    "presets": {
+      "30d": "30 يوماً",
+      "90d": "90 يوماً",
+      "12m": "12 شهراً",
+      "year": "هذه السنة",
+      "custom": "مخصص"
+    },
+    "allDepartments": "كل الأقسام",
+    "filtersNote": "تنطبق الفترة على الرسوم البيانية والتصدير؛ أما النوع والقسم فينطبقان على التصدير.",
+    "download": "تنزيل التقارير",
+    "phase4Note": "ستتوفر تقارير المخاطر والتدقيق مع الوحدات الخاصة بها.",
+    "kinds": {
+      "incidents": "الحوادث",
+      "equipment": "المعدات",
+      "trainings": "التكوينات",
+      "risks": "المخاطر",
+      "audits": "التدقيق"
+    },
+    "kpi": {
+      "incidents": "الحوادث في الفترة"
+    },
+    "charts": {
+      "trend": "الاتجاه الشهري والتوقعات",
+      "actual": "الفعلي",
+      "forecast": "التوقع",
+      "bySeverity": "حسب الخطورة"
+    },
+    "methods": {
+      "linear_regression": "الانحدار الخطي",
+      "moving_average": "المتوسط المتحرك"
+    }
+  },
+  "evaluation": {
+    "title": "التقييم",
+    "score": "درجة الخطر",
+    "levels": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "critical": "حرج"
+    },
+    "by": "قيّمه {{name}} بتاريخ {{date}}",
+    "gravity": "الخطورة (1-5)",
+    "probability": "الاحتمال (1-5)",
+    "computed": "درجة الخطر:",
+    "rootCause": "السبب الجذري",
+    "evaluatedSeverity": "الخطورة المقيّمة",
+    "keepReported": "الإبقاء على الخطورة المصرّح بها",
+    "save": "حفظ التقييم",
+    "saved": "تم حفظ التقييم",
+    "saveError": "تعذر حفظ التقييم"
+  },
+  "actions": {
+    "title": "الإجراءات التصحيحية",
+    "add": "إضافة",
+    "titlePlaceholder": "عنوان الإجراء",
+    "description": "الوصف",
+    "owner": "المسؤول",
+    "dueDate": "تاريخ الاستحقاق",
+    "due": "الاستحقاق",
+    "overdue": "متأخر",
+    "unassigned": "غير مسند",
+    "empty": "لا توجد إجراءات تصحيحية",
+    "created": "تم إنشاء الإجراء التصحيحي",
+    "saveError": "تعذر حفظ الإجراء التصحيحي",
+    "loadError": "تعذر تحميل الإجراءات التصحيحية",
+    "statuses": {
+      "todo": "للإنجاز",
+      "in_progress": "قيد التنفيذ",
+      "done": "منجز",
+      "cancelled": "ملغى"
+    },
+    "pageTitle": "الإجراءات التصحيحية",
+    "pageSubtitle": "متابعة الإجراءات الناتجة عن الحوادث والمخاطر والتدقيق",
+    "source": "المصدر",
+    "allSources": "كل المصادر",
+    "allOwners": "كل المسؤولين",
+    "sources": {
+      "incident": "حادث",
+      "risk": "خطر",
+      "audit": "تدقيق"
+    },
+    "confirmDelete": "حذف هذا الإجراء التصحيحي؟"
+  },
+  "messaging": {
+    "title": "المراسلة",
+    "subtitle": "المحادثات مع الموظفين ومسؤولي السلامة والصحة المهنية",
+    "new": "محادثة جديدة",
+    "empty": "لا توجد محادثات",
+    "select": "اختر محادثة",
+    "placeholder": "اكتب رسالة...",
+    "send": "إرسال",
+    "system": "النظام",
+    "loadError": "تعذر تحميل الرسائل",
+    "sendError": "تعذر إرسال الرسالة",
+    "createError": "تعذر إنشاء المحادثة",
+    "recipient": "المستلم",
+    "subject": "الموضوع",
+    "message": "الرسالة"
+  },
+  "rewards": {
+    "title": "المكافآت",
+    "subtitle": "ترتيب المبلّغين عن الحوادث",
+    "periods": {
+      "month": "هذا الشهر",
+      "year": "هذه السنة",
+      "all": "منذ البداية"
+    },
+    "rank": "الترتيب",
+    "badge": "الشارة",
+    "points": "النقاط",
+    "empty": "لا توجد نقاط ممنوحة لهذه الفترة",
+    "loadError": "تعذر تحميل الترتيب",
+    "badges": {
+      "bronze": "برونزية",
+      "silver": "فضية",
+      "gold": "ذهبية",
+      "platinum": "بلاتينية"
+    }
+  },
+  "alerts": {
+    "title": "التنبيهات",
+    "subtitle": "تنبيهات إحصائية وتشغيلية",
+    "active": "{{count}} تنبيه نشط",
+    "loadError": "تعذر تحميل التنبيهات",
+    "updated": "تم تحديث التنبيه",
+    "updateError": "تعذر تحديث التنبيه",
+    "confirmDelete": "حذف هذا التنبيه؟",
+    "empty": "لا توجد تنبيهات",
+    "statuses": {
+      "unresolved": "غير معالج",
+      "investigating": "قيد التحقيق",
+      "resolved": "تمت المعالجة",
+      "dismissed": "متجاهل"
+    },
+    "types": {
+      "incident_spike": "ارتفاع الحوادث",
+      "critical_incident": "حادث حرج",
+      "stock": "المخزون",
+      "maintenance": "الصيانة",
+      "training": "التكوين",
+      "emergency": "طوارئ",
+      "compliance": "المطابقة",
+      "risk": "خطر",
+      "system": "النظام"
+    },
+    "affectedUser": "المستخدم المعني",
+    "resolvedBy": "عالجه {{name}} بتاريخ {{date}}",
+    "investigate": "تحقيق",
+    "resolve": "معالجة",
+    "dismiss": "تجاهل",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "risks": {
+    "title": "إدارة المخاطر",
+    "subtitle": "سجل المخاطر والمصفوفة وخطط العمل وLMRA",
+    "loadError": "تعذر تحميل المخاطر",
+    "saveError": "تعذر حفظ الخطر",
+    "saved": "تم حفظ الخطر",
+    "create": "خطر جديد",
+    "edit": "تعديل الخطر",
+    "empty": "لا توجد مخاطر",
+    "searchPlaceholder": "بحث في العنوان أو الوصف",
+    "allStatuses": "كل الحالات",
+    "allLevels": "كل المستويات",
+    "proposedBy": "مقترح من {{name}}",
+    "nav": {
+      "catalogue": "السجل",
+      "matrix": "المصفوفة",
+      "plans": "خطط العمل",
+      "lmra": "LMRA"
+    },
+    "fields": {
+      "title": "العنوان",
+      "description": "الوصف",
+      "hazardCategory": "فئة الخطر",
+      "zone": "المنطقة",
+      "department": "القسم",
+      "gravity": "الخطورة",
+      "probability": "الاحتمال",
+      "score": "الدرجة",
+      "status": "الحالة",
+      "recommendedMeasures": "التدابير الموصى بها"
+    },
+    "scale": {
+      "gravity": {
+        "1": "طفيفة",
+        "2": "متوسطة",
+        "3": "خطيرة",
+        "4": "كبيرة",
+        "5": "كارثية"
+      },
+      "probability": {
+        "1": "نادر",
+        "2": "غير محتمل",
+        "3": "ممكن",
+        "4": "محتمل",
+        "5": "شبه مؤكد"
+      }
+    },
+    "levels": {
+      "low": "منخفض",
+      "medium": "متوسط",
+      "high": "مرتفع",
+      "critical": "حرج"
+    },
+    "statuses": {
+      "proposed": "مقترح",
+      "validated": "معتمد",
+      "mitigated": "تمت السيطرة عليه",
+      "archived": "مؤرشف"
+    },
+    "actions": {
+      "validate": "اعتماد",
+      "archive": "أرشفة",
+      "mitigate": "تحديد كمسيطر عليه",
+      "restore": "استعادة"
+    },
+    "matrix": {
+      "subtitle": "مصفوفة 5x5: الخطورة x الاحتمال",
+      "total": "{{count}} خطر",
+      "pick": "تفاصيل الخلية",
+      "pickHint": "انقر على خلية لعرض مخاطرها.",
+      "cellTitle": "الخطورة {{g}} x الاحتمال {{p}} = {{score}}",
+      "emptyCell": "لا توجد مخاطر في هذه الخلية."
+    },
+    "plans": {
+      "title": "خطط العمل",
+      "subtitle": "خطط التحكم في كل خطر: المسؤول والأجل والتقدم",
+      "create": "خطة عمل جديدة",
+      "edit": "تعديل خطة العمل",
+      "add": "إضافة",
+      "empty": "لا توجد خطط عمل",
+      "risk": "الخطر",
+      "selectRisk": "اختر خطرا",
+      "saved": "تم حفظ خطة العمل",
+      "saveError": "تعذر حفظ خطة العمل",
+      "confirmDelete": "حذف خطة العمل هذه؟",
+      "onlyOverdue": "المتأخرة فقط",
+      "overdueCount": "{{count}} متأخرة",
+      "statuses": {
+        "planned": "مخطط",
+        "in_progress": "قيد التنفيذ",
+        "completed": "مكتمل",
+        "validated": "معتمد"
+      }
+    },
+    "lmra": {
+      "subtitle": "تحليلات المخاطر اللحظية المرسلة من الميدان",
+      "empty": "لا توجد LMRA",
+      "user": "المستخدم",
+      "task": "المهمة",
+      "location": "الموقع",
+      "decision": "القرار",
+      "allDecisions": "كل القرارات",
+      "uncontrolled": "أخطار غير مسيطر عليها",
+      "hazard": "الخطر",
+      "present": "موجود",
+      "controlled": "مسيطر عليه",
+      "createdRisks": "تم اقتراح {{count}} خطر من هذا التحليل",
+      "decisions": {
+        "go": "متابعة",
+        "stop": "توقف"
+      }
+    }
+  },
+  "audits": {
+    "title": "التدقيق والامتثال",
+    "subtitle": "تخطيط التدقيق وقوائم ISO 45001 والإجراءات التصحيحية",
+    "loadError": "تعذر تحميل عمليات التدقيق",
+    "saveError": "تعذر الحفظ",
+    "saved": "تم حفظ التدقيق",
+    "create": "تدقيق جديد",
+    "edit": "تعديل التدقيق",
+    "empty": "لا توجد عمليات تدقيق",
+    "confirmDelete": "حذف هذا التدقيق؟",
+    "allStatuses": "كل الحالات",
+    "allTypes": "كل الأنواع",
+    "nav": {
+      "audits": "التدقيق",
+      "documents": "الوثائق"
+    },
+    "view": {
+      "calendar": "التقويم",
+      "list": "القائمة"
+    },
+    "fields": {
+      "title": "العنوان",
+      "type": "النوع",
+      "standard": "المعيار",
+      "scheduledAt": "الموعد",
+      "auditor": "المدقق",
+      "noAuditor": "بدون مدقق داخلي",
+      "auditorName": "اسم المدقق (خارجي)",
+      "zone": "المنطقة",
+      "template": "نموذج قائمة التحقق",
+      "selectTemplate": "اختر نموذجا",
+      "status": "الحالة",
+      "score": "الدرجة"
+    },
+    "types": {
+      "internal": "داخلي",
+      "external": "خارجي"
+    },
+    "statuses": {
+      "planned": "مخطط",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    },
+    "results": {
+      "conform": "مطابق",
+      "non_conform": "غير مطابق",
+      "not_applicable": "لا ينطبق"
+    },
+    "exec": {
+      "back": "العودة إلى التدقيق",
+      "checklist": "قائمة التحقق",
+      "progress": "الإجابات",
+      "comment": "تعليق",
+      "createActions": "إنشاء إجراءات تصحيحية لحالات عدم المطابقة",
+      "save": "حفظ الإجابات",
+      "saved": "تم حفظ الإجابات",
+      "confirmComplete": "إنهاء هذا التدقيق؟ ستُثبَّت الدرجة.",
+      "to": {
+        "in_progress": "بدء التدقيق",
+        "completed": "إنهاء التدقيق",
+        "cancelled": "إلغاء"
+      }
+    },
+    "docs": {
+      "title": "وثائق الامتثال",
+      "subtitle": "الشهادات والإجراءات والسياسات وتقارير التدقيق",
+      "upload": "رفع وثيقة",
+      "uploaded": "تم رفع الوثيقة",
+      "uploadError": "فشل الرفع",
+      "downloadError": "فشل التنزيل",
+      "confirmDelete": "حذف هذه الوثيقة؟",
+      "empty": "لا توجد وثائق",
+      "allTypes": "كل الأنواع",
+      "onlyExpiring": "تنتهي قريبا",
+      "validUntil": "صالحة حتى",
+      "validity": "الصلاحية",
+      "noExpiry": "بدون انتهاء",
+      "expired": "منتهية",
+      "expiresIn": "تنتهي خلال {{count}} يوم",
+      "valid": "صالحة",
+      "file": "الملف",
+      "fileHint": "PDF أو DOCX أو XLSX (حتى 20 ميغابايت) أو صورة (حتى 10 ميغابايت)",
+      "types": {
+        "audit_report": "تقرير تدقيق",
+        "certificate": "شهادة",
+        "procedure": "إجراء",
+        "policy": "سياسة",
+        "other": "أخرى"
+      }
+    }
+  },
+  "emergency": {
+    "title": "إدارة الطوارئ",
+    "subtitle": "السيناريوهات والتنبيهات وتمارين الإخلاء",
+    "loadError": "تعذر تحميل بيانات الطوارئ",
+    "saveError": "تعذر الحفظ",
+    "activeAlert": "تنبيه طوارئ نشط",
+    "openPage": "فتح",
+    "close": "إغلاق التنبيه",
+    "confirmClose": "إغلاق تنبيه الطوارئ هذا؟ سيتم إعلام الجميع.",
+    "closeError": "تعذر إغلاق التنبيه",
+    "noHistory": "لا توجد تنبيهات سابقة",
+    "tabs": {
+      "scenarios": "السيناريوهات",
+      "drills": "التمارين",
+      "history": "السجل"
+    },
+    "types": {
+      "fire": "حريق",
+      "evacuation": "إخلاء",
+      "chemical": "كيميائي",
+      "injury": "إصابة",
+      "earthquake": "زلزال",
+      "gas_leak": "تسرب غاز",
+      "other": "أخرى"
+    },
+    "fields": {
+      "title": "العنوان",
+      "type": "النوع",
+      "assemblyPoint": "نقطة التجمع",
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "steps": "الخطوات",
+      "contacts": "جهات اتصال الطوارئ"
+    },
+    "contact": {
+      "name": "الاسم",
+      "role": "الدور",
+      "phone": "الهاتف"
+    },
+    "scenarios": {
+      "create": "سيناريو جديد",
+      "edit": "تعديل السيناريو",
+      "empty": "لا توجد سيناريوهات",
+      "saved": "تم حفظ السيناريو",
+      "confirmDelete": "حذف هذا السيناريو؟",
+      "addStep": "إضافة خطوة",
+      "addContact": "إضافة جهة اتصال",
+      "incompleteContacts": "سيتم تجاهل جهات الاتصال غير المكتملة."
+    },
+    "trigger": {
+      "button": "إطلاق تنبيه طوارئ",
+      "scenario": "السيناريو",
+      "noScenario": "بدون سيناريو (رسالة حرة)",
+      "message": "رسالة التنبيه",
+      "zone": "المنطقة",
+      "next": "متابعة",
+      "back": "رجوع",
+      "confirm": "تأكيد وإرسال التنبيه",
+      "warning": "سيتلقى جميع المستخدمين إشعارا ذا أولوية.",
+      "sent": "تم إرسال تنبيه الطوارئ",
+      "error": "تعذر إطلاق التنبيه"
+    },
+    "drills": {
+      "create": "تخطيط تمرين",
+      "edit": "تعديل التمرين",
+      "empty": "لا توجد تمارين مخططة",
+      "saved": "تم حفظ التمرين",
+      "confirmDelete": "حذف هذا التمرين؟",
+      "scheduledAt": "التاريخ",
+      "scenario": "السيناريو",
+      "status": "الحالة",
+      "results": "النتائج",
+      "record": "تسجيل النتائج",
+      "markDone": "حفظ وتحديد كمنجز",
+      "duration": "المدة (دقيقة)",
+      "participants": "المشاركون",
+      "evacuated": "تم إخلاؤهم",
+      "evacuatedShort": "تم إخلاؤهم",
+      "evacuatedError": "لا يمكن أن يتجاوز عدد المخلين عدد المشاركين",
+      "observations": "ملاحظات",
+      "statuses": {
+        "planned": "مخطط",
+        "done": "منجز",
+        "cancelled": "ملغى"
+      }
+    }
+  },
+  "feedback": {
+    "title": "آراء المستخدمين",
+    "subtitle": "التقييمات والتعليقات المرسلة من تطبيق الجوال",
+    "loadError": "تعذر تحميل الآراء",
+    "average": "متوسط التقييم",
+    "count": "الآراء المستلمة",
+    "allCategories": "كل الفئات",
+    "allRatings": "كل التقييمات",
+    "empty": "لا توجد آراء بعد",
+    "rating": "التقييم",
+    "category": "الفئة",
+    "comment": "التعليق",
+    "user": "المستخدم",
+    "categories": {
+      "bug": "خلل",
+      "suggestion": "اقتراح",
+      "usability": "سهولة الاستخدام",
+      "other": "أخرى"
+    }
+  },
+  "settingsPage": {
+    "title": "الإعدادات",
+    "subtitle": "إدارة ملفك الشخصي وكلمة المرور والإشعارات وإمكانية الوصول",
+    "tabs": {
+      "general": "اللغة وإمكانية الوصول",
+      "notifications": "الإشعارات",
+      "security": "كلمة المرور"
+    },
+    "profile": "الملف الشخصي",
+    "profileDesc": "معلومات حسابك",
+    "language": "اللغة",
+    "languageDesc": "لغة الواجهة (العربية تعرض من اليمين إلى اليسار)",
+    "accessibility": "إمكانية الوصول",
+    "accessibilityDesc": "اضبط حجم النص والتباين لقراءة أسهل",
+    "textSize": "حجم النص",
+    "sizeNormal": "عادي",
+    "sizeLarge": "كبير",
+    "sizeXLarge": "كبير جدا",
+    "highContrast": "تباين عال",
+    "highContrastDesc": "نص أسود على خلفية بيضاء، حدود أقوى، أحمر وأخضر أغمق",
+    "password": "تغيير كلمة المرور",
+    "passwordDesc": "حدّث كلمة المرور لحماية حسابك",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "changePassword": "تغيير كلمة المرور",
+    "changing": "جارٍ التغيير...",
+    "mismatch": "كلمتا المرور الجديدتان غير متطابقتين",
+    "tooShort": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+    "passwordError": "فشل تغيير كلمة المرور",
+    "notificationsDesc": "اختر الإشعارات التي تريد تلقيها",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "role": "الدور"
   }
 }

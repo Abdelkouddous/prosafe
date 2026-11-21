@@ -12,11 +12,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors } from "../constants/Colors";
-import { useColorScheme } from "../hooks/useColorScheme";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import Shield from "@expo/vector-icons/MaterialIcons";
-import api from "../services/api";
-import { useLanguage } from "../contexts/LanguageContext";
+import api from "@/services/api";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function RegisterScreen() {
   const [firstName, setFirstName] = useState("");

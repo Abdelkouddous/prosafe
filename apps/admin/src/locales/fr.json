@@ -15,7 +15,11 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "actions": "Actions",
+    "totalCount": "{{count}} résultat(s)",
+    "name": "Nom",
+    "date": "Date"
   },
   "navigation": {
     "home": "Accueil",
@@ -34,7 +38,18 @@
     "logout": "Déconnexion",
     "about": "À propos",
     "services": "Services",
-    "contact": "Contact"
+    "contact": "Contact",
+    "equipment": "Équipements",
+    "trainings": "Formations",
+    "correctiveActions": "Actions correctives",
+    "alerts": "Alertes",
+    "reports": "Rapports",
+    "messages": "Messages",
+    "rewards": "Récompenses",
+    "risks": "Risques",
+    "audits": "Audits",
+    "emergency": "Urgences",
+    "feedback": "Avis"
   },
   "auth": {
     "login": "Connexion",
@@ -83,7 +98,7 @@
   },
   "adminDashboard": {
     "welcome_back": "Bon retour",
-    "dashboard_description": "Voici ce qui se passe avec votre sécurité aujourd'hui",
+    "dashboard_description": "Voici la situation santé et sécurité au travail aujourd'hui",
     "total_assets": "Total des Actifs",
     "active_threats": "Menaces Actives",
     "compliance_score": "Score de Conformité",
@@ -138,10 +153,13 @@
       "dashboard": "Tableau de Bord",
       "incidents": "Incidents",
       "users": "Utilisateurs",
-      "logout": "Déconnexion"
+      "logout": "Déconnexion",
+      "messages": "Messages",
+      "notificationSettings": "Paramètres de notification",
+      "sendNotifications": "Envoyer des annonces"
     },
     "page_titles": {
-      "security_dashboard": "Tableau de Bord de Sécurité",
+      "security_dashboard": "Tableau de bord SST",
       "user_management": "Gestion des Utilisateurs",
       "incident_management": "Gestion des Incidents"
     },
@@ -241,5 +259,931 @@
       "country": "Pays",
       "language": "Langue"
     }
+  },
+  "incidents": {
+    "title": "Incidents",
+    "managementTitle": "Gestion des incidents",
+    "managementSubtitle": "Consulter, filtrer et traiter les incidents signalés",
+    "detail": "Détail de l'incident",
+    "loadError": "Impossible de charger les incidents",
+    "statusUpdated": "Statut mis à jour",
+    "statusUpdateError": "Impossible de mettre à jour le statut",
+    "description": "Description",
+    "notes": "Notes",
+    "reporter": "Déclarant",
+    "date": "Date",
+    "zone": "Zone",
+    "department": "Département",
+    "address": "Adresse",
+    "resolvedAt": "Résolu le",
+    "media": "Photos et vidéos",
+    "location": "Localisation",
+    "history": "Historique",
+    "noHistory": "Aucun historique pour l'instant",
+    "changeStatus": "Changer le statut",
+    "noTransition": "Aucune autre transition n'est possible.",
+    "selectStatus": "Nouveau statut",
+    "comment": "Commentaire (optionnel)",
+    "updateStatus": "Mettre à jour le statut",
+    "search": "Rechercher...",
+    "allStatuses": "Tous les statuts",
+    "allTypes": "Tous les types",
+    "allSeverities": "Toutes les gravités",
+    "from": "Du",
+    "to": "Au",
+    "resetFilters": "Réinitialiser les filtres",
+    "map": "Carte",
+    "mapTitle": "{{count}} incident(s) géolocalisé(s)",
+    "openDetail": "Ouvrir le détail",
+    "id": "ID",
+    "type": "Type",
+    "severity": "Gravité",
+    "status": "Statut",
+    "empty": "Aucun incident trouvé",
+    "totalCount": "{{count}} incident(s)",
+    "statuses": {
+      "open": "En attente",
+      "investigating": "En cours",
+      "resolved": "Résolu",
+      "closed": "Clôturé"
+    },
+    "severities": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "critical": "Critique"
+    },
+    "types": {
+      "safety": "Sécurité",
+      "security": "Sûreté",
+      "hr_violation": "Violation RH",
+      "environment": "Environnement",
+      "near_miss": "Quasi-accident",
+      "equipment_failure": "Panne équipement",
+      "other": "Autre"
+    },
+    "reject": "Rejeter (clôturer)",
+    "rejected": "Signalement rejeté et clôturé",
+    "rejectTitle": "Rejeter ce signalement ?",
+    "rejectDescription": "L'incident sera clôturé comme rejeté et les points de récompense attribués au déclarant pour celui-ci seront révoqués. Cette action est irréversible.",
+    "rejectConfirm": "Rejeter et clôturer"
+  },
+  "incidentReport": {
+    "invalidLat": "Latitude invalide (-90 à 90).",
+    "invalidLng": "Longitude invalide (-180 à 180).",
+    "fileTypeInvalid": "{{name}} : type de fichier non pris en charge",
+    "fileTooLarge": "{{name}} : fichier trop volumineux (images 10 Mo, vidéos 50 Mo)",
+    "maxFiles": "Maximum {{count}} fichiers",
+    "notes": "Notes complémentaires",
+    "date": "Date et heure",
+    "zone": "Zone",
+    "department": "Département",
+    "media": "Photos / vidéos (optionnel)",
+    "mediaHelp": "Jusqu'à {{count}} fichiers : images (10 Mo max) ou vidéos mp4/mov (50 Mo max)",
+    "addFiles": "Ajouter des fichiers"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "empty": "Aucune notification",
+    "settingsTitle": "Paramètres de notification",
+    "settingsDesc": "Choisissez les notifications que vous recevez et le canal utilisé.",
+    "loadError": "Impossible de charger les préférences",
+    "saved": "Préférences enregistrées",
+    "saveError": "Impossible d'enregistrer les préférences",
+    "save": "Enregistrer les préférences",
+    "saving": "Enregistrement...",
+    "prefs": {
+      "incidents": "Incidents",
+      "incidentsDesc": "Nouveaux incidents et changements de statut",
+      "trainings": "Formations",
+      "trainingsDesc": "Sessions, rappels et expirations",
+      "audits": "Audits",
+      "auditsDesc": "Audits planifiés et terminés",
+      "inventory": "Équipements",
+      "inventoryDesc": "Défauts, inspections et stock",
+      "emergency": "Urgences",
+      "emergencyDesc": "Alertes d'urgence",
+      "messages": "Messages",
+      "messagesDesc": "Nouveaux messages et annonces",
+      "push": "Notifications push",
+      "pushDesc": "Recevoir les notifications sur votre mobile",
+      "email": "E-mail",
+      "emailDesc": "Recevoir les notifications par e-mail"
+    }
+  },
+  "profile": {
+    "phone": "Téléphone",
+    "department": "Département",
+    "zone": "Zone"
+  },
+  "manager": {
+    "backToDashboard": "Retour au tableau de bord"
+  },
+  "equipment": {
+    "title": "Inventaire",
+    "subtitle": "Équipements de sécurité, stocks et état",
+    "nav": {
+      "inventory": "Inventaire",
+      "maintenance": "Maintenance et vérifications",
+      "history": "Historique"
+    },
+    "add": "Ajouter un équipement",
+    "edit": "Modifier l'équipement",
+    "saved": "Équipement enregistré",
+    "deleted": "Équipement supprimé",
+    "searchPlaceholder": "Rechercher par nom, référence...",
+    "allCategories": "Toutes les catégories",
+    "allStatuses": "Tous les statuts",
+    "allConditions": "Tous les états",
+    "empty": "Aucun équipement trouvé",
+    "min": "Min",
+    "increase": "Augmenter le stock",
+    "decrease": "Diminuer le stock",
+    "expired": "expiré",
+    "expiresIn": "dans {{count}} jour(s)",
+    "deleteTitle": "Supprimer l'équipement",
+    "deleteConfirm": "Supprimer « {{name}} » ? Cette action est irréversible.",
+    "stats": {
+      "total": "Total des équipements",
+      "lowStock": "Stock faible",
+      "outOfStock": "Rupture de stock",
+      "nonFunctional": "Hors service",
+      "value": "Valeur du stock"
+    },
+    "fields": {
+      "name": "Nom",
+      "sku": "Référence",
+      "description": "Description",
+      "category": "Catégorie",
+      "status": "Statut du stock",
+      "condition": "État",
+      "quantity": "Quantité",
+      "min_stock_level": "Stock minimum",
+      "price": "Prix unitaire",
+      "expiryDate": "Date d'expiration",
+      "lastInspectionAt": "Dernière vérification",
+      "nextInspectionAt": "Prochaine vérification",
+      "supplier": "Fournisseur",
+      "location": "Emplacement"
+    },
+    "category": {
+      "ppe": "EPI",
+      "fire_extinguisher": "Extincteurs",
+      "first_aid": "Premiers secours",
+      "detection": "Détection",
+      "signage": "Signalisation",
+      "tools": "Outils",
+      "consumables": "Consommables",
+      "other": "Autre"
+    },
+    "status": {
+      "active": "En stock",
+      "inactive": "Inactif",
+      "out_of_stock": "Rupture de stock",
+      "discontinued": "Abandonné",
+      "low_stock": "Stock faible"
+    },
+    "condition": {
+      "functional": "Fonctionnel",
+      "non_functional": "Hors service"
+    },
+    "errors": {
+      "load": "Impossible de charger les équipements",
+      "save": "Impossible d'enregistrer l'équipement",
+      "delete": "Impossible de supprimer l'équipement",
+      "required": "Le nom et la description sont obligatoires"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance et vérifications",
+    "subtitle": "Maintenances planifiées et en retard, regroupées par semaine",
+    "add": "Planifier une maintenance",
+    "pickItem": "Choisir un équipement",
+    "complete": "Clôturer",
+    "cancel": "Annuler",
+    "empty": "Aucune maintenance planifiée",
+    "created": "Maintenance planifiée",
+    "completed": "Maintenance clôturée",
+    "cancelled": "Maintenance annulée",
+    "overdueSection": "En retard ({{count}})",
+    "week": "Semaine du {{from}} au {{to}}",
+    "fields": {
+      "item": "Équipement",
+      "type": "Type",
+      "scheduledAt": "Date prévue",
+      "doneAt": "Réalisée le",
+      "result": "Résultat",
+      "notes": "Remarques",
+      "nextScheduledAt": "Prochaine maintenance (facultatif)"
+    },
+    "type": {
+      "inspection": "Vérification",
+      "preventive": "Préventive",
+      "corrective": "Corrective"
+    },
+    "status": {
+      "planned": "Planifiée",
+      "done": "Réalisée",
+      "overdue": "En retard",
+      "cancelled": "Annulée"
+    },
+    "result": {
+      "ok": "Conforme",
+      "issues": "Anomalies constatées",
+      "failed": "Échec"
+    },
+    "resultHint": {
+      "ok": "L'équipement sera marqué comme fonctionnel.",
+      "issues": "L'état de l'équipement reste inchangé.",
+      "failed": "L'équipement sera marqué hors service."
+    },
+    "errors": {
+      "load": "Impossible de charger les maintenances",
+      "save": "Impossible d'enregistrer la maintenance",
+      "required": "L'équipement et la date sont obligatoires"
+    }
+  },
+  "history": {
+    "title": "Historique des maintenances",
+    "subtitle": "Maintenances et vérifications réalisées",
+    "allItems": "Tous les équipements",
+    "from": "Du",
+    "to": "Au",
+    "performedBy": "Réalisée par",
+    "empty": "Aucune maintenance réalisée"
+  },
+  "trainings": {
+    "title": "Catalogue des formations",
+    "subtitle": "Formations, validité et rôles concernés",
+    "nav": {
+      "catalogue": "Catalogue",
+      "sessions": "Sessions",
+      "compliance": "Conformité des compétences"
+    },
+    "add": "Ajouter une formation",
+    "edit": "Modifier la formation",
+    "saved": "Formation enregistrée",
+    "deleted": "Formation supprimée",
+    "empty": "Aucune formation trouvée",
+    "searchPlaceholder": "Rechercher une formation...",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noExpiry": "Sans expiration",
+    "deleteTitle": "Supprimer la formation",
+    "deleteConfirm": "Supprimer « {{name}} » ?",
+    "fields": {
+      "title": "Titre",
+      "description": "Description",
+      "category": "Catégorie",
+      "durationHours": "Durée (h)",
+      "validityMonths": "Validité (mois)",
+      "mandatoryForRoles": "Obligatoire pour les rôles",
+      "status": "Statut"
+    },
+    "roles": {
+      "admin": "Administrateur",
+      "sst_manager": "Responsable SST",
+      "employee": "Employé"
+    },
+    "errors": {
+      "load": "Impossible de charger les formations",
+      "save": "Impossible d'enregistrer la formation",
+      "delete": "Impossible de supprimer la formation",
+      "titleRequired": "Le titre est obligatoire",
+      "hasEnrollments": "Cette formation a des inscriptions : désactivez-la plutôt que de la supprimer."
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "Planifier les sessions et gérer les inscriptions",
+    "add": "Ajouter une session",
+    "edit": "Modifier la session",
+    "saved": "Session enregistrée",
+    "deleted": "Session supprimée",
+    "cancelled": "Session annulée",
+    "cancel": "Annuler la session",
+    "empty": "Aucune session trouvée",
+    "allTrainings": "Toutes les formations",
+    "allStatuses": "Tous les statuts",
+    "pickTraining": "Choisir une formation",
+    "unlimited": "Illimitée",
+    "cancelTitle": "Annuler la session",
+    "cancelConfirm": "La session sera marquée comme annulée.",
+    "deleteTitle": "Supprimer la session",
+    "deleteConfirm": "Supprimer cette session ?",
+    "enrollments": "Inscriptions",
+    "pickUser": "Choisir un participant",
+    "enroll": "Inscrire",
+    "enrolled": "Participant inscrit",
+    "noEnrollments": "Aucun participant pour le moment",
+    "enrollmentSaved": "Inscription mise à jour",
+    "expiresAt": "Valable jusqu'au {{date}}",
+    "fields": {
+      "training": "Formation",
+      "startAt": "Début",
+      "endAt": "Fin",
+      "location": "Lieu",
+      "trainer": "Formateur",
+      "capacity": "Capacité",
+      "enrolled": "Inscrits",
+      "status": "Statut",
+      "score": "Note",
+      "progress": "Progression (%)"
+    },
+    "status": {
+      "planned": "Planifiée",
+      "ongoing": "En cours",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "enrollmentStatus": {
+      "registered": "Inscrit",
+      "attended": "Présent",
+      "passed": "Réussi",
+      "failed": "Échoué",
+      "cancelled": "Annulé"
+    },
+    "errors": {
+      "load": "Impossible de charger les sessions",
+      "save": "Impossible d'enregistrer",
+      "delete": "Impossible de supprimer la session",
+      "required": "La formation et la date de début sont obligatoires",
+      "hasEnrollments": "Cette session a des inscriptions : annulez-la plutôt que de la supprimer.",
+      "loadEnrollments": "Impossible de charger les inscriptions",
+      "loadUsers": "Impossible de charger les utilisateurs",
+      "enroll": "Impossible d'inscrire le participant"
+    }
+  },
+  "compliance": {
+    "title": "Conformité des compétences",
+    "subtitle": "Formations obligatoires par employé",
+    "autoPlan": "Planifier automatiquement",
+    "rate": "Taux de conformité",
+    "compliantUsers": "Employés conformes",
+    "acquired": "Acquises",
+    "expiring": "À renouveler",
+    "missing": "Manquantes",
+    "expired": "expirée",
+    "user": "Employé",
+    "department": "Service",
+    "departmentFilter": "Filtrer par service",
+    "empty": "Aucune donnée",
+    "previewTitle": "Planification automatique (aperçu)",
+    "previewDesc": "{{count}} employé(s) n'ont pas toutes les formations obligatoires valides et seront notifiés.",
+    "previewNone": "Tous les employés sont conformes.",
+    "nextSession": "prochaine session le {{date}}",
+    "noSession": "aucune session planifiée",
+    "confirmNotify": "Confirmer et notifier",
+    "planDone": "{{count}} employé(s) notifié(s)",
+    "errors": {
+      "load": "Impossible de charger le rapport",
+      "plan": "Impossible de lancer la planification automatique"
+    }
+  },
+  "users": {
+    "select": "Sélectionner un utilisateur"
+  },
+  "overview": {
+    "loadError": "Impossible de charger les données du tableau de bord",
+    "noZone": "Sans zone",
+    "noData": "Aucune donnée pour cette période",
+    "recent": "Incidents récents",
+    "viewAll": "Tout voir",
+    "quick": {
+      "report": "Signaler un incident",
+      "risks": "Risques",
+      "reports": "Rapports"
+    },
+    "kpi": {
+      "total": "Total des incidents",
+      "open": "Ouverts",
+      "investigating": "En cours d'analyse",
+      "resolved": "Résolus",
+      "criticalOpen": "Critiques ouverts",
+      "activeAlerts": "Alertes actives",
+      "meanResolution": "Délai moyen de résolution",
+      "actionsOverdue": "Actions correctives en retard",
+      "equipmentCompliance": "Conformité des équipements",
+      "trainingCompliance": "Conformité des formations",
+      "lowStock": "Articles en stock bas",
+      "overdueMaintenance": "Maintenances en retard",
+      "expiringTrainings": "Formations expirant bientôt",
+      "auditCompliance": "Conformité des audits"
+    },
+    "charts": {
+      "perMonth": "Incidents par mois",
+      "byType": "Incidents par type",
+      "byZone": "Incidents par zone",
+      "byStatus": "Incidents par statut"
+    }
+  },
+  "reports": {
+    "title": "Rapports et analyses",
+    "subtitle": "Tendances, KPI, prévisions et exports",
+    "loadError": "Impossible de charger les statistiques",
+    "unavailable": "Rapport pas encore disponible",
+    "downloadError": "Échec du téléchargement",
+    "presets": {
+      "30d": "30 jours",
+      "90d": "90 jours",
+      "12m": "12 mois",
+      "year": "Cette année",
+      "custom": "Personnalisé"
+    },
+    "allDepartments": "Tous les départements",
+    "filtersNote": "La période s'applique aux graphiques et aux exports ; le type et le département s'appliquent aux exports.",
+    "download": "Télécharger les rapports",
+    "phase4Note": "Les rapports risques et audits seront disponibles avec les modules correspondants.",
+    "kinds": {
+      "incidents": "Incidents",
+      "equipment": "Équipements",
+      "trainings": "Formations",
+      "risks": "Risques",
+      "audits": "Audits"
+    },
+    "kpi": {
+      "incidents": "Incidents sur la période"
+    },
+    "charts": {
+      "trend": "Tendance mensuelle et prévision",
+      "actual": "Réel",
+      "forecast": "Prévision",
+      "bySeverity": "Par gravité"
+    },
+    "methods": {
+      "linear_regression": "régression linéaire",
+      "moving_average": "moyenne mobile"
+    }
+  },
+  "evaluation": {
+    "title": "Évaluation",
+    "score": "Score de risque",
+    "levels": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "by": "Évalué par {{name}} le {{date}}",
+    "gravity": "Gravité (1-5)",
+    "probability": "Probabilité (1-5)",
+    "computed": "Score de risque :",
+    "rootCause": "Cause racine",
+    "evaluatedSeverity": "Gravité évaluée",
+    "keepReported": "Conserver la gravité déclarée",
+    "save": "Enregistrer l'évaluation",
+    "saved": "Évaluation enregistrée",
+    "saveError": "Impossible d'enregistrer l'évaluation"
+  },
+  "actions": {
+    "title": "Actions correctives",
+    "add": "Ajouter",
+    "titlePlaceholder": "Titre de l'action",
+    "description": "Description",
+    "owner": "Responsable",
+    "dueDate": "Échéance",
+    "due": "Échéance",
+    "overdue": "En retard",
+    "unassigned": "Non assignée",
+    "empty": "Aucune action corrective",
+    "created": "Action corrective créée",
+    "saveError": "Impossible d'enregistrer l'action corrective",
+    "loadError": "Impossible de charger les actions correctives",
+    "statuses": {
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "done": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "pageTitle": "Actions correctives",
+    "pageSubtitle": "Suivi des actions issues des incidents, risques et audits",
+    "source": "Source",
+    "allSources": "Toutes les sources",
+    "allOwners": "Tous les responsables",
+    "sources": {
+      "incident": "Incident",
+      "risk": "Risque",
+      "audit": "Audit"
+    },
+    "confirmDelete": "Supprimer cette action corrective ?"
+  },
+  "messaging": {
+    "title": "Messagerie",
+    "subtitle": "Conversations avec les employés et les responsables SST",
+    "new": "Nouvelle conversation",
+    "empty": "Aucune conversation",
+    "select": "Sélectionnez une conversation",
+    "placeholder": "Écrire un message...",
+    "send": "Envoyer",
+    "system": "Système",
+    "loadError": "Impossible de charger les messages",
+    "sendError": "Impossible d'envoyer le message",
+    "createError": "Impossible de créer la conversation",
+    "recipient": "Destinataire",
+    "subject": "Objet",
+    "message": "Message"
+  },
+  "rewards": {
+    "title": "Récompenses",
+    "subtitle": "Classement des déclarants d'incidents",
+    "periods": {
+      "month": "Ce mois",
+      "year": "Cette année",
+      "all": "Depuis le début"
+    },
+    "rank": "Rang",
+    "badge": "Badge",
+    "points": "Points",
+    "empty": "Aucun point attribué sur cette période",
+    "loadError": "Impossible de charger le classement",
+    "badges": {
+      "bronze": "Bronze",
+      "silver": "Argent",
+      "gold": "Or",
+      "platinum": "Platine"
+    }
+  },
+  "alerts": {
+    "title": "Alertes",
+    "subtitle": "Alertes statistiques et opérationnelles",
+    "active": "{{count}} alerte(s) active(s)",
+    "loadError": "Impossible de charger les alertes",
+    "updated": "Alerte mise à jour",
+    "updateError": "Impossible de mettre à jour l'alerte",
+    "confirmDelete": "Supprimer cette alerte ?",
+    "empty": "Aucune alerte",
+    "statuses": {
+      "unresolved": "Non résolue",
+      "investigating": "En analyse",
+      "resolved": "Résolue",
+      "dismissed": "Ignorée"
+    },
+    "types": {
+      "incident_spike": "Pic d'incidents",
+      "critical_incident": "Incident critique",
+      "stock": "Stock",
+      "maintenance": "Maintenance",
+      "training": "Formation",
+      "emergency": "Urgence",
+      "compliance": "Conformité",
+      "risk": "Risque",
+      "system": "Système"
+    },
+    "affectedUser": "Utilisateur concerné",
+    "resolvedBy": "Résolue par {{name}} le {{date}}",
+    "investigate": "Analyser",
+    "resolve": "Résoudre",
+    "dismiss": "Ignorer",
+    "previous": "Précédent",
+    "next": "Suivant"
+  },
+  "risks": {
+    "title": "Gestion des risques",
+    "subtitle": "Catalogue des risques, matrice, plans d'action et LMRA",
+    "loadError": "Impossible de charger les risques",
+    "saveError": "Impossible d'enregistrer le risque",
+    "saved": "Risque enregistré",
+    "create": "Nouveau risque",
+    "edit": "Modifier le risque",
+    "empty": "Aucun risque trouvé",
+    "searchPlaceholder": "Rechercher titre ou description",
+    "allStatuses": "Tous les statuts",
+    "allLevels": "Tous les niveaux",
+    "proposedBy": "Proposé par {{name}}",
+    "nav": {
+      "catalogue": "Catalogue",
+      "matrix": "Matrice",
+      "plans": "Plans d'action",
+      "lmra": "LMRA"
+    },
+    "fields": {
+      "title": "Titre",
+      "description": "Description",
+      "hazardCategory": "Catégorie de danger",
+      "zone": "Zone",
+      "department": "Département",
+      "gravity": "Gravité",
+      "probability": "Probabilité",
+      "score": "Score",
+      "status": "Statut",
+      "recommendedMeasures": "Mesures recommandées"
+    },
+    "scale": {
+      "gravity": {
+        "1": "Mineure",
+        "2": "Modérée",
+        "3": "Grave",
+        "4": "Majeure",
+        "5": "Catastrophique"
+      },
+      "probability": {
+        "1": "Rare",
+        "2": "Peu probable",
+        "3": "Possible",
+        "4": "Probable",
+        "5": "Quasi certaine"
+      }
+    },
+    "levels": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "statuses": {
+      "proposed": "Proposé",
+      "validated": "Validé",
+      "mitigated": "Maîtrisé",
+      "archived": "Archivé"
+    },
+    "actions": {
+      "validate": "Valider",
+      "archive": "Archiver",
+      "mitigate": "Marquer comme maîtrisé",
+      "restore": "Restaurer"
+    },
+    "matrix": {
+      "subtitle": "Matrice 5x5 : gravité x probabilité",
+      "total": "{{count}} risque(s)",
+      "pick": "Détail de la cellule",
+      "pickHint": "Cliquez sur une cellule pour lister ses risques.",
+      "cellTitle": "Gravité {{g}} x Probabilité {{p}} = {{score}}",
+      "emptyCell": "Aucun risque dans cette cellule."
+    },
+    "plans": {
+      "title": "Plans d'action",
+      "subtitle": "Plans de maîtrise par risque : responsable, échéance et avancement",
+      "create": "Nouveau plan d'action",
+      "edit": "Modifier le plan d'action",
+      "add": "Ajouter",
+      "empty": "Aucun plan d'action",
+      "risk": "Risque",
+      "selectRisk": "Choisir un risque",
+      "saved": "Plan d'action enregistré",
+      "saveError": "Impossible d'enregistrer le plan d'action",
+      "confirmDelete": "Supprimer ce plan d'action ?",
+      "onlyOverdue": "En retard uniquement",
+      "overdueCount": "{{count}} en retard",
+      "statuses": {
+        "planned": "Planifié",
+        "in_progress": "En cours",
+        "completed": "Terminé",
+        "validated": "Validé"
+      }
+    },
+    "lmra": {
+      "subtitle": "Analyses de risques de dernière minute soumises sur le terrain",
+      "empty": "Aucune LMRA trouvée",
+      "user": "Utilisateur",
+      "task": "Tâche",
+      "location": "Lieu",
+      "decision": "Décision",
+      "allDecisions": "Toutes les décisions",
+      "uncontrolled": "Dangers non maîtrisés",
+      "hazard": "Danger",
+      "present": "Présent",
+      "controlled": "Maîtrisé",
+      "createdRisks": "{{count}} risque(s) proposé(s) à partir de cette LMRA",
+      "decisions": {
+        "go": "GO",
+        "stop": "STOP"
+      }
+    }
+  },
+  "audits": {
+    "title": "Audits et conformité",
+    "subtitle": "Planification des audits, check-lists ISO 45001 et actions correctives",
+    "loadError": "Impossible de charger les audits",
+    "saveError": "Impossible d'enregistrer",
+    "saved": "Audit enregistré",
+    "create": "Nouvel audit",
+    "edit": "Modifier l'audit",
+    "empty": "Aucun audit trouvé",
+    "confirmDelete": "Supprimer cet audit ?",
+    "allStatuses": "Tous les statuts",
+    "allTypes": "Tous les types",
+    "nav": {
+      "audits": "Audits",
+      "documents": "Documents"
+    },
+    "view": {
+      "calendar": "Calendrier",
+      "list": "Liste"
+    },
+    "fields": {
+      "title": "Titre",
+      "type": "Type",
+      "standard": "Référentiel",
+      "scheduledAt": "Date prévue",
+      "auditor": "Auditeur",
+      "noAuditor": "Aucun auditeur interne",
+      "auditorName": "Nom de l'auditeur (externe)",
+      "zone": "Zone",
+      "template": "Modèle de check-list",
+      "selectTemplate": "Choisir un modèle",
+      "status": "Statut",
+      "score": "Score"
+    },
+    "types": {
+      "internal": "Interne",
+      "external": "Externe"
+    },
+    "statuses": {
+      "planned": "Planifié",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "results": {
+      "conform": "Conforme",
+      "non_conform": "Non conforme",
+      "not_applicable": "N/A"
+    },
+    "exec": {
+      "back": "Retour aux audits",
+      "checklist": "Check-list",
+      "progress": "Réponses",
+      "comment": "Commentaire",
+      "createActions": "Créer les actions correctives pour les non-conformités",
+      "save": "Enregistrer les réponses",
+      "saved": "Réponses enregistrées",
+      "confirmComplete": "Terminer cet audit ? Le score sera figé.",
+      "to": {
+        "in_progress": "Démarrer l'audit",
+        "completed": "Terminer l'audit",
+        "cancelled": "Annuler"
+      }
+    },
+    "docs": {
+      "title": "Documents de conformité",
+      "subtitle": "Certificats, procédures, politiques et rapports d'audit",
+      "upload": "Téléverser un document",
+      "uploaded": "Document téléversé",
+      "uploadError": "Échec du téléversement",
+      "downloadError": "Échec du téléchargement",
+      "confirmDelete": "Supprimer ce document ?",
+      "empty": "Aucun document",
+      "allTypes": "Tous les types",
+      "onlyExpiring": "Bientôt expirés",
+      "validUntil": "Valide jusqu'au",
+      "validity": "Validité",
+      "noExpiry": "Sans échéance",
+      "expired": "Expiré",
+      "expiresIn": "Expire dans {{count}} j",
+      "valid": "Valide",
+      "file": "Fichier",
+      "fileHint": "PDF, DOCX, XLSX (max 20 Mo) ou image (max 10 Mo)",
+      "types": {
+        "audit_report": "Rapport d'audit",
+        "certificate": "Certificat",
+        "procedure": "Procédure",
+        "policy": "Politique",
+        "other": "Autre"
+      }
+    }
+  },
+  "emergency": {
+    "title": "Gestion des urgences",
+    "subtitle": "Scénarios, alertes et exercices d'évacuation",
+    "loadError": "Impossible de charger les données d'urgence",
+    "saveError": "Impossible d'enregistrer",
+    "activeAlert": "Alerte d'urgence active",
+    "openPage": "Ouvrir",
+    "close": "Clôturer l'alerte",
+    "confirmClose": "Clôturer cette alerte d'urgence ? Tout le monde sera informé.",
+    "closeError": "Impossible de clôturer l'alerte",
+    "noHistory": "Aucune alerte passée",
+    "tabs": {
+      "scenarios": "Scénarios",
+      "drills": "Exercices",
+      "history": "Historique"
+    },
+    "types": {
+      "fire": "Incendie",
+      "evacuation": "Évacuation",
+      "chemical": "Chimique",
+      "injury": "Blessure",
+      "earthquake": "Séisme",
+      "gas_leak": "Fuite de gaz",
+      "other": "Autre"
+    },
+    "fields": {
+      "title": "Titre",
+      "type": "Type",
+      "assemblyPoint": "Point de rassemblement",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "steps": "Étapes",
+      "contacts": "Contacts d'urgence"
+    },
+    "contact": {
+      "name": "Nom",
+      "role": "Rôle",
+      "phone": "Téléphone"
+    },
+    "scenarios": {
+      "create": "Nouveau scénario",
+      "edit": "Modifier le scénario",
+      "empty": "Aucun scénario",
+      "saved": "Scénario enregistré",
+      "confirmDelete": "Supprimer ce scénario ?",
+      "addStep": "Ajouter une étape",
+      "addContact": "Ajouter un contact",
+      "incompleteContacts": "Les contacts incomplets seront ignorés."
+    },
+    "trigger": {
+      "button": "Déclencher une alerte d'urgence",
+      "scenario": "Scénario",
+      "noScenario": "Aucun scénario (message libre)",
+      "message": "Message d'alerte",
+      "zone": "Zone",
+      "next": "Continuer",
+      "back": "Retour",
+      "confirm": "Confirmer et envoyer l'alerte",
+      "warning": "Tous les utilisateurs recevront une notification prioritaire.",
+      "sent": "Alerte d'urgence envoyée",
+      "error": "Impossible de déclencher l'alerte"
+    },
+    "drills": {
+      "create": "Planifier un exercice",
+      "edit": "Modifier l'exercice",
+      "empty": "Aucun exercice planifié",
+      "saved": "Exercice enregistré",
+      "confirmDelete": "Supprimer cet exercice ?",
+      "scheduledAt": "Date",
+      "scenario": "Scénario",
+      "status": "Statut",
+      "results": "Résultats",
+      "record": "Saisir les résultats",
+      "markDone": "Enregistrer et marquer terminé",
+      "duration": "Durée (min)",
+      "participants": "Participants",
+      "evacuated": "Évacués",
+      "evacuatedShort": "évacués",
+      "evacuatedError": "Les évacués ne peuvent pas dépasser les participants",
+      "observations": "Observations",
+      "statuses": {
+        "planned": "Planifié",
+        "done": "Terminé",
+        "cancelled": "Annulé"
+      }
+    }
+  },
+  "feedback": {
+    "title": "Avis des utilisateurs",
+    "subtitle": "Notes et commentaires envoyés depuis l'application mobile",
+    "loadError": "Impossible de charger les avis",
+    "average": "Note moyenne",
+    "count": "Avis reçus",
+    "allCategories": "Toutes les catégories",
+    "allRatings": "Toutes les notes",
+    "empty": "Aucun avis pour le moment",
+    "rating": "Note",
+    "category": "Catégorie",
+    "comment": "Commentaire",
+    "user": "Utilisateur",
+    "categories": {
+      "bug": "Bug",
+      "suggestion": "Suggestion",
+      "usability": "Ergonomie",
+      "other": "Autre"
+    }
+  },
+  "settingsPage": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre profil, mot de passe, notifications et accessibilité",
+    "tabs": {
+      "general": "Langue et accessibilité",
+      "notifications": "Notifications",
+      "security": "Mot de passe"
+    },
+    "profile": "Profil",
+    "profileDesc": "Informations de votre compte",
+    "language": "Langue",
+    "languageDesc": "Langue de l’interface (l’arabe passe en écriture de droite à gauche)",
+    "accessibility": "Accessibilité",
+    "accessibilityDesc": "Ajustez la taille du texte et le contraste pour une lecture plus facile",
+    "textSize": "Taille du texte",
+    "sizeNormal": "Normal",
+    "sizeLarge": "Grand",
+    "sizeXLarge": "Très grand",
+    "highContrast": "Contraste élevé",
+    "highContrastDesc": "Texte noir sur fond blanc, bordures renforcées, rouge et vert plus foncés",
+    "password": "Changer le mot de passe",
+    "passwordDesc": "Mettez à jour votre mot de passe pour sécuriser votre compte",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "changing": "Modification...",
+    "mismatch": "Les nouveaux mots de passe ne correspondent pas",
+    "tooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordChanged": "Mot de passe modifié avec succès",
+    "passwordError": "Échec de la modification du mot de passe",
+    "notificationsDesc": "Choisissez les notifications que vous souhaitez recevoir",
+    "name": "Nom",
+    "email": "E-mail",
+    "role": "Rôle"
   }
 }

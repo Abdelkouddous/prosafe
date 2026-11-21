@@ -50,6 +50,8 @@ export interface AdminTask {
   maxParticipants?: number;
   currentParticipants?: number;
   completed?: boolean;
+  due_date?: string;
+  assigned_to?: AdminUser;
 }
 
 export interface AdminIncident {

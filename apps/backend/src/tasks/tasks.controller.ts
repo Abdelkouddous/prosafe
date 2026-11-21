@@ -12,13 +12,15 @@ import {
   HttpStatus,
   HttpCode,
   BadRequestException,
-  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, AssignTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskStatus } from './enum/task-status.enum';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { RolesGuard } from '../auth/strategy/roles.guard';
+import { Roles } from '../custom.decorator';
 import { Role } from '../users/enums/role.enum';
 import { JwtAuthGuard } from '../auth/strategy/jwt-auth.guard';
 import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
@@ -28,6 +30,9 @@ import { EmailVerifiedGuard } from '../auth/guards/email-verified.guard';
  * Handles task management with admin-only creation and assignment
  * Standard users can view and update their assigned tasks
  */
+@ApiTags('tasks')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
@@ -39,18 +44,14 @@ export class TasksController {
    * @param req - Request object containing admin user info
    * @returns Created task
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async create(@Body() createTaskDto: CreateTaskDto, @Request() req) {
     const userId = req.user?.id;
-    const userRoles = req.user?.roles || [];
     if (!userId) {
       throw new BadRequestException('User not authenticated');
-    }
-
-    if (!userRoles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admins can create trainings');
     }
 
     const task = await this.tasksService.create(createTaskDto, userId);
@@ -84,18 +85,14 @@ export class TasksController {
    * @param req - Request object containing admin user info
    * @returns Tasks created by admin
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Get('created-by-me')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async getTasksCreatedByMe(@Request() req) {
     const adminId = req.user?.id;
-    const userRoles = req.user?.roles || [];
 
     if (!adminId) {
       throw new BadRequestException('User not authenticated');
-    }
-
-    if (!userRoles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admins can view created trainings');
     }
 
     const tasks = await this.tasksService.findTasksCreatedByAdmin(adminId);
@@ -114,7 +111,7 @@ export class TasksController {
    * @returns User's trainings
    */
   @Get('user/me')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async getUserTrainings(@Request() req) {
     const userId = req.user?.id;
     if (!userId) {
@@ -136,14 +133,10 @@ export class TasksController {
    * @param req - Request object containing admin user info
    * @returns Task statistics
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Get('stats')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async getTaskStats(@Request() req) {
-    const userRoles = req.user?.roles || [];
-
-    if (!userRoles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admin users can view task statistics');
-    }
 
     const stats = await this.tasksService.getTaskStats();
 
@@ -160,7 +153,7 @@ export class TasksController {
    * @returns Expiring training announcements
    */
   @Get('expiring')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async getExpiringTasks(@Request() req) {
     const expiringTasks = await this.tasksService.getExpiringTasks();
 
@@ -178,7 +171,7 @@ export class TasksController {
    * @returns Training announcement details
    */
   @Get(':id')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const task = await this.tasksService.findOne(id);
 
@@ -196,16 +189,13 @@ export class TasksController {
    * @param req - Request object containing user info
    * @returns Updated training announcement
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async update(@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
     const userId = req.user?.id;
-    const userRoles = req.user?.roles || [];
     if (!userId) {
       throw new BadRequestException('User not authenticated');
-    }
-    if (!userRoles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admin users can update training announcements');
     }
 
     const updatedTask = await this.tasksService.update(id, updateTaskDto, userId);
@@ -223,8 +213,9 @@ export class TasksController {
    * @param req - Request object containing user info
    * @returns Success message
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Patch(':id/complete')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async completeTask(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const userId = req.user?.id;
     if (!userId) {
@@ -245,16 +236,13 @@ export class TasksController {
    * @param req - Request object containing admin user info
    * @returns Success message
    */
+  @Roles(Role.ADMIN, Role.SST_MANAGER)
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, EmailVerifiedGuard)
+  @UseGuards(EmailVerifiedGuard)
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const userId = req.user?.id;
-    const userRoles = req.user?.roles || [];
     if (!userId) {
       throw new BadRequestException('User not authenticated');
-    }
-    if (!userRoles.includes(Role.admin)) {
-      throw new ForbiddenException('Only admin users can delete training announcements');
     }
 
     await this.tasksService.remove(id, userId);

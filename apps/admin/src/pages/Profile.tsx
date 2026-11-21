@@ -18,8 +18,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { User, Mail, Calendar, Edit, Save, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import api from "@/services/api";
+import { useTranslation } from "react-i18next";
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -28,6 +30,9 @@ const Profile = () => {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
+    department: "",
+    zone: "",
   });
 
   useEffect(() => {
@@ -36,7 +41,21 @@ const Profile = () => {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
+        phone: "",
+        department: "",
+        zone: "",
       });
+      api
+        .get("/users/profile")
+        .then((res) =>
+          setProfileData((prev) => ({
+            ...prev,
+            phone: res.data?.phone || "",
+            department: res.data?.department || "",
+            zone: res.data?.zone || "",
+          }))
+        )
+        .catch(() => undefined);
     }
   }, [user]);
 
@@ -51,11 +70,12 @@ const Profile = () => {
     setLoading(true);
     try {
       // Update user profile using the correct endpoint
-      await api.put(`/auth/users/${user?.email}`, {
+      await api.patch("/users/profile", {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        email: profileData.email,
-        password: user?.password || "", // Keep existing password if not changing
+        phone: profileData.phone,
+        department: profileData.department,
+        zone: profileData.zone,
       });
       toast({
         title: "Success",
@@ -76,11 +96,12 @@ const Profile = () => {
 
   const handleCancel = () => {
     if (user) {
-      setProfileData({
+      setProfileData((prev) => ({
+        ...prev,
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email || "",
-      });
+      }));
     }
     setIsEditing(false);
   };
@@ -138,7 +159,7 @@ const Profile = () => {
                                 : "secondary"
                             }
                           >
-                            {user?.roles?.[0] || "standard"}
+                            {user?.roles?.[0] || "employee"}
                           </Badge>
                         </div>
                       </div>
@@ -205,11 +226,23 @@ const Profile = () => {
                       id="email"
                       type="email"
                       value={profileData.email}
-                      onChange={(e) =>
-                        handleInputChange("email", e.target.value)
-                      }
-                      disabled={!isEditing}
+                      disabled
+                      readOnly
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {(["phone", "department", "zone"] as const).map((f) => (
+                      <div className="space-y-2" key={f}>
+                        <Label htmlFor={f}>{t(`profile.${f}`)}</Label>
+                        <Input
+                          id={f}
+                          value={profileData[f]}
+                          onChange={(e) => handleInputChange(f, e.target.value)}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                    ))}
                   </div>
 
                   {isEditing && (
@@ -254,7 +287,7 @@ const Profile = () => {
                       <div>
                         <p className="text-sm font-medium">Role</p>
                         <p className="text-sm text-gray-600">
-                          {user?.roles?.[0] || "standard"}
+                          {user?.roles?.[0] || "employee"}
                         </p>
                       </div>
                     </div>

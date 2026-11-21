@@ -1,52 +1,38 @@
-# Build stage
+# Build from the MONOREPO ROOT:
+#   docker build -f apps/backend/Dockerfile -t prosafe-backend .
+# (docker compose in apps/backend already sets this context)
+
+# ---- Build stage ----
 FROM node:20-alpine AS builder
+ENV HUSKY=0 CI=true
+RUN npm install -g pnpm@9
+WORKDIR /repo
 
-WORKDIR /usr/src/app
+# Workspace manifests first for better layer caching
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY apps/backend/package.json apps/backend/package.json
+RUN pnpm install --frozen-lockfile --filter backend...
 
-# Install pnpm
-RUN npm install -g pnpm
+COPY apps/backend apps/backend
+RUN pnpm --filter backend build
 
-# Copy package files and lockfile
-COPY apps/backend/package*.json ./
-COPY apps/backend/tsconfig*.json ./
-COPY apps/backend/nest-cli.json ./
-
-# Install all dependencies (including dev dependencies)
-RUN pnpm install --no-frozen-lockfile
-
-COPY apps/backend/src ./dist
-RUN pnpm run build
-
-# Production stage
+# ---- Production stage ----
 FROM node:20-alpine AS production
+ENV NODE_ENV=production HUSKY=0 CI=true
+RUN npm install -g pnpm@9
+WORKDIR /repo
 
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
-# Add these environment variables to prevent Husky installation
-ENV HUSKY=0
-ENV CI=true
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY apps/backend/package.json apps/backend/package.json
+RUN pnpm install --prod --frozen-lockfile --filter backend...
 
-WORKDIR /usr/src/app
+COPY --from=builder /repo/apps/backend/dist apps/backend/dist
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy package files and lockfile
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
-
-# Install only production dependencies
-RUN pnpm install --prod --no-frozen-lockfile
-
-COPY --from=builder /usr/src/app/dist ./dist
-
-# Add non-root user
-RUN addgroup -g 1001 nodejs && \
-  adduser -S -u 1001 -G nodejs nodejs
-
+# Uploaded files live on disk (mount a volume on /repo/apps/backend/uploads or set UPLOADS_DIR)
+RUN addgroup -g 1001 nodejs && adduser -S -u 1001 -G nodejs nodejs \
+  && mkdir -p apps/backend/uploads && chown -R nodejs:nodejs apps/backend/uploads
 USER nodejs
 
+WORKDIR /repo/apps/backend
 EXPOSE 3000
-EXPOSE 9229
-
 CMD ["node", "dist/main"]

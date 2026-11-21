@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Index() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -14,12 +14,8 @@ export default function Index() {
       // User is not authenticated, redirect to login
       router.replace("/(auth)/login");
     } else {
-      // User is authenticated, redirect to appropriate dashboard based on role
-      if (user?.role === "admin") {
-        router.replace("/dashboard"); // Admin goes to messages
-      } else {
-        router.replace("/(tabs)/menu"); // Regular user goes to camera
-      }
+      // Everyone (managers included) lands on Accueil; managers get a dashboard button there
+      router.replace("/(tabs)/home");
     }
   }, [isAuthenticated, isLoading, user, router]);
 

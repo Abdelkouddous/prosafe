@@ -1,18 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compareSync } from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import { LoginDTO, UsersDTO } from '../users/dto/create-user.dto';
 import { validate } from 'class-validator';
-import { LoggerService } from 'src/logger/logger.service';
-import { UsersService } from 'src/users/users.service';
-import { Role } from 'src/users/enums/role.enum';
+import { LoggerService } from '../logger/logger.service';
+import { UsersService } from '../users/users.service';
+import { Role } from '../users/enums/role.enum';
 import { EmailVerificationService } from './email-verification.service';
 
 // Code
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly logger: LoggerService = new Logger(AuthService.name),
+    private readonly logger: LoggerService,
     private jwtService: JwtService,
     private userservice: UsersService,
     private emailVerificationService: EmailVerificationService,
@@ -38,10 +38,15 @@ export class AuthService {
       }
 
       // Check if the given password matches with saved password
-      const isValid = compareSync(user.password, userDetails.password);
+      const isValid = await bcrypt.compare(user.password, userDetails.password);
       if (isValid) {
+        // Blocked accounts cannot log in
+        if (!userDetails.isActive && !userDetails.roles.includes(Role.PENDING)) {
+          return { status: 403, msg: { msg: 'Your account is inactive. Please contact an administrator.' } };
+        }
+
         // Check if user is pending
-        if (userDetails.roles.includes(Role.pending)) {
+        if (userDetails.roles.includes(Role.PENDING)) {
           return {
             status: 403,
             msg: {
@@ -68,11 +73,11 @@ export class AuthService {
         };
       } else {
         // Password does not match
-        this.logger.debug(`Password mismatch for user: ${user.email}`);
+        this.logger.debug('Login failed: invalid credentials');
         return { status: 401, msg: { msg: 'Invalid credentials' } };
       }
     } catch (error) {
-      this.logger.debug(`Login error: ${error.message}`);
+      this.logger.error(`Login error: ${error.message}`, error.stack);
       return { status: 500, msg: { msg: 'Internal server error' } };
     }
   }
@@ -90,28 +95,30 @@ export class AuthService {
       // Pass raw password; UsersService handles hashing
       userDTO.password = body.password;
 
-      // Check if this is the first admin account
-      const allUsers = await this.userservice.findAll();
-      if (allUsers.length === 0 || body.email === 'admin@prosafe.dz') {
-        userDTO.role = Role.admin;
-      } else {
-        userDTO.role = Role.pending;
-      }
+      // Bootstrap: the very first user ever registered becomes admin; everyone else is pending approval.
+      // The role is never taken from the client payload.
+      const role = (await this.userservice.countUsers()) === 0 ? Role.ADMIN : Role.PENDING;
 
       // Validate DTO against validate function from class-validator
       //
       await validate(userDTO).then((errors) => {
         if (errors.length > 0) {
-          this.logger.debug(`${errors}`);
+          this.logger.debug(`Registration validation failed (${errors.length} error(s))`);
         } else {
           isOk = true;
         }
       });
       if (isOk) {
-        const createdUser = await this.userservice.create(userDTO).catch((error) => {
-          this.logger.debug(error.message);
+        let createError: any = null;
+        const createdUser = await this.userservice.create(userDTO, role).catch((error) => {
+          createError = error;
           isOk = false;
         });
+        if (createError && !(createError instanceof BadRequestException) && createError.code !== '23505') {
+          // Not a duplicate email (BadRequest from UsersService or unique violation): surface the real failure.
+          this.logger.error(`Registration failed: ${createError.message}`, createError.stack);
+          return { status: 500, content: { msg: 'Internal server error' } };
+        }
         if (isOk) {
           try {
             if (createdUser) {
@@ -119,7 +126,7 @@ export class AuthService {
               await this.emailVerificationService.sendVerificationEmail(createdUser, tokenEntity.token);
             }
           } catch (mailErr) {
-            this.logger.debug(`Failed sending verification email: ${mailErr.message}`);
+            this.logger.warn(`Failed sending verification email: ${mailErr.message}`);
           }
           return { status: 201, content: { msg: 'User created with success' } };
         } else {
@@ -129,15 +136,7 @@ export class AuthService {
         return { status: 400, content: { msg: 'Invalid content' } };
       }
     } catch (error) {
-      this.logger.debug(error.message);
-      return { status: 500, content: { msg: 'Internal server error' } };
-    }
-  }
-
-  async delete(body: any): Promise<Record<string, any>> {
-    try {
-    } catch (error) {
-      this.logger.debug(error.message);
+      this.logger.error(`Registration error: ${error.message}`, error.stack);
       return { status: 500, content: { msg: 'Internal server error' } };
     }
   }

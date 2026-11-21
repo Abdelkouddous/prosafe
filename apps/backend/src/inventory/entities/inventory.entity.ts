@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { InventoryCategory } from '../enums/inventory-category.enum';
+import { InventoryCondition } from '../enums/inventory-condition.enum';
 import { InventoryStatus } from '../enums/inventory-status.enum';
 
 @Entity()
@@ -17,7 +18,7 @@ export class InventoryItem {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 5, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
   price: number;
 
   @Column('int')
@@ -38,6 +39,18 @@ export class InventoryItem {
     default: InventoryStatus.ACTIVE,
   })
   status: InventoryStatus;
+
+  @Column({ type: 'enum', enum: InventoryCondition, default: InventoryCondition.FUNCTIONAL })
+  condition: InventoryCondition;
+
+  @Column({ type: 'date', nullable: true })
+  expiryDate: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  lastInspectionAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  nextInspectionAt: Date | null;
 
   @Column({ nullable: true })
   supplier: string;

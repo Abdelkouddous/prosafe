@@ -23,7 +23,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    // French is the default language of the client; English fills any missing key.
+    fallbackLng: ['fr', 'en'],
     debug: false,
 
     interpolation: {
@@ -31,9 +32,18 @@ i18n
     },
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage'],
       caches: ['localStorage'],
     },
   });
+
+const applyDirection = (lng?: string) => {
+  const code = (lng || "en").split("-")[0];
+  document.documentElement.dir = code === "ar" ? "rtl" : "ltr";
+  document.documentElement.lang = code;
+};
+
+i18n.on("languageChanged", applyDirection);
+applyDirection(i18n.language);
 
 export default i18n;

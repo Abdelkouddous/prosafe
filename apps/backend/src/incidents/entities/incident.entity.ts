@@ -1,8 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index, Unique } from 'typeorm';
+import { OneToMany, Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index, Unique } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { IncidentType } from '../enums/incident-type.enum';
 import { IncidentSeverity } from '../enums/incident-severity.enum';
 import { IncidentStatus } from '../enums/incident-status.enum';
+import { IncidentMedia } from './incident-media.entity';
+import { IncidentHistory } from './incident-history.entity';
 
 @Entity()
 @Index(['geoLatitude', 'geoLongitude'])
@@ -14,12 +16,18 @@ export class Incident {
   @Column({ unique: true })
   incidentId: string;
 
-  // Fixed: Use bytea for PostgreSQL binary data
-  @Column('bytea', { nullable: true })
-  photo: Buffer;
-
-  @Column({ length: 64, nullable: true })
+  /** sha256 of the first image (duplicate detection). Never returned in API responses. */
+  @Column({ length: 64, nullable: true, select: false })
   photoHash: string;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  zone: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  department: string | null;
 
   @Column({ length: 200, nullable: true })
   description: string;
@@ -77,4 +85,43 @@ export class Incident {
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'resolvedBy' })
   resolver: User;
+
+  /** True when the report was closed as rejected (reward points revoked). Reset when reopened. */
+  @Column({ type: 'boolean', default: false })
+  rejected: boolean;
+
+  // ---- Manager evaluation (A4) ----
+  /** 1-5 */
+  @Column({ type: 'int', nullable: true })
+  gravity: number | null;
+
+  /** 1-5 */
+  @Column({ type: 'int', nullable: true })
+  probability: number | null;
+
+  /** gravity * probability (1-25) */
+  @Column({ type: 'int', nullable: true })
+  riskScore: number | null;
+
+  @Column({ type: 'text', nullable: true })
+  rootCause: string | null;
+
+  @Column({ type: 'enum', enum: IncidentSeverity, nullable: true })
+  evaluatedSeverity: IncidentSeverity | null;
+
+  @Column({ type: 'int', nullable: true })
+  evaluatedById: number | null;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'evaluatedById' })
+  evaluatedBy: User | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  evaluatedAt: Date | null;
+
+  @OneToMany(() => IncidentMedia, (m) => m.incident)
+  media: IncidentMedia[];
+
+  @OneToMany(() => IncidentHistory, (h) => h.incident)
+  history: IncidentHistory[];
 }

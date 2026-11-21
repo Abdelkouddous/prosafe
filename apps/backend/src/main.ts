@@ -1,37 +1,28 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RequestMethod } from '@nestjs/common';
+import { allowedOrigins } from './common/cors-origins';
 
 async function bootstrap() {
   try {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     const configService = app.get(ConfigService);
 
     // Security middleware
-    app.use(helmet());
+    // Behind Railway's proxy: trust N hops so req.ip (used by the throttler) is the real client IP.
+    app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
+    // cross-origin resource policy so the admin web (other origin) can display /files/:id media
+    app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
     app.enableCors({
-      // Allow all origins in development, specific origins in production
-      //  all ports for local development
-      origin:
-        // if it is deployed (production)
-        // its automatically set on the production domain
-        process.env.NODE_ENV === 'production'
-          ? [
-              'https://prosafe-admin-psi.vercel.app',
-              'https://prosafe-admin-92x9gdh09-abdelkouddous-projects.vercel.app',
-              'https://prosafe-admin.vercel.app', // In case you change the domain
-              /^https:\/\/prosafe-admin-.*\.vercel\.app$/, // Allow all Vercel preview deployments
-              // 'http://localhost:5173', // For local development
-              // 'http://localhost:3000', // For local development
-              /^http:\/\/localhost:\d+$/, // Allow all local development ports
-            ]
-          : '*',
+      origin: allowedOrigins(),
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      exposedHeaders: ['Content-Disposition'],
       credentials: true,
       preflightContinue: false,
       optionsSuccessStatus: 204,
@@ -51,15 +42,14 @@ async function bootstrap() {
 
     // Swagger configuration
     const config = new DocumentBuilder()
-      .setTitle('Prime Nestjs')
-      .setDescription('Boilerplate for nestjs')
-      .setVersion('2.0.0')
+      .setTitle('PROSAFE API')
+      .setDescription("API de l'application SST PROSAFE")
+      .setVersion('1.0')
       .addBearerAuth()
-      .addTag('api')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('api/docs', app, document);
 
     const port = configService.get('PORT', 3000);
     await app.listen(port);

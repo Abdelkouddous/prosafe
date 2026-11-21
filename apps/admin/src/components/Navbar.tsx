@@ -1,3 +1,6 @@
+import NotificationBell from "@/components/NotificationBell";
+import ManagerSubNav from "@/components/ManagerSubNav";
+import EmergencyBanner from "@/components/EmergencyBanner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -28,12 +31,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAdmin = user?.roles.includes("admin");
+  const isAdmin = !!(user?.roles?.includes("admin") || user?.roles?.includes("sst_manager"));
   const isDashboard = location.pathname.startsWith("/dashboard");
 
   // Add the missing changeLanguage function
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
+    document.documentElement.dir = languageCode === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = languageCode;
   };
 
   const handleLogout = () => {
@@ -105,9 +110,26 @@ const Navbar = () => {
                 {t("navigation.dashboard")}
               </Link>
             )}
+            {isAdmin && (
+              <>
+                <Link
+                  to="/equipment"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.equipment")}
+                </Link>
+                <Link
+                  to="/trainings"
+                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                >
+                  {t("navigation.trainings")}
+                </Link>
+              </>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <NotificationBell />
             {/* Language Switcher */}
             <div className="relative group flex">
               <button className="flex items-center gap-1 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100">
@@ -215,42 +237,14 @@ const Navbar = () => {
                             </Link>
                           )}
 
-                          {/* Formations - for all authenticated users */}
-                          <Link
-                            to="/training"
-                            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4" />
-                              {t("navigation.training")}
-                            </div>
-                          </Link>
+
 
                           {/* Admin-only access control links */}
                           {isAdmin && (
                             <>
-                              <Link
-                                to="/admin/users"
-                                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                onClick={() => setIsUserMenuOpen(false)}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Users className="h-4 w-4" />
-                                  {t("navigation.userManagement")}
-                                </div>
-                              </Link>
 
-                              <Link
-                                to="/admin/incidents"
-                                className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                onClick={() => setIsUserMenuOpen(false)}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <AlertTriangle className="h-4 w-4" />
-                                  {t("navigation.incidentManagement")}
-                                </div>
-                              </Link>
+
+
                             </>
                           )}
                         </div>
@@ -277,7 +271,7 @@ const Navbar = () => {
                   <Link to="/login">{t("auth.login")}</Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/register">{t("auth.register")}</Link>
+                  <Link to="/login">{t("auth.register")}</Link>
                 </Button>
               </div>
             )}
@@ -435,15 +429,7 @@ const Navbar = () => {
                     </Link>
                   )}
 
-                  {/* Mobile Formations - for all authenticated users */}
-                  <Link
-                    to="/training"
-                    className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <GraduationCap className="h-4 w-4" />
-                    {t("navigation.training")}
-                  </Link>
+
 
                   {/* Admin-only mobile access control links */}
                   {isAdmin && (
@@ -457,23 +443,9 @@ const Navbar = () => {
                         {t("navigation.dashboard")}
                       </Link>
 
-                      <Link
-                        to="/admin/users"
-                        className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <Users className="h-4 w-4" />
-                        {t("navigation.userManagement")}
-                      </Link>
 
-                      <Link
-                        to="/admin/incidents"
-                        className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <AlertTriangle className="h-4 w-4" />
-                        {t("navigation.incidentManagement")}
-                      </Link>
+
+
                     </>
                   )}
                 </div>
@@ -495,7 +467,7 @@ const Navbar = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" asChild className="w-full">
-                  <Link to="/register" onClick={() => setIsOpen(false)}>
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
                     {t("auth.register")}
                   </Link>
                 </Button>
@@ -504,6 +476,8 @@ const Navbar = () => {
           </nav>
         )}
       </div>
+      {isAdmin && isAuthenticated && <ManagerSubNav />}
+      {isAdmin && isAuthenticated && <EmergencyBanner />}
     </nav>
   );
 };

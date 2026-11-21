@@ -1,12 +1,36 @@
-import { Body, Controller, Get, Post, Delete, Req, Res, UseGuards, Param, Put, ForbiddenException, Query } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+  ForbiddenException,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { EmailVerificationService } from './email-verification.service';
 import { JwtAuthGuard } from './strategy/jwt-auth.guard';
-import { Role } from 'src/users/enums/role.enum';
+import { RolesGuard } from './strategy/roles.guard';
+import { Roles } from '../custom.decorator';
+import { Role } from '../users/enums/role.enum';
+import { LoginDTO, UsersDTO } from '../users/dto/create-user.dto';
+import { ChangeRoleDto } from '../users/dto/update-user.dto';
+import { User } from '../users/entities/user.entity';
 
-import { LoggerService } from '../logger/logger.service';
+const AUTH_THROTTLE = { default: { limit: 5, ttl: 60_000 } };
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -16,233 +40,160 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  async login(@Req() req, @Res() res, @Body() body) {
+  @HttpCode(200)
+  @Throttle(AUTH_THROTTLE)
+  @ApiOperation({ summary: 'Login (public, 5 req/min)' })
+  async login(@Res() res, @Body() body: LoginDTO) {
     const auth = await this.authService.login(body);
     res.status(auth.status).json(auth.msg);
   }
 
   @Post('register')
-  async register(@Req() req, @Res() res, @Body() body) {
+  @Throttle(AUTH_THROTTLE)
+  @ApiOperation({ summary: 'Register (public, 5 req/min). First user becomes admin, others are pending.' })
+  async register(@Res() res, @Body() body: UsersDTO) {
     const auth = await this.authService.register(body);
     res.status(auth.status).json(auth.content);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Delete('users/:email')
-  async deleteUser(@Req() req, @Res() res, @Param('email') email: string) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  async deleteUser(@Req() req, @Param('email') email: string) {
+    if (req.user.email === email) {
+      throw new ForbiddenException('You cannot delete your own account');
     }
-
-    try {
-      await this.userService.remove(email);
-      return res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
-    }
+    await this.userService.remove(email);
+    return { message: 'User deleted successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get('users')
-  async getUsers(@Req() req, @Res() res) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
-    }
-
+  async getUsers() {
     const users = await this.userService.findAll();
-    res.status(200).json(users);
+    return users.map(({ password, ...rest }) => rest);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('users/:email/approve')
-  async approveUser(@Req() req, @Res() res, @Param('email') email: string) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  async approveUser(@Param('email') email: string) {
+    const user = await this.findUserOrFail(email);
+    if (!user.roles.includes(Role.PENDING)) {
+      throw new BadRequestException('User is not in pending status');
     }
-
-    try {
-      const user = await this.userService.findOne(email);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Update user role from pending to standard
-      if (user.roles.includes(Role.pending)) {
-        const roleIndex = user.roles.indexOf(Role.pending);
-        user.roles[roleIndex] = Role.standard;
-        await this.userService.updateUser(user);
-        return res.status(200).json({ message: 'User approved successfully' });
-      } else {
-        return res.status(400).json({ message: 'User is not in pending status' });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
-    }
+    user.roles = user.roles.map((r) => (r === Role.PENDING ? Role.EMPLOYEE : r));
+    user.isActive = true;
+    await this.userService.updateUser(user);
+    return { message: 'User approved successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('users/:email/block')
-  async blockUser(@Req() req, @Res() res, @Param('email') email: string) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  async blockUser(@Req() req, @Param('email') email: string) {
+    if (req.user.email === email) {
+      throw new ForbiddenException('You cannot block your own account');
     }
-
-    try {
-      const user = await this.userService.findOne(email);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Block user by setting isActive to false
-      user.isActive = false;
-      await this.userService.updateUser(user);
-      return res.status(200).json({ message: 'User blocked successfully' });
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
-    }
+    const user = await this.findUserOrFail(email);
+    user.isActive = false;
+    await this.userService.updateUser(user);
+    return { message: 'User blocked successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('users/:email/unblock')
-  async unblockUser(@Req() req, @Res() res, @Param('email') email: string) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
-    }
-
-    try {
-      const user = await this.userService.findOne(email);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Unblock user by setting isActive to true
-      user.isActive = true;
-      await this.userService.updateUser(user);
-      return res.status(200).json({ message: 'User unblocked successfully' });
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
-    }
+  async unblockUser(@Param('email') email: string) {
+    const user = await this.findUserOrFail(email);
+    user.isActive = true;
+    await this.userService.updateUser(user);
+    return { message: 'User unblocked successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('users/:email/role')
-  async changeUserRole(@Req() req, @Res() res, @Param('email') email: string, @Body() body: { role: Role }) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  async changeUserRole(@Req() req, @Param('email') email: string, @Body() body: ChangeRoleDto) {
+    if (req.user.email === email) {
+      throw new ForbiddenException('You cannot change your own role');
     }
-
-    try {
-      const user = await this.userService.findOne(email);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Validate the role
-      if (!Object.values(Role).includes(body.role)) {
-        return res.status(400).json({ message: 'Invalid role' });
-      }
-
-      // Change user role
-      if (!user.roles.includes(body.role)) {
-        // If user already has a role, replace it; otherwise add the new role
-        if (user.roles.length > 0) {
-          user.roles = [body.role];
-        } else {
-          user.roles.push(body.role);
-        }
-        await this.userService.updateUser(user);
-        return res.status(200).json({ message: `User role changed to ${body.role} successfully` });
-      } else {
-        return res.status(400).json({ message: `User already has the role ${body.role}` });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
+    const user = await this.findUserOrFail(email);
+    if (user.roles.includes(body.role)) {
+      throw new BadRequestException(`User already has the role ${body.role}`);
     }
+    user.roles = [body.role];
+    // Leaving the pending state means the account is usable
+    if (body.role !== Role.PENDING) user.isActive = true;
+    await this.userService.updateUser(user);
+    return { message: `User role changed to ${body.role} successfully` };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Put('users/:email/make-admin')
-  async makeUserAdmin(@Req() req, @Res() res, @Param('email') email: string) {
-    // Check if the user is an admin
-    if (!req.user.roles.includes(Role.admin)) {
-      return res.status(403).json({ message: 'Forbidden: Admin access required' });
+  async makeUserAdmin(@Param('email') email: string) {
+    const user = await this.findUserOrFail(email);
+    if (user.roles.includes(Role.ADMIN)) {
+      throw new BadRequestException('User is already an admin');
     }
-
-    try {
-      const user = await this.userService.findOne(email);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      // Make user an admin
-      if (!user.roles.includes(Role.admin)) {
-        user.roles = [Role.admin];
-        await this.userService.updateUser(user);
-        return res.status(200).json({ message: 'User promoted to admin successfully' });
-      } else {
-        return res.status(400).json({ message: 'User is already an admin' });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: error.message });
-    }
+    user.roles = [Role.ADMIN];
+    user.isActive = true;
+    await this.userService.updateUser(user);
+    return { message: 'User promoted to admin successfully' };
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@Req() req, @Res() res) {
-    // The user object is attached to the request by the JwtAuthGuard
-    const user = req.user;
-
-    // Remove sensitive information like password before sending the response
-    const { password, ...result } = user;
-
-    res.status(200).json({
-      user: result,
-      token: req.headers.authorization?.split(' ')[1],
-    });
+  async getCurrentUser(@Req() req) {
+    // The user entity is attached to the request by JwtAuthGuard
+    const { password, ...result } = req.user as User;
+    return { user: result };
   }
 
   @Get('verify-email')
-  async verifyEmail(@Req() req, @Res() res, @Query('token') token: string) {
-    try {
-      if (!token) {
-        return res.status(400).json({ message: 'Missing token' });
-      }
-      const user = await this.emailVerificationService.verifyToken(token);
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired token' });
-      }
-      user.emailVerified = true;
-      user.isActive = true; // Activate upon email verification
-      await this.userService.updateUser(user);
-      return res.status(200).json({ message: 'Email verified successfully' });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
+  async verifyEmail(@Query('token') token: string) {
+    if (!token) {
+      throw new BadRequestException('Missing token');
     }
+    const user = await this.emailVerificationService.verifyToken(token);
+    if (!user) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+    // Only marks the email as verified; activation remains an admin approval (never touches isActive).
+    user.emailVerified = true;
+    await this.userService.updateUser(user);
+    return { message: 'Email verified successfully' };
   }
 
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('resend-verification')
-  async resendVerification(@Req() req, @Res() res) {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-      if (user.emailVerified) {
-        return res.status(400).json({ message: 'Email already verified' });
-      }
-      const entityUser = await this.userService.findById(user.id);
-      await this.emailVerificationService.resendForUser(entityUser);
-      return res.status(200).json({ message: 'Verification email resent' });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
+  @HttpCode(200)
+  async resendVerification(@Req() req) {
+    const user = req.user;
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
     }
+    const entityUser = await this.userService.findById(user.id);
+    await this.emailVerificationService.resendForUser(entityUser);
+    return { message: 'Verification email resent' };
+  }
+
+  private async findUserOrFail(email: string): Promise<User> {
+    const user = await this.userService.findOne(email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 }

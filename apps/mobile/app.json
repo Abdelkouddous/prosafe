@@ -1,23 +1,32 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "PROSAFE",
+    "slug": "prosafe",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "prosafe",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.mobile"
+      "bundleIdentifier": "com.prosafe.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.mobile"
+      "package": "com.prosafe.app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -27,6 +36,35 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "PROSAFE utilise votre position pour localiser précisément les incidents signalés."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PROSAFE accède à vos photos pour joindre des preuves aux incidents.",
+          "cameraPermission": "PROSAFE utilise la caméra pour photographier les incidents.",
+          "microphonePermission": "PROSAFE utilise le microphone pour enregistrer des notes vocales et des vidéos d'incident."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PROSAFE utilise la caméra pour photographier les incidents.",
+          "microphonePermission": "PROSAFE utilise le microphone pour enregistrer des vidéos d'incident.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#DC2626"
+        }
+      ],
+      "expo-secure-store",
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
@@ -34,7 +72,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true

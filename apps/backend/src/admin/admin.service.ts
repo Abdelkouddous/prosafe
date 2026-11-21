@@ -3,10 +3,11 @@ import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { MessagesService } from '../messages/messages.service';
 import { InventoryService } from '../inventory/inventory.service';
+import { ListIncidentsQueryDto } from '../incidents/dto/list-incidents-query.dto';
 import { IncidentsService } from '../incidents/incidents.service';
 import { AlertsService } from '../alerts/alerts.service';
-import { UsersDTO as CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { AdminCreateUserDto as CreateUserDto } from '../users/dto/create-user.dto';
+import { AdminUpdateUserDto as UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateTaskDto } from '../tasks/dto/create-task.dto';
 import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
 import { CreateMessageDto, UpdateMessageDto } from '../messages/dto/message.dto';
@@ -37,7 +38,7 @@ export class AdminService {
     const [totalUsers, totalTasks, totalIncidents, alertStats, inventoryStats, unreadMessages] = await Promise.all([
       this.usersService.findAll().then((users) => users.length),
       this.tasksService.getTaskStats().then((stats) => stats.total),
-      this.incidentsService.findAll().then((incidents) => incidents.length),
+      this.incidentsService.count(),
       this.alertsService.getAlertStats(),
       this.inventoryService.getInventoryStats(),
       this.messagesService.findAllUnread().then((messages) => messages.length),
@@ -63,7 +64,7 @@ export class AdminService {
   }
 
   async createUser(createUserDto: CreateUserDto, adminId: number) {
-    return await this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto, createUserDto.role);
   }
 
   async updateUser(email: string, updateUserDto: UpdateUserDto, adminId: number) {
@@ -73,14 +74,7 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
 
-    // Convert UpdateUserDto to AdminUpdateUserDto format
-    const adminUpdateDto = {
-      firstName: updateUserDto.firstName,
-      lastName: updateUserDto.lastName,
-      email: updateUserDto.email,
-    };
-
-    return await this.usersService.adminUpdateUser(user.id, adminUpdateDto);
+    return await this.usersService.adminUpdateUser(user.id, updateUserDto);
   }
 
   async deleteUser(email: string, adminId: number) {
@@ -157,7 +151,7 @@ export class AdminService {
 
   // Inventory Management
   async getInventory(page: number, limit: number, category?: string, status?: string) {
-    return await this.inventoryService.findAll(page, limit, category as any, status as any);
+    return await this.inventoryService.findAll({ page, limit, category: category as any, status: status as any });
   }
 
   async getInventoryStats() {
@@ -185,8 +179,8 @@ export class AdminService {
   }
 
   // Incident Management
-  async getIncidents() {
-    return await this.incidentsService.findAll();
+  async getIncidents(query: ListIncidentsQueryDto = {}) {
+    return await this.incidentsService.findAllUnpaged(query);
   }
 
   async getIncident(id: string) {
@@ -194,7 +188,7 @@ export class AdminService {
   }
 
   async createIncident(createIncidentDto: CreateIncidentDto, adminId: number) {
-    return await this.incidentsService.create(createIncidentDto, null, adminId);
+    return await this.incidentsService.create(createIncidentDto, [], adminId);
   }
 
   async updateIncidentStatus(id: string, data: UpdateIncidentStatusDto, adminId: number) {

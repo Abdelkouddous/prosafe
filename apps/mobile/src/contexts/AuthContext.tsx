@@ -1,0 +1,353 @@
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { connectRealtime, disconnectRealtime } from "@/services/realtime";
+import api, { onUnauthorized } from "@/services/api";
+import { storage } from "@/services/storage";
+import {
+  configureNotificationHandler,
+  registerForPush,
+  subscribeToNotificationTaps,
+  unregisterFromPush,
+} from "@/services/push";
+import { Platform, ToastAndroid } from "react-native";
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "sst_manager" | "employee" | "pending";
+  roles?: string[];
+  isActive?: boolean;
+}
+
+const pickRole = (roles?: string[]): User["role"] => {
+  if (roles?.includes("admin")) return "admin";
+  if (roles?.includes("sst_manager")) return "sst_manager";
+  if (roles?.includes("pending")) return "pending";
+  return "employee";
+};
+
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  fetchAndUpdateUser: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check for existing token on app start
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // Reset state when the API layer reports a 401
+  useEffect(() => {
+    return onUnauthorized(() => {
+      setUser(null);
+      setIsAuthenticated(false);
+      if (Platform.OS === "android") {
+        ToastAndroid.show("Session expired. Please log in again.", ToastAndroid.SHORT);
+      }
+    });
+  }, []);
+
+  // Push notifications: register the device once authenticated (no-op on web)
+  useEffect(() => {
+    configureNotificationHandler();
+    if (!isAuthenticated) return;
+    registerForPush();
+    connectRealtime();
+    const unsubscribeTaps = subscribeToNotificationTaps();
+    return () => {
+      unsubscribeTaps();
+      disconnectRealtime();
+    };
+  }, [isAuthenticated]);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = await storage.getToken();
+      const parsedUser = await storage.getUser<User>();
+
+      if (token && parsedUser) {
+        try {
+
+          // Validate parsed user data
+          if (
+            !parsedUser.id ||
+            !parsedUser.email ||
+            !parsedUser.name ||
+            !parsedUser.role
+          ) {
+            console.warn("Invalid stored user data, clearing...");
+            await logout();
+            return;
+          }
+
+          // Set the token in axios headers
+          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+          // Verify token with backend
+          try {
+            await fetchAndUpdateUser();
+          } catch (error) {
+            console.warn("Token verification failed, logging out...");
+            await logout();
+          }
+        } catch (parseError) {
+          console.error("Error restoring session:", parseError);
+          await logout();
+        }
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      await logout();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAndUpdateUser = async () => {
+    try {
+      const response = await api.get("/auth/me");
+      const userData = response.data;
+
+      // Handle different response formats
+      // let userInfo = userData;
+      let userInfo = userData.user || userData.msg || userData;
+
+      // Validate required fields (flexible for testing)
+      if (!userInfo?.email) {
+        throw new Error(
+          `Invalid user data: Missing email. Full response: ${JSON.stringify(userData)}`
+        );
+      }
+      if (userData.msg && typeof userData.msg === "object") {
+        userInfo = userData.msg;
+      }
+
+      // Validate response data
+      if (!userInfo || !userInfo.id || !userInfo.email) {
+        throw new Error("Invalid user data received from server");
+      }
+
+      // Transform backend user format to frontend format
+      const transformedUser: User = {
+        id: userInfo.id,
+        email: userInfo.email,
+        name:
+          userInfo.name ||
+          `${userInfo.firstName || ""} ${userInfo.lastName || ""}`.trim() ||
+          userInfo.email,
+        role: pickRole(userInfo.roles),
+        roles: userInfo.roles,
+        isActive: userInfo.isActive,
+      };
+
+      setUser(transformedUser);
+      setIsAuthenticated(true);
+
+      await storage.setUser(transformedUser);
+    } catch (error: any) {
+      console.error("Error fetching user profile:", error);
+
+      // If token is invalid (401), logout the user
+      if (error.response?.status === 401) {
+        console.warn("Token expired or invalid, logging out...");
+        setIsAuthenticated(false);
+        if (Platform.OS === "android") {
+          ToastAndroid.show("Session expired. Please log in again.", ToastAndroid.SHORT);
+        }
+        await logout();
+      }
+      throw error;
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+
+      // Authenticate with backend
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
+
+      // Check if response exists and has data
+      if (!response || !response.data) {
+        throw new Error("No response received from server");
+      }
+
+
+      // Handle the actual backend response format
+      const responseData = response.data;
+      let authData = responseData;
+
+      // Adjust this block to fit your real API structure
+      if (responseData.msg && typeof responseData.msg === "object") {
+        authData = responseData.msg;
+      }
+
+      // Extract token and user data
+      const token = authData.access_token || authData.token;
+      const userData = authData.user;
+
+      // Defensive check
+      if (!token || !userData) {
+        throw new Error("Login failed: Missing token or user in response");
+      }
+
+      // Validate userData before storing
+      if (!userData.id || !userData.email) {
+        console.warn("Invalid user data received:", userData);
+        throw new Error("Invalid user data received from server");
+      }
+
+      // Transform backend user format to frontend format
+      const transformedUser: User = {
+        id: userData.id,
+        email: userData.email,
+        name:
+          userData.name ||
+          `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
+          userData.email,
+        role: pickRole(userData.roles),
+        roles: userData.roles,
+        isActive: userData.isActive,
+      };
+
+      // Check if user has pending role (backend uses roles array with 'pending' role)
+      if (userData.roles?.includes("pending")) {
+        throw new Error("ACCOUNT_PENDING_APPROVAL");
+      }
+
+      // Check if user account is inactive
+      if (userData.isActive === false) {
+        throw new Error("ACCOUNT_BLOCKED");
+      }
+
+      // Store token and user data
+      await storage.setToken(token);
+      await storage.setUser(transformedUser);
+
+      // Set token in axios headers
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      setUser(transformedUser);
+      setIsAuthenticated(true);
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setIsAuthenticated(false);
+      setUser(null);
+
+      // Handle specific HTTP status codes
+      if (error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+        if (status === 401) {
+          const errorMsg =
+            errorData?.msg?.msg ||
+            errorData?.msg ||
+            errorData?.message ||
+            "Invalid email or password";
+          throw new Error(errorMsg);
+        } else if (status === 400) {
+          const errorMsg =
+            errorData?.msg?.msg ||
+            errorData?.msg ||
+            errorData?.message ||
+            "Invalid request";
+          throw new Error(errorMsg);
+        } else if (status === 403) {
+          const serverMsg: string =
+            errorData?.msg?.msg || errorData?.msg || errorData?.message || "";
+          if (/pending/i.test(serverMsg)) throw new Error("ACCOUNT_PENDING_APPROVAL");
+          throw new Error(serverMsg || "ACCOUNT_BLOCKED");
+        } else if (status === 429) {
+          throw new Error("Too many attempts. Please wait a minute and try again.");
+        } else if (status >= 500) {
+          throw new Error("Server error. Please try again later.");
+        }
+      }
+
+      // Handle network errors
+      if (
+        error.code === "NETWORK_ERROR" ||
+        error.message?.includes("Network Error") ||
+        error.message?.includes("ECONNREFUSED") ||
+        !error.response
+      ) {
+        throw new Error(
+          "Unable to connect to server. Please check your internet connection."
+        );
+      }
+
+      // For other errors, re-throw with a generic message
+      throw new Error(
+        error.response?.data?.message || "Login failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      setIsLoading(true);
+
+      // Unregister the push token while the bearer token is still available
+      if (isAuthenticated) await unregisterFromPush();
+
+      // Clear stored data
+      await storage.clear();
+
+      // Clear axios headers
+      delete api.defaults.headers.common["Authorization"];
+
+      // Reset state
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated,
+    login,
+    logout,
+    fetchAndUpdateUser,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

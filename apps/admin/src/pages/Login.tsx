@@ -8,13 +8,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import api from "@/services/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
-  const { login, isAuthenticated, isAdmin } = useAuth();
+  const { login, isAuthenticated, isManager } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
@@ -26,13 +26,13 @@ const Login = () => {
   // Handle navigation after successful authentication
   useEffect(() => {
     if (isAuthenticated) {
-      if (isAdmin) {
+      if (isManager) {
         navigate("/dashboard");
       } else {
         navigate("/profile");
       }
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated, isManager, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,65 +62,25 @@ const Login = () => {
     // Made function async
     e.preventDefault();
 
-    if (!API_BASE_URL) {
-      console.error("Admin: VITE_API_URL is not defined!");
-      toast({
-        title: "Error",
-        description: "API URL is not configured.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      console.log("Registration attempt:", {
+      const { data: result } = await api.post("/auth/register", {
         firstName,
         lastName,
         email,
         password,
-      }); // Placeholder log
-
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        // Assuming /auth/register endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
       });
-
-      const result = await response.json(); // Parse response body
-
-      if (response.ok) {
-        // Handle successful registration
-        console.log("Registration successful:", result);
-        toast({
-          title: "Registration Successful",
-          description: result.message || "Your account has been created.", // Use message from backend or default
-        });
-        // Optional: Navigate to login page after successful registration
-        navigate("/login");
-      } else {
-        // Handle registration errors (e.g., email already exists, validation errors)
-        console.error("Registration failed:", result);
-        toast({
-          title: "Registration Failed",
-          description:
-            result.message || "An error occurred during registration.", // Use message from backend or default
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      // Handle network errors or other exceptions
-      console.error("Error during registration fetch:", error);
       toast({
-        title: "Error",
-        description: "Could not connect to the server. Please try again later.",
+        title: "Registration Successful",
+        description: result?.msg || "Your account has been created. An administrator must approve it before you can log in.",
+      });
+      navigate("/login");
+    } catch (error: any) {
+      const msg = error?.response?.data?.msg ?? error?.response?.data?.message;
+      toast({
+        title: "Registration Failed",
+        description:
+          (Array.isArray(msg) ? msg.join(", ") : msg) ||
+          "An error occurred during registration.",
         variant: "destructive",
       });
     }

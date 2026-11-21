@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   adminApi,
   AdminDashboardStats,
@@ -18,12 +19,15 @@ import {
   AdminInventoryItem,
   AdminMessage,
   AdminIncident,
-} from "./services/adminAdminApi";
+} from "@/services/adminAdminApi";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 export default function AdminDashboardScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const [tasks, setTasks] = useState<AdminTask[]>([]);
@@ -43,7 +47,7 @@ export default function AdminDashboardScreen() {
         lowStockRes,
         incidentsRes,
         unreadMessagesRes,
-      ] = await Promise.all([
+      ] = await Promise.allSettled([
         adminApi.getDashboardStats(),
         adminApi.getAlerts(1, 5),
         adminApi.getTasks(),
@@ -51,12 +55,22 @@ export default function AdminDashboardScreen() {
         adminApi.getIncidents(),
         adminApi.getUnreadMessages(),
       ]);
-      setStats(statsRes.data);
-      setAlerts(alertsRes.data.items || []);
-      setTasks(tasksRes.data || []);
-      setLowStock(lowStockRes.data || []);
-      setIncidents(incidentsRes.data || []);
-      setMessages(unreadMessagesRes.data || []);
+      // One failing request must not blank the whole screen
+      if (statsRes.status === "fulfilled") setStats(statsRes.value.data);
+      if (alertsRes.status === "fulfilled")
+        setAlerts(alertsRes.value.data?.items || []);
+      if (tasksRes.status === "fulfilled") setTasks(tasksRes.value.data || []);
+      if (lowStockRes.status === "fulfilled")
+        setLowStock(lowStockRes.value.data || []);
+      if (incidentsRes.status === "fulfilled")
+        setIncidents(incidentsRes.value.data || []);
+      if (unreadMessagesRes.status === "fulfilled")
+        setMessages(unreadMessagesRes.value.data || []);
+      [statsRes, alertsRes, tasksRes, lowStockRes, incidentsRes, unreadMessagesRes]
+        .filter((r) => r.status === "rejected")
+        .forEach((r) =>
+          console.error("Dashboard request failed", (r as PromiseRejectedResult).reason)
+        );
     } catch (e) {
       console.error("Failed to load admin dashboard", e);
     } finally {
@@ -65,8 +79,8 @@ export default function AdminDashboardScreen() {
   };
 
   useEffect(() => {
-    if (user?.role !== "admin") {
-      router.replace("/(tabs)/menu");
+    if (user?.role !== "admin" && user?.role !== "sst_manager") {
+      router.replace("/(tabs)/home");
       return;
     }
     loadData();
@@ -82,7 +96,7 @@ export default function AdminDashboardScreen() {
   const onLogoutPress = async () => {
     try {
       await logout();
-      router.replace("/login");
+      router.replace("/(auth)/login");
     } catch (e) {
       console.error("Logout failed", e);
     }
@@ -104,21 +118,24 @@ export default function AdminDashboardScreen() {
       }
     >
       <View>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
+        <TouchableOpacity onPress={() => router.replace("/(tabs)/home")} accessibilityRole="button">
+          <Text style={styles.logoutButton}>{t("dashBackToApp")}</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t("adminDashboard")}</Text>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>PROSAFE</Text>
-              <Text style={styles.logoSubtext}>NEW INCIDENT</Text>
+              <Text style={styles.logoSubtext}>{t("adminDashboard")}</Text>
             </View>
           </View>
           <View style={styles.logoutContainer}>
-            <Text style={styles.logoutButton}>Logout</Text>
+            <Text style={styles.logoutButton}>{t("logout")}</Text>
             <TouchableOpacity
               onPress={onLogoutPress}
               accessibilityRole="button"
-              accessibilityLabel="Logout"
+              accessibilityLabel={t("logout")}
               style={styles.logoutButton}
             >
               <Ionicons name="power" size={22} color="#DC2626"></Ionicons>
@@ -132,19 +149,19 @@ export default function AdminDashboardScreen() {
 
           <View style={styles.grid}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Users</Text>
+              <Text style={styles.cardTitle}>{t("dashUsers")}</Text>
               <Text style={styles.cardValue}>{stats.totalUsers}</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Tasks</Text>
+              <Text style={styles.cardTitle}>{t("dashTasks")}</Text>
               <Text style={styles.cardValue}>{stats.totalTasks}</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Incidents</Text>
+              <Text style={styles.cardTitle}>{t("dashIncidents")}</Text>
               <Text style={styles.cardValue}>{stats.totalIncidents}</Text>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Unread Messages</Text>
+              <Text style={styles.cardTitle}>{t("dashUnreadMessages")}</Text>
               <Text style={styles.cardValue}>{stats.messages.unreadCount}</Text>
             </View>
           </View>
@@ -152,9 +169,9 @@ export default function AdminDashboardScreen() {
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Alerts</Text>
+        <Text style={styles.sectionTitle}>{t("dashRecentAlerts")}</Text>
         {alerts.length === 0 ? (
-          <Text style={styles.empty}>No alerts</Text>
+          <Text style={styles.empty}>{t("dashNoAlerts")}</Text>
         ) : (
           alerts.map((a) => (
             <View key={a.id} style={styles.row}>
@@ -168,9 +185,9 @@ export default function AdminDashboardScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tasks</Text>
+        <Text style={styles.sectionTitle}>{t("dashTasks")}</Text>
         {tasks.length === 0 ? (
-          <Text style={styles.empty}>No tasks</Text>
+          <Text style={styles.empty}>{t("dashNoTasks")}</Text>
         ) : (
           tasks.slice(0, 5).map((t) => (
             <View key={t.id} style={styles.row}>
@@ -184,9 +201,9 @@ export default function AdminDashboardScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Low Stock</Text>
+        <Text style={styles.sectionTitle}>{t("dashLowStock")}</Text>
         {lowStock.length === 0 ? (
-          <Text style={styles.empty}>No low stock items</Text>
+          <Text style={styles.empty}>{t("dashNoLowStock")}</Text>
         ) : (
           lowStock.slice(0, 5).map((i) => (
             <View key={i.id} style={styles.row}>
@@ -200,9 +217,9 @@ export default function AdminDashboardScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Active Incidents</Text>
+        <Text style={styles.sectionTitle}>{t("dashActiveIncidents")}</Text>
         {incidents.length === 0 ? (
-          <Text style={styles.empty}>No active incidents</Text>
+          <Text style={styles.empty}>{t("dashNoActiveIncidents")}</Text>
         ) : (
           incidents.slice(0, 5).map((i) => (
             <View key={i.id} style={styles.row}>
@@ -216,9 +233,9 @@ export default function AdminDashboardScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Unread Messages</Text>
+        <Text style={styles.sectionTitle}>{t("dashUnreadMessages")}</Text>
         {messages.length === 0 ? (
-          <Text style={styles.empty}>All read</Text>
+          <Text style={styles.empty}>{t("dashAllRead")}</Text>
         ) : (
           messages.slice(0, 5).map((m) => (
             <View key={m.id} style={styles.row}>
@@ -235,7 +252,7 @@ export default function AdminDashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   logoutContainer: {
     display: "flex",
     flexDirection: "row",
@@ -246,8 +263,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: "#F3F4F6" },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
   header: {
     backgroundColor: "#FFFFFF",
@@ -271,11 +290,6 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     letterSpacing: 2,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  container: { flex: 1, backgroundColor: "#F3F4F6" },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   // header: { fontSize: 24, fontWeight: "700", margin: 16 },
   grid: {

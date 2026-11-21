@@ -1,5 +1,28 @@
 import api from "./api";
 
+export type AlertType =
+  | "incident_spike"
+  | "critical_incident"
+  | "stock"
+  | "maintenance"
+  | "training"
+  | "emergency"
+  | "compliance"
+  | "risk"
+  | "system";
+
+export const ALERT_TYPES: AlertType[] = [
+  "incident_spike",
+  "critical_incident",
+  "stock",
+  "maintenance",
+  "training",
+  "emergency",
+  "compliance",
+  "risk",
+  "system",
+];
+
 export interface Alert {
   id: number;
   title: string;
@@ -11,13 +34,7 @@ export interface Alert {
     | "investigating"
     | "resolved"
     | "dismissed";
-  type:
-    | "security"
-    | "system"
-    | "network"
-    | "user_activity"
-    | "compliance"
-    | "performance";
+  type: AlertType;
   source_ip?: string;
   affected_user_id?: number;
   affected_user?: {
@@ -42,9 +59,6 @@ export interface Alert {
 export interface AlertStats {
   total: number;
   unresolved: number;
-  resolved: number;
-  monitoring: number;
-
   critical: number;
   high: number;
 }
@@ -57,7 +71,12 @@ export interface AlertsResponse {
 }
 
 export const alertApi = {
-  getAlerts: (page = 1, limit = 10, severity?: string, status?: string) => {
+  getAlerts: (
+    page = 1,
+    limit = 10,
+    severity?: string,
+    status?: string
+  ) => {
     const params = new URLSearchParams();
     params.append("page", page.toString());
     params.append("limit", limit.toString());

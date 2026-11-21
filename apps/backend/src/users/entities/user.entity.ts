@@ -25,7 +25,18 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  phone: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  department: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  zone: string | null;
+
+  // Never selected by default so it cannot leak through relations (reporter, sender...).
+  // Use UsersService.findOne / findByIdWithPassword where the hash is needed.
+  @Column({ select: false })
   password: string;
 
   @Column({ default: true })
@@ -36,7 +47,7 @@ export class User {
 
   @Column({
     type: 'simple-array',
-    default: Role.pending,
+    default: Role.PENDING,
   })
   roles: Role[];
 
