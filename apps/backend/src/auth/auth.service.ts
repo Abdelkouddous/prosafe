@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDTO, UsersDTO } from '../users/dto/create-user.dto';
@@ -77,7 +77,7 @@ export class AuthService {
         return { status: 401, msg: { msg: 'Invalid credentials' } };
       }
     } catch (error) {
-      this.logger.debug(`Login error: ${error.message}`);
+      this.logger.error(`Login error: ${error.message}`, error.stack);
       return { status: 500, msg: { msg: 'Internal server error' } };
     }
   }
@@ -109,10 +109,16 @@ export class AuthService {
         }
       });
       if (isOk) {
+        let createError: any = null;
         const createdUser = await this.userservice.create(userDTO, role).catch((error) => {
-          this.logger.debug(error.message);
+          createError = error;
           isOk = false;
         });
+        if (createError && !(createError instanceof BadRequestException) && createError.code !== '23505') {
+          // Not a duplicate email (BadRequest from UsersService or unique violation): surface the real failure.
+          this.logger.error(`Registration failed: ${createError.message}`, createError.stack);
+          return { status: 500, content: { msg: 'Internal server error' } };
+        }
         if (isOk) {
           try {
             if (createdUser) {
@@ -120,7 +126,7 @@ export class AuthService {
               await this.emailVerificationService.sendVerificationEmail(createdUser, tokenEntity.token);
             }
           } catch (mailErr) {
-            this.logger.debug(`Failed sending verification email: ${mailErr.message}`);
+            this.logger.warn(`Failed sending verification email: ${mailErr.message}`);
           }
           return { status: 201, content: { msg: 'User created with success' } };
         } else {
@@ -130,7 +136,7 @@ export class AuthService {
         return { status: 400, content: { msg: 'Invalid content' } };
       }
     } catch (error) {
-      this.logger.debug(error.message);
+      this.logger.error(`Registration error: ${error.message}`, error.stack);
       return { status: 500, content: { msg: 'Internal server error' } };
     }
   }
