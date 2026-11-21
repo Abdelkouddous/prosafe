@@ -19,6 +19,7 @@ import {
   ACTION_STATUSES,
   correctiveActionApi,
   isOverdue,
+  type ActionSource,
   type ActionStatus,
   type CorrectiveAction,
 } from "@/services/correctiveActionApi";
@@ -32,10 +33,14 @@ export const actionStatusClasses: Record<ActionStatus, string> = {
 
 const CorrectiveActionsPanel = ({
   incidentId,
+  sourceType = "incident",
+  sourceId,
   actions,
   onChanged,
 }: {
-  incidentId: number;
+  incidentId?: number;
+  sourceType?: ActionSource;
+  sourceId?: number;
   actions: CorrectiveAction[];
   onChanged: () => void;
 }) => {
@@ -53,8 +58,8 @@ const CorrectiveActionsPanel = ({
     setSaving(true);
     try {
       await correctiveActionApi.create({
-        sourceType: "incident",
-        sourceId: incidentId,
+        sourceType,
+        sourceId: (sourceId ?? incidentId) as number,
         title: title.trim(),
         ...(description.trim() ? { description: description.trim() } : {}),
         ...(ownerId ? { ownerId } : {}),

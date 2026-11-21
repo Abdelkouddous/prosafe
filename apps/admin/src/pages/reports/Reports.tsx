@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
+import { FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -273,10 +273,6 @@ const Reports = () => {
               </div>
             ))}
           </div>
-          <p className="mt-3 flex items-center gap-1 text-xs text-gray-500">
-            <Download className="h-3 w-3" />
-            {t("reports.phase4Note")}
-          </p>
         </CardContent>
       </Card>
 
@@ -287,7 +283,7 @@ const Reports = () => {
       ) : (
         <div className="space-y-6">
           {kpis && (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
               <KpiCard
                 label={t("reports.kpi.incidents")}
                 value={kpis.incidentsPerMonth.reduce((s, m) => s + m.count, 0)}
@@ -295,6 +291,7 @@ const Reports = () => {
               <KpiCard label={t("overview.kpi.meanResolution")} value={fmtHours(kpis.meanResolutionHours)} />
               <KpiCard label={t("overview.kpi.equipmentCompliance")} value={fmtRate(kpis.equipmentComplianceRate)} tone="success" />
               <KpiCard label={t("overview.kpi.trainingCompliance")} value={fmtRate(kpis.trainingComplianceRate)} tone="success" />
+              <KpiCard label={t("overview.kpi.auditCompliance")} value={fmtRate(kpis.auditComplianceRate)} tone="success" />
               <KpiCard
                 label={t("overview.kpi.actionsOverdue")}
                 value={kpis.correctiveActionsOverdue}

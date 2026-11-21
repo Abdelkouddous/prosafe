@@ -31,6 +31,15 @@ import CorrectiveActions from "./pages/actions/CorrectiveActions";
 import Messaging from "./pages/messages/Messaging";
 import Rewards from "./pages/rewards/Rewards";
 import Alerts from "./pages/alerts/Alerts";
+import Risks from "./pages/risks/Risks";
+import RiskMatrix from "./pages/risks/RiskMatrix";
+import ActionPlans from "./pages/risks/ActionPlans";
+import Lmra from "./pages/risks/Lmra";
+import Audits from "./pages/audits/Audits";
+import AuditExecution from "./pages/audits/AuditExecution";
+import ComplianceDocuments from "./pages/audits/ComplianceDocuments";
+import Emergency from "./pages/emergency/Emergency";
+import Feedback from "./pages/feedback/Feedback";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
@@ -95,6 +104,15 @@ function App() {
                 <Route path="/alerts" element={<Alerts />} />
                 <Route path="/messages" element={<Messaging />} />
                 <Route path="/rewards" element={<Rewards />} />
+                <Route path="/risks" element={<Risks />} />
+                <Route path="/risks/matrix" element={<RiskMatrix />} />
+                <Route path="/risks/action-plans" element={<ActionPlans />} />
+                <Route path="/risks/lmra" element={<Lmra />} />
+                <Route path="/audits" element={<Audits />} />
+                <Route path="/audits/:id" element={<AuditExecution />} />
+                <Route path="/compliance" element={<ComplianceDocuments />} />
+                <Route path="/emergency" element={<Emergency />} />
+                <Route path="/feedback" element={<Feedback />} />
               </Route>
 
               {/* Protected routes for authenticated users */}

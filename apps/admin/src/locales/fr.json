@@ -17,7 +17,9 @@
     "yes": "Oui",
     "no": "Non",
     "actions": "Actions",
-    "totalCount": "{{count}} résultat(s)"
+    "totalCount": "{{count}} résultat(s)",
+    "name": "Nom",
+    "date": "Date"
   },
   "navigation": {
     "home": "Accueil",
@@ -43,7 +45,11 @@
     "alerts": "Alertes",
     "reports": "Rapports",
     "messages": "Messages",
-    "rewards": "Récompenses"
+    "rewards": "Récompenses",
+    "risks": "Risques",
+    "audits": "Audits",
+    "emergency": "Urgences",
+    "feedback": "Avis"
   },
   "auth": {
     "login": "Connexion",
@@ -659,7 +665,8 @@
       "trainingCompliance": "Conformité des formations",
       "lowStock": "Articles en stock bas",
       "overdueMaintenance": "Maintenances en retard",
-      "expiringTrainings": "Formations expirant bientôt"
+      "expiringTrainings": "Formations expirant bientôt",
+      "auditCompliance": "Conformité des audits"
     },
     "charts": {
       "perMonth": "Incidents par mois",
@@ -827,5 +834,317 @@
     "dismiss": "Ignorer",
     "previous": "Précédent",
     "next": "Suivant"
+  },
+  "risks": {
+    "title": "Gestion des risques",
+    "subtitle": "Catalogue des risques, matrice, plans d'action et LMRA",
+    "loadError": "Impossible de charger les risques",
+    "saveError": "Impossible d'enregistrer le risque",
+    "saved": "Risque enregistré",
+    "create": "Nouveau risque",
+    "edit": "Modifier le risque",
+    "empty": "Aucun risque trouvé",
+    "searchPlaceholder": "Rechercher titre ou description",
+    "allStatuses": "Tous les statuts",
+    "allLevels": "Tous les niveaux",
+    "proposedBy": "Proposé par {{name}}",
+    "nav": {
+      "catalogue": "Catalogue",
+      "matrix": "Matrice",
+      "plans": "Plans d'action",
+      "lmra": "LMRA"
+    },
+    "fields": {
+      "title": "Titre",
+      "description": "Description",
+      "hazardCategory": "Catégorie de danger",
+      "zone": "Zone",
+      "department": "Département",
+      "gravity": "Gravité",
+      "probability": "Probabilité",
+      "score": "Score",
+      "status": "Statut",
+      "recommendedMeasures": "Mesures recommandées"
+    },
+    "scale": {
+      "gravity": {
+        "1": "Mineure",
+        "2": "Modérée",
+        "3": "Grave",
+        "4": "Majeure",
+        "5": "Catastrophique"
+      },
+      "probability": {
+        "1": "Rare",
+        "2": "Peu probable",
+        "3": "Possible",
+        "4": "Probable",
+        "5": "Quasi certaine"
+      }
+    },
+    "levels": {
+      "low": "Faible",
+      "medium": "Moyen",
+      "high": "Élevé",
+      "critical": "Critique"
+    },
+    "statuses": {
+      "proposed": "Proposé",
+      "validated": "Validé",
+      "mitigated": "Maîtrisé",
+      "archived": "Archivé"
+    },
+    "actions": {
+      "validate": "Valider",
+      "archive": "Archiver",
+      "mitigate": "Marquer comme maîtrisé",
+      "restore": "Restaurer"
+    },
+    "matrix": {
+      "subtitle": "Matrice 5x5 : gravité x probabilité",
+      "total": "{{count}} risque(s)",
+      "pick": "Détail de la cellule",
+      "pickHint": "Cliquez sur une cellule pour lister ses risques.",
+      "cellTitle": "Gravité {{g}} x Probabilité {{p}} = {{score}}",
+      "emptyCell": "Aucun risque dans cette cellule."
+    },
+    "plans": {
+      "title": "Plans d'action",
+      "subtitle": "Plans de maîtrise par risque : responsable, échéance et avancement",
+      "create": "Nouveau plan d'action",
+      "edit": "Modifier le plan d'action",
+      "add": "Ajouter",
+      "empty": "Aucun plan d'action",
+      "risk": "Risque",
+      "selectRisk": "Choisir un risque",
+      "saved": "Plan d'action enregistré",
+      "saveError": "Impossible d'enregistrer le plan d'action",
+      "confirmDelete": "Supprimer ce plan d'action ?",
+      "onlyOverdue": "En retard uniquement",
+      "overdueCount": "{{count}} en retard",
+      "statuses": {
+        "planned": "Planifié",
+        "in_progress": "En cours",
+        "completed": "Terminé",
+        "validated": "Validé"
+      }
+    },
+    "lmra": {
+      "subtitle": "Analyses de risques de dernière minute soumises sur le terrain",
+      "empty": "Aucune LMRA trouvée",
+      "user": "Utilisateur",
+      "task": "Tâche",
+      "location": "Lieu",
+      "decision": "Décision",
+      "allDecisions": "Toutes les décisions",
+      "uncontrolled": "Dangers non maîtrisés",
+      "hazard": "Danger",
+      "present": "Présent",
+      "controlled": "Maîtrisé",
+      "createdRisks": "{{count}} risque(s) proposé(s) à partir de cette LMRA",
+      "decisions": {
+        "go": "GO",
+        "stop": "STOP"
+      }
+    }
+  },
+  "audits": {
+    "title": "Audits et conformité",
+    "subtitle": "Planification des audits, check-lists ISO 45001 et actions correctives",
+    "loadError": "Impossible de charger les audits",
+    "saveError": "Impossible d'enregistrer",
+    "saved": "Audit enregistré",
+    "create": "Nouvel audit",
+    "edit": "Modifier l'audit",
+    "empty": "Aucun audit trouvé",
+    "confirmDelete": "Supprimer cet audit ?",
+    "allStatuses": "Tous les statuts",
+    "allTypes": "Tous les types",
+    "nav": {
+      "audits": "Audits",
+      "documents": "Documents"
+    },
+    "view": {
+      "calendar": "Calendrier",
+      "list": "Liste"
+    },
+    "fields": {
+      "title": "Titre",
+      "type": "Type",
+      "standard": "Référentiel",
+      "scheduledAt": "Date prévue",
+      "auditor": "Auditeur",
+      "noAuditor": "Aucun auditeur interne",
+      "auditorName": "Nom de l'auditeur (externe)",
+      "zone": "Zone",
+      "template": "Modèle de check-list",
+      "selectTemplate": "Choisir un modèle",
+      "status": "Statut",
+      "score": "Score"
+    },
+    "types": {
+      "internal": "Interne",
+      "external": "Externe"
+    },
+    "statuses": {
+      "planned": "Planifié",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "results": {
+      "conform": "Conforme",
+      "non_conform": "Non conforme",
+      "not_applicable": "N/A"
+    },
+    "exec": {
+      "back": "Retour aux audits",
+      "checklist": "Check-list",
+      "progress": "Réponses",
+      "comment": "Commentaire",
+      "createActions": "Créer les actions correctives pour les non-conformités",
+      "save": "Enregistrer les réponses",
+      "saved": "Réponses enregistrées",
+      "confirmComplete": "Terminer cet audit ? Le score sera figé.",
+      "to": {
+        "in_progress": "Démarrer l'audit",
+        "completed": "Terminer l'audit",
+        "cancelled": "Annuler"
+      }
+    },
+    "docs": {
+      "title": "Documents de conformité",
+      "subtitle": "Certificats, procédures, politiques et rapports d'audit",
+      "upload": "Téléverser un document",
+      "uploaded": "Document téléversé",
+      "uploadError": "Échec du téléversement",
+      "downloadError": "Échec du téléchargement",
+      "confirmDelete": "Supprimer ce document ?",
+      "empty": "Aucun document",
+      "allTypes": "Tous les types",
+      "onlyExpiring": "Bientôt expirés",
+      "validUntil": "Valide jusqu'au",
+      "validity": "Validité",
+      "noExpiry": "Sans échéance",
+      "expired": "Expiré",
+      "expiresIn": "Expire dans {{count}} j",
+      "valid": "Valide",
+      "file": "Fichier",
+      "fileHint": "PDF, DOCX, XLSX (max 20 Mo) ou image (max 10 Mo)",
+      "types": {
+        "audit_report": "Rapport d'audit",
+        "certificate": "Certificat",
+        "procedure": "Procédure",
+        "policy": "Politique",
+        "other": "Autre"
+      }
+    }
+  },
+  "emergency": {
+    "title": "Gestion des urgences",
+    "subtitle": "Scénarios, alertes et exercices d'évacuation",
+    "loadError": "Impossible de charger les données d'urgence",
+    "saveError": "Impossible d'enregistrer",
+    "activeAlert": "Alerte d'urgence active",
+    "openPage": "Ouvrir",
+    "close": "Clôturer l'alerte",
+    "confirmClose": "Clôturer cette alerte d'urgence ? Tout le monde sera informé.",
+    "closeError": "Impossible de clôturer l'alerte",
+    "noHistory": "Aucune alerte passée",
+    "tabs": {
+      "scenarios": "Scénarios",
+      "drills": "Exercices",
+      "history": "Historique"
+    },
+    "types": {
+      "fire": "Incendie",
+      "evacuation": "Évacuation",
+      "chemical": "Chimique",
+      "injury": "Blessure",
+      "earthquake": "Séisme",
+      "gas_leak": "Fuite de gaz",
+      "other": "Autre"
+    },
+    "fields": {
+      "title": "Titre",
+      "type": "Type",
+      "assemblyPoint": "Point de rassemblement",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "steps": "Étapes",
+      "contacts": "Contacts d'urgence"
+    },
+    "contact": {
+      "name": "Nom",
+      "role": "Rôle",
+      "phone": "Téléphone"
+    },
+    "scenarios": {
+      "create": "Nouveau scénario",
+      "edit": "Modifier le scénario",
+      "empty": "Aucun scénario",
+      "saved": "Scénario enregistré",
+      "confirmDelete": "Supprimer ce scénario ?",
+      "addStep": "Ajouter une étape",
+      "addContact": "Ajouter un contact",
+      "incompleteContacts": "Les contacts incomplets seront ignorés."
+    },
+    "trigger": {
+      "button": "Déclencher une alerte d'urgence",
+      "scenario": "Scénario",
+      "noScenario": "Aucun scénario (message libre)",
+      "message": "Message d'alerte",
+      "zone": "Zone",
+      "next": "Continuer",
+      "back": "Retour",
+      "confirm": "Confirmer et envoyer l'alerte",
+      "warning": "Tous les utilisateurs recevront une notification prioritaire.",
+      "sent": "Alerte d'urgence envoyée",
+      "error": "Impossible de déclencher l'alerte"
+    },
+    "drills": {
+      "create": "Planifier un exercice",
+      "edit": "Modifier l'exercice",
+      "empty": "Aucun exercice planifié",
+      "saved": "Exercice enregistré",
+      "confirmDelete": "Supprimer cet exercice ?",
+      "scheduledAt": "Date",
+      "scenario": "Scénario",
+      "status": "Statut",
+      "results": "Résultats",
+      "record": "Saisir les résultats",
+      "markDone": "Enregistrer et marquer terminé",
+      "duration": "Durée (min)",
+      "participants": "Participants",
+      "evacuated": "Évacués",
+      "evacuatedShort": "évacués",
+      "evacuatedError": "Les évacués ne peuvent pas dépasser les participants",
+      "observations": "Observations",
+      "statuses": {
+        "planned": "Planifié",
+        "done": "Terminé",
+        "cancelled": "Annulé"
+      }
+    }
+  },
+  "feedback": {
+    "title": "Avis des utilisateurs",
+    "subtitle": "Notes et commentaires envoyés depuis l'application mobile",
+    "loadError": "Impossible de charger les avis",
+    "average": "Note moyenne",
+    "count": "Avis reçus",
+    "allCategories": "Toutes les catégories",
+    "allRatings": "Toutes les notes",
+    "empty": "Aucun avis pour le moment",
+    "rating": "Note",
+    "category": "Catégorie",
+    "comment": "Commentaire",
+    "user": "Utilisateur",
+    "categories": {
+      "bug": "Bug",
+      "suggestion": "Suggestion",
+      "usability": "Ergonomie",
+      "other": "Autre"
+    }
   }
 }
