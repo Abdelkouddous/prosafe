@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradients -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0f1d"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111c38"/>
+    </linearGradient>
+    <linearGradient id="accentGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="50%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="420" fill="url(#bgGradient)"/>
+
+  <!-- Subtle Grid Pattern -->
+  <g opacity="0.05" stroke="#ffffff" stroke-width="1">
+    <line x1="0" y1="70" x2="1200" y2="70"/>
+    <line x1="0" y1="140" x2="1200" y2="140"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="280" x2="1200" y2="280"/>
+    <line x1="0" y1="350" x2="1200" y2="350"/>
+    <line x1="150" y1="0" x2="150" y2="420"/>
+    <line x1="300" y1="0" x2="300" y2="420"/>
+    <line x1="450" y1="0" x2="450" y2="420"/>
+    <line x1="600" y1="0" x2="600" y2="420"/>
+    <line x1="750" y1="0" x2="750" y2="420"/>
+    <line x1="900" y1="0" x2="900" y2="420"/>
+    <line x1="1050" y1="0" x2="1050" y2="420"/>
+  </g>
+
+  <!-- Decorative Glow Orbs -->
+  <circle cx="180" cy="190" r="140" fill="url(#accentGlow)" filter="url(#glow)"/>
+  <circle cx="1060" cy="80" r="160" fill="url(#accentGlow)" filter="url(#glow)"/>
+
+  <!-- Left Side: Brand & Shield Icon -->
+  <g transform="translate(70, 75)">
+    <!-- Shield Container -->
+    <g filter="url(#dropShadow)">
+      <path d="M 50 10 L 95 30 C 95 90 75 135 50 155 C 25 135 5 90 5 30 Z" fill="url(#shieldGrad)"/>
+      <path d="M 50 20 L 85 36 C 85 86 68 124 50 142 C 32 124 15 86 15 36 Z" fill="#064e3b" opacity="0.4"/>
+      <!-- Cross / Safety Emblem -->
+      <path d="M 50 48 L 50 112 M 28 80 L 72 80" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+      <!-- Checkmark accent -->
+      <circle cx="82" cy="40" r="12" fill="url(#goldGrad)"/>
+      <path d="M 76 40 L 80 44 L 88 36" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+
+    <!-- Main Title & Typography -->
+    <text x="125" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="56" font-weight="900" fill="#ffffff" letter-spacing="2">PRO<tspan fill="#10b981">SAFE</tspan></text>
+    <text x="128" y="104" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="18" font-weight="600" fill="#94a3b8" letter-spacing="1.5">SÉCURITÉ &amp; SANTÉ AU TRAVAIL (SST)</text>
+    
+    <text x="128" y="142" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="400" fill="#cbd5e1">
+      Plateforme intelligente de gestion des risques, conformité ISO 45001 et intervention d'urgence
+    </text>
+
+    <!-- Category Pill Badges -->
+    <g transform="translate(128, 172)">
+      <!-- Pill 1 -->
+      <rect x="0" y="0" width="135" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="14" cy="15" r="4" fill="#10b981"/>
+      <text x="26" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Incidents &amp; LMRA</text>
+
+      <!-- Pill 2 -->
+      <rect x="145" y="0" width="145" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="159" cy="15" r="4" fill="#38bdf8"/>
+      <text x="171" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Audits ISO 45001</text>
+
+      <!-- Pill 3 -->
+      <rect x="300" y="0" width="135" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="314" cy="15" r="4" fill="#f59e0b"/>
+      <text x="326" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Équipements &amp; EPI</text>
+
+      <!-- Pill 4 -->
+      <rect x="445" y="0" width="155" height="30" rx="15" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="459" cy="15" r="4" fill="#ef4444"/>
+      <text x="471" y="20" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e2e8f0">Alertes &amp; Urgences</text>
+    </g>
+  </g>
+
+  <!-- Right Side: Architecture / Feature Cards -->
+  <g transform="translate(860, 50)" filter="url(#dropShadow)">
+    <!-- Card 1: Mobile -->
+    <rect x="0" y="0" width="270" height="85" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1"/>
+    <circle cx="40" cy="42" r="20" fill="#0f766e" fill-opacity="0.3"/>
+    <text x="34" y="48" font-family="sans-serif" font-size="18">📱</text>
+    <text x="75" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Mobile App (Expo)</text>
+    <text x="75" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Terrain · Signalement · GPS · LMRA</text>
+
+    <!-- Card 2: Backend -->
+    <rect x="0" y="100" width="270" height="85" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1"/>
+    <circle cx="40" cy="142" r="20" fill="#1d4ed8" fill-opacity="0.3"/>
+    <text x="34" y="148" font-family="sans-serif" font-size="18">⚙️</text>
+    <text x="75" y="136" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Backend API (NestJS)</text>
+    <text x="75" y="158" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">PostgreSQL · JWT RS256 · Socket.IO</text>
+
+    <!-- Card 3: Admin Web -->
+    <rect x="0" y="200" width="270" height="85" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1"/>
+    <circle cx="40" cy="242" r="20" fill="#047857" fill-opacity="0.3"/>
+    <text x="34" y="248" font-family="sans-serif" font-size="18">🖥️</text>
+    <text x="75" y="236" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#ffffff">Web Admin (React/Vite)</text>
+    <text x="75" y="258" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="400" fill="#94a3b8">Tableau de bord · KPIs · Cartes Leaflet</text>
+  </g>
+
+  <!-- Bottom Accent Stripe -->
+  <rect x="0" y="414" width="1200" height="6" fill="url(#shieldGrad)"/>
+</svg>
