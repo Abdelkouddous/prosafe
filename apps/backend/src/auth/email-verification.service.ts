@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmailVerification } from './entities/email-verification.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { randomBytes } from 'crypto';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -26,7 +26,7 @@ export class EmailVerificationService {
   }
 
   async sendVerificationEmail(user: User, token: string): Promise<void> {
-    const verifyUrl = `${process.env.APP_BASE_URL || 'http://localhost:3000'}/auth/verify-email?token=${token}`;
+    const verifyUrl = `${process.env.APP_BASE_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${token}`;
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Verify your Prosafe account',

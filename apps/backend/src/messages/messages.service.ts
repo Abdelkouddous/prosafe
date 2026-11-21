@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, type AdminMessage } from './entities/message.entity';
@@ -29,15 +29,15 @@ export class MessagesService {
     if (createMessageDto.sender_id) {
       sender = await this.usersService.findById(createMessageDto.sender_id);
       if (!sender) {
-        throw new Error('Sender not found');
+        throw new NotFoundException('Sender not found');
       }
     }
 
     if (createMessageDto.send_to_all) {
       const users = await this.usersService.findAll();
-      const standardUsers = users.filter((user) => user.roles.includes(Role.standard));
+      const employees = users.filter((user) => user.roles.includes(Role.EMPLOYEE));
       const messages: Message[] = [];
-      for (const user of standardUsers) {
+      for (const user of employees) {
         const message = this.messagesRepository.create({
           ...createMessageDto,
           sender,
@@ -50,7 +50,7 @@ export class MessagesService {
     } else if (createMessageDto.recipient_id) {
       const recipient = await this.usersService.findById(createMessageDto.recipient_id);
       if (!recipient) {
-        throw new Error('Recipient not found');
+        throw new NotFoundException('Recipient not found');
       }
       const message = this.messagesRepository.create({
         ...createMessageDto,
@@ -78,9 +78,9 @@ export class MessagesService {
   async createSystemMessage(createMessageDto: CreateMessageDto & { system_sender: string }): Promise<Message | Message[]> {
     if (createMessageDto.send_to_all) {
       const users = await this.usersService.findAll();
-      const standardUsers = users.filter((user) => user.roles.includes(Role.standard));
+      const employees = users.filter((user) => user.roles.includes(Role.EMPLOYEE));
       const messages: Message[] = [];
-      for (const user of standardUsers) {
+      for (const user of employees) {
         const message = this.messagesRepository.create({
           subject: createMessageDto.subject,
           content: createMessageDto.content,
@@ -146,6 +146,17 @@ export class MessagesService {
     });
   }
 
+  /**
+   * Retrieves all messages the user sent or received.
+   */
+  async findAllInvolving(userId: number): Promise<Message[]> {
+    return this.messagesRepository.find({
+      where: [{ sender_id: userId }, { recipient_id: userId }],
+      relations: ['sender', 'recipient'],
+      order: { created_at: 'DESC' },
+    });
+  }
+
   async findAllBySenderId(senderId: number): Promise<Message[]> {
     return this.messagesRepository.find({
       where: { sender_id: senderId },
@@ -168,10 +179,14 @@ export class MessagesService {
    * @returns A promise that resolves to an array of messages.
    */
   async findOne(id: number): Promise<Message> {
-    return this.messagesRepository.findOne({
+    const message = await this.messagesRepository.findOne({
       where: { id },
       relations: ['sender', 'recipient'], // Also include recipient for context
     });
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+    return message;
   }
 
   /**
@@ -182,30 +197,18 @@ export class MessagesService {
    */
   async update(id: number, updateMessageDto: UpdateMessageDto): Promise<Message> {
     const message = await this.findOne(id);
-    if (!message) {
-      throw new Error('Message not found');
-    }
-
     Object.assign(message, updateMessageDto);
     return this.messagesRepository.save(message);
   }
 
   async markAsRead(id: number): Promise<Message> {
     const message = await this.findOne(id);
-    if (!message) {
-      throw new Error('Message not found');
-    }
-
     message.status = MessageStatus.READ;
     return this.messagesRepository.save(message);
   }
 
   async markAsArchived(id: number): Promise<Message> {
     const message = await this.findOne(id);
-    if (!message) {
-      throw new Error('Message not found');
-    }
-
     message.status = MessageStatus.ARCHIVED;
     return this.messagesRepository.save(message);
   }

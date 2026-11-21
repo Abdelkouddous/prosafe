@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { createHash } from 'crypto';
@@ -81,28 +81,38 @@ export class IncidentsService {
 
     incident.status = updateStatusDto.status;
 
-    if (updateStatusDto.status === IncidentStatus.RESOLVED || updateStatusDto.status === IncidentStatus.INVESTIGATING) {
+    if (updateStatusDto.status === IncidentStatus.RESOLVED || updateStatusDto.status === IncidentStatus.CLOSED) {
       incident.resolvedAt = new Date();
       incident.resolvedBy = userId;
+    } else {
+      // Re-opened / under investigation: no longer resolved
+      incident.resolvedAt = null;
+      incident.resolvedBy = null;
     }
 
     return this.incidentRepository.save(incident);
   }
   //
-  async findAll(): Promise<Incident[]> {
+  /**
+   * List incidents. When `reporterId` is given only that user's incidents are returned
+   * (employees); otherwise all incidents (admin / sst_manager).
+   */
+  async findAll(reporterId?: number): Promise<Incident[]> {
     return this.incidentRepository.find({
+      where: reporterId ? { reportedBy: reporterId } : {},
       relations: ['reporter', 'resolver'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findOne(incidentId: string): Promise<Incident> {
+  async findOne(incidentId: string, reporterId?: number): Promise<Incident> {
     const incident = await this.incidentRepository.findOne({
       where: { incidentId },
       relations: ['reporter', 'resolver'],
     });
 
-    if (!incident) {
+    // Employees may only see their own incidents (404 rather than 403 to avoid leaking existence)
+    if (!incident || (reporterId !== undefined && incident.reportedBy !== reporterId)) {
       throw new NotFoundException('Incident not found');
     }
 
@@ -196,12 +206,12 @@ export class IncidentsService {
     const validTransitions = {
       [IncidentStatus.OPEN]: [IncidentStatus.INVESTIGATING, IncidentStatus.RESOLVED],
       [IncidentStatus.INVESTIGATING]: [IncidentStatus.RESOLVED],
-      [IncidentStatus.RESOLVED]: [IncidentStatus.INVESTIGATING],
-      // [IncidentStatus.RESOLVED]: [],
+      [IncidentStatus.RESOLVED]: [IncidentStatus.INVESTIGATING, IncidentStatus.CLOSED],
+      [IncidentStatus.CLOSED]: [],
     };
 
-    if (!validTransitions[currentStatus].includes(newStatus)) {
-      throw new ForbiddenException(`Invalid status transition from ${currentStatus} to ${newStatus}`);
+    if (!(validTransitions[currentStatus] ?? []).includes(newStatus)) {
+      throw new BadRequestException(`Invalid status transition from ${currentStatus} to ${newStatus}`);
     }
   }
   // patching and updating incidents

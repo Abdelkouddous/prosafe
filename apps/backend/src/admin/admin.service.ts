@@ -5,8 +5,8 @@ import { MessagesService } from '../messages/messages.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { IncidentsService } from '../incidents/incidents.service';
 import { AlertsService } from '../alerts/alerts.service';
-import { UsersDTO as CreateUserDto } from '../users/dto/create-user.dto';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { AdminCreateUserDto as CreateUserDto } from '../users/dto/create-user.dto';
+import { AdminUpdateUserDto as UpdateUserDto } from '../users/dto/update-user.dto';
 import { CreateTaskDto } from '../tasks/dto/create-task.dto';
 import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
 import { CreateMessageDto, UpdateMessageDto } from '../messages/dto/message.dto';
@@ -63,7 +63,7 @@ export class AdminService {
   }
 
   async createUser(createUserDto: CreateUserDto, adminId: number) {
-    return await this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto, createUserDto.role);
   }
 
   async updateUser(email: string, updateUserDto: UpdateUserDto, adminId: number) {
@@ -73,14 +73,7 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
 
-    // Convert UpdateUserDto to AdminUpdateUserDto format
-    const adminUpdateDto = {
-      firstName: updateUserDto.firstName,
-      lastName: updateUserDto.lastName,
-      email: updateUserDto.email,
-    };
-
-    return await this.usersService.adminUpdateUser(user.id, adminUpdateDto);
+    return await this.usersService.adminUpdateUser(user.id, updateUserDto);
   }
 
   async deleteUser(email: string, adminId: number) {

@@ -20,7 +20,7 @@ export class UsersService {
    * @param createUserDto - User creation data
    * @returns Promise<User> - Created user
    */
-  async create(createUserDto: UsersDTO): Promise<User> {
+  async create(createUserDto: UsersDTO, role: Role = Role.PENDING): Promise<User> {
     // Check if user already exists
     const existingUser = await this.findOne(createUserDto.email);
     if (existingUser) {
@@ -32,8 +32,8 @@ export class UsersService {
     user.lastName = createUserDto.lastName;
     user.email = createUserDto.email;
     user.password = await bcrypt.hash(createUserDto.password, 10);
-    user.roles = [createUserDto.role || Role.pending]; // Default to pending for approval
-    user.isActive = false; // New users start inactive until approved
+    user.roles = [role]; // Defaults to pending (awaiting admin approval)
+    user.isActive = role === Role.ADMIN; // Only the bootstrap admin is active immediately; others wait for approval
 
     return this.usersRepository.save(user);
   }
@@ -46,15 +46,23 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
+  /** Total number of users (used for the first-user-is-admin bootstrap) */
+  async countUsers(): Promise<number> {
+    return this.usersRepository.count();
+  }
+
   /**
    * Find user by email
    * @param email - User email
    * @returns Promise<User | null> - User or null if not found
    */
   async findOne(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
-      where: { email },
-    });
+    // password is `select: false` on the entity; explicitly add it for authentication
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   /**
@@ -99,14 +107,6 @@ export class UsersService {
 
     if (updateUserDto.firstName) user.firstName = updateUserDto.firstName;
     if (updateUserDto.lastName) user.lastName = updateUserDto.lastName;
-    if (updateUserDto.email) {
-      // Check if new email is already taken
-      const existingUser = await this.findOne(updateUserDto.email);
-      if (existingUser && existingUser.id !== userId) {
-        throw new BadRequestException('Email already in use');
-      }
-      user.email = updateUserDto.email;
-    }
 
     return this.usersRepository.save(user);
   }
@@ -118,7 +118,14 @@ export class UsersService {
    * @returns Promise<User> - Updated user
    */
   async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<User> {
-    const user = await this.findById(userId);
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :userId', { userId })
+      .getOne();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
@@ -127,7 +134,7 @@ export class UsersService {
     }
 
     // Check if new password matches confirmation
-    if (changePasswordDto.newPassword !== changePasswordDto.confirmPassword) {
+    if (changePasswordDto.confirmPassword !== undefined && changePasswordDto.newPassword !== changePasswordDto.confirmPassword) {
       throw new BadRequestException('New password and confirmation do not match');
     }
 
@@ -181,7 +188,7 @@ export class UsersService {
   async approveUser(userId: number): Promise<User> {
     const user = await this.findById(userId);
     user.isActive = true;
-    user.roles = [Role.standard]; // Promote from pending to standard
+    user.roles = [Role.EMPLOYEE]; // Promote from pending to employee
     return this.usersRepository.save(user);
   }
 
@@ -202,9 +209,9 @@ export class UsersService {
    * @returns Promise<User[]> - Users with specified role
    */
   async getUsersByRole(role: Role): Promise<User[]> {
-    return this.usersRepository.find({
-      where: { roles: role },
-    });
+    // `roles` is a simple-array column (comma separated), so filter in memory
+    const users = await this.usersRepository.find();
+    return users.filter((u) => u.roles?.includes(role));
   }
 
   /**
@@ -212,7 +219,7 @@ export class UsersService {
    * @returns Promise<User[]> - Pending users
    */
   async getPendingUsers(): Promise<User[]> {
-    return this.getUsersByRole(Role.pending);
+    return this.getUsersByRole(Role.PENDING);
   }
 
   /**

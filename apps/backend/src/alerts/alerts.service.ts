@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Alert } from './entities/alert.entity';
@@ -56,7 +56,7 @@ export class AlertsService {
   async update(id: number, updateAlertDto: UpdateAlertDto): Promise<Alert> {
     const alert = await this.findOne(id);
     if (!alert) {
-      throw new Error('Alert not found');
+      throw new NotFoundException('Alert not found');
     }
 
     if (updateAlertDto.status === AlertStatus.RESOLVED) {

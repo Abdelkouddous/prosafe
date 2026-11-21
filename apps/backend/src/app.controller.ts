@@ -1,18 +1,13 @@
-import { Body, Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Req, Res } from '@nestjs/common';
+import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service';
-import { AuthService } from './auth/auth.service';
-import { JwtAuthGuard } from './auth/strategy/jwt-auth.guard';
-import { RolesGuard } from './auth/strategy/roles.guard';
-import { Roles } from './custom.decorator';
-import { Role } from './users/enums/role.enum';
 
+@ApiTags('app')
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private authService: AuthService,
-  ) {}
+  constructor(private readonly appService: AppService) {}
   @Get('/')
+  @ApiExcludeEndpoint()
   getWelcome(@Res() res) {
     const html = `
     <!DOCTYPE html>
@@ -143,7 +138,7 @@ export class AppController {
                 Professional safety management system for tracking, declaring, and managing workplace incidents with comprehensive reporting and analytics.
             </div>
             
-            <a href="/api" class="api-button">
+            <a href="/api/docs" class="api-button">
                 🚀 Explore API Documentation
             </a>
             
@@ -177,7 +172,6 @@ export class AppController {
   // Add this new endpoint
   @Get('/test-connection')
   testConnection(): { message: string } {
-    console.log('Backend received a test connection request!'); // Log on backend
     return { message: 'Backend connection successful!' };
   }
 
@@ -188,13 +182,6 @@ export class AppController {
 
   @Get('/echo')
   getEcho(@Req() req, @Res() res, @Body() body) {
-    res.status(200).json(body);
-  }
-
-  @Get('/premium-echo')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.premium)
-  getPremiumEcho(@Req() req, @Res() res, @Body() body) {
     res.status(200).json(body);
   }
 }
