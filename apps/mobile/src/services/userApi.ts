@@ -33,3 +33,18 @@ export const changePassword = async (
 ): Promise<void> => {
   await api.patch("/users/change-password", { currentPassword, newPassword });
 };
+
+export interface DirectoryUser {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  email: string;
+  roles?: string[];
+}
+
+/** Managers only (admin / sst_manager): user picker. */
+export const searchUsers = async (search: string): Promise<DirectoryUser[]> => {
+  const res = await api.get("/users", { params: { search: search || undefined, limit: 20 } });
+  const body = res.data as { data?: DirectoryUser[] } | DirectoryUser[];
+  return Array.isArray(body) ? body : body.data ?? [];
+};

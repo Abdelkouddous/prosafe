@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { RouteGuard } from "@/components/RouteGuard";
+import { EmergencyAlertListener } from "@/components/EmergencyAlertListener";
 
 const GestureRoot = ({ children }: { children: React.ReactNode }) =>
   React.createElement(
@@ -33,6 +34,7 @@ export default function RootLayout() {
               <Stack.Screen name="conversation/[id]" />
               <Stack.Screen name="+not-found" />
             </Stack>
+            <EmergencyAlertListener />
           </RouteGuard>
         </AuthProvider>
         </AccessibilityProvider>
