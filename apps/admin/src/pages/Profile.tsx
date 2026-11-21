@@ -138,7 +138,7 @@ const Profile = () => {
                                 : "secondary"
                             }
                           >
-                            {user?.roles?.[0] || "standard"}
+                            {user?.roles?.[0] || "employee"}
                           </Badge>
                         </div>
                       </div>
@@ -254,7 +254,7 @@ const Profile = () => {
                       <div>
                         <p className="text-sm font-medium">Role</p>
                         <p className="text-sm text-gray-600">
-                          {user?.roles?.[0] || "standard"}
+                          {user?.roles?.[0] || "employee"}
                         </p>
                       </div>
                     </div>

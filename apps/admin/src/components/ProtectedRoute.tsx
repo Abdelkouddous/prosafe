@@ -1,6 +1,5 @@
 // src/components/ProtectedRoute.tsx
-import { useEffect } from "react";
-import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 // Loading component for reusability
@@ -15,13 +14,13 @@ const LoadingSpinner = () => (
 
 // Component to redirect authenticated users away from login page
 export const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading, isManager } = useAuth();
   const location = useLocation();
 
   if (isLoading) return <LoadingSpinner />;
 
   // Always redirect to dashboard if authenticated admin
-  if (isAuthenticated && isAdmin) {
+  if (isAuthenticated && isManager) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -34,24 +33,20 @@ export const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const ProtectedRoute = () => {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-
-  // Redirect non-admin users away from protected routes
-  // if (!isAdmin) {
-  //   return <Navigate to="/" replace />;
-  // }
 
   return <Outlet />;
 };
 
+// Admin and SST managers
 export const AdminRoute = () => {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading, isManager } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -59,17 +54,15 @@ export const AdminRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Always redirect non-admin users
-  if (!isAdmin) {
+  if (!isManager) {
     return <Navigate to="/" replace />;
   }
 
-  // Only admin users can access these routes
   return <Outlet />;
 };
 
 export const UserRoute = () => {
-  const { isAuthenticated, isLoading, isAdmin } = useAuth();
+  const { isAuthenticated, isLoading, isManager } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -78,7 +71,7 @@ export const UserRoute = () => {
   }
 
   // Redirect admin users to dashboard
-  if (isAdmin) {
+  if (isManager) {
     return <Navigate to="/dashboard" replace />;
   }
 
