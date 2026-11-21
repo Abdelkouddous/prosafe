@@ -18,7 +18,7 @@ export class InventoryItem {
   @Column('text')
   description: string;
 
-  @Column('decimal', { precision: 10, scale: 5, default: 0 })
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
   price: number;
 
   @Column('int')
