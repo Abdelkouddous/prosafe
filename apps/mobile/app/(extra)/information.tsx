@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface InfoCategory {
   id: string;
@@ -26,6 +28,8 @@ interface InfoItem {
 }
 
 const Information = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<InfoItem | null>(null);
@@ -135,7 +139,7 @@ const Information = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Information Center</Text>
+        <Text style={styles.headerTitle}>{t("infoCenter")}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -145,7 +149,7 @@ const Information = () => {
           <Ionicons name="search" size={20} color="#6B7280" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search information..."
+            placeholder={t("infoSearch")}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9CA3AF"
@@ -164,7 +168,7 @@ const Information = () => {
       <ScrollView style={styles.content}>
         {!selectedCategory && !searchQuery && (
           <>
-            <Text style={styles.sectionTitle}>Information Categories</Text>
+            <Text style={styles.sectionTitle}>{t("infoCategories")}</Text>
             <View style={styles.categoriesGrid}>
               {categories.map((category) => (
                 <TouchableOpacity
@@ -193,7 +197,7 @@ const Information = () => {
                   onPress={() => setSelectedCategory(null)}
                   style={styles.breadcrumbButton}
                 >
-                  <Text style={styles.breadcrumbText}>Categories</Text>
+                  <Text style={styles.breadcrumbText}>{t("infoCategoriesCrumb")}</Text>
                   <Ionicons name="chevron-forward" size={16} color="#6B7280" />
                 </TouchableOpacity>
               )}
@@ -246,7 +250,7 @@ const Information = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

@@ -1,16 +1,17 @@
 import type { IncidentSeverity, IncidentStatus } from "@/services/incidentApi";
+import { Palette } from "@/constants/Colors";
 
 // Red/orange = alert, green = validated/resolved
 export const SEVERITY_COLORS: Record<IncidentSeverity, string> = {
-  low: "#16A34A",
+  low: Palette.success,
   medium: "#F59E0B",
-  high: "#EA580C",
-  critical: "#DC2626",
+  high: Palette.warning,
+  critical: Palette.danger,
 };
 
 export const STATUS_COLORS: Record<IncidentStatus, string> = {
-  open: "#EA580C",
-  investigating: "#2563EB",
-  resolved: "#16A34A",
-  closed: "#6B7280",
+  open: Palette.warning,
+  investigating: Palette.info,
+  resolved: Palette.success,
+  closed: Palette.neutral,
 };

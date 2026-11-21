@@ -264,6 +264,45 @@ const darkColors: ColorScheme = {
   modalBackground: "#1E293B", // Slate-800
 };
 
+/**
+ * Semantic palette (UI3): red/orange = alert & danger, green = validated/resolved.
+ * Single source for status colors used across screens.
+ */
+export const Palette = {
+  danger: "#DC2626",
+  warning: "#F97316",
+  success: "#16A34A",
+  primary: "#1E40AF",
+  info: "#2563EB",
+  neutral: "#6B7280",
+  white: "#FFFFFF",
+  black: "#000000",
+  background: "#F5F5F5",
+  surface: "#FFFFFF",
+  text: "#1F2937",
+  textSecondary: "#6B7280",
+  border: "#E5E7EB",
+};
+
+/** High-contrast palette (M7.3): pure black/white, strong red/green. */
+export const HighContrastPalette = {
+  danger: "#B91C1C",
+  warning: "#C2410C",
+  success: "#15803D",
+  primary: "#0000CC",
+  info: "#0000CC",
+  neutral: "#000000",
+  white: "#FFFFFF",
+  black: "#000000",
+  background: "#FFFFFF",
+  surface: "#FFFFFF",
+  text: "#000000",
+  textSecondary: "#000000",
+  border: "#000000",
+};
+
+export type AppPalette = typeof Palette;
+
 export const Colors = {
   light: lightColors,
   dark: darkColors,

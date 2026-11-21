@@ -22,6 +22,7 @@ import {
   IncidentMedia,
   fetchIncident,
 } from "@/services/incidentApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 const mapsUrl = (lat: number, lng: number) => {
   if (Platform.OS === "ios") return `maps:0,0?q=${lat},${lng}`;
@@ -30,6 +31,7 @@ const mapsUrl = (lat: number, lng: number) => {
 };
 
 export default function IncidentDetailScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, isRTL, currentLanguage } = useLanguage();
 
@@ -199,6 +201,7 @@ export default function IncidentDetailScreen() {
 }
 
 function Row({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(baseStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -208,6 +211,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useThemedStyles(baseStyles);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -216,7 +220,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5F5" },
   topBar: {
     flexDirection: "row",

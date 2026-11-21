@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RiskLevel {
   level: "low" | "medium" | "high" | "critical";
@@ -37,6 +39,8 @@ interface LMRAForm {
 }
 
 const LMRA = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState<LMRAForm>({
     taskDescription: "",
@@ -152,7 +156,7 @@ const LMRA = () => {
   const submitLMRA = () => {
     const selectedHazards = getSelectedHazards();
     if (!form.taskDescription || !form.location || selectedHazards.length === 0) {
-      Alert.alert("Incomplete Form", "Please fill in all required fields and select at least one hazard.");
+      Alert.alert(t("lmraIncompleteTitle"), t("lmraIncompleteMessage"));
       return;
     }
 
@@ -186,7 +190,7 @@ const LMRA = () => {
 
   const renderStep1 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Task Information</Text>
+      <Text style={styles.stepTitle}>{t("lmraTaskInfo")}</Text>
       
       <View style={styles.formGroup}>
         <Text style={styles.label}>Task Description *</Text>
@@ -236,7 +240,7 @@ const LMRA = () => {
 
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Hazard Identification</Text>
+      <Text style={styles.stepTitle}>{t("lmraHazards")}</Text>
       <Text style={styles.stepSubtitle}>Select all hazards that apply to this task:</Text>
       
       <View style={styles.hazardsList}>
@@ -280,7 +284,7 @@ const LMRA = () => {
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Risk Assessment Summary</Text>
+      <Text style={styles.stepTitle}>{t("lmraSummary")}</Text>
       
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
@@ -347,7 +351,7 @@ const LMRA = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>LMRA</Text>
+        <Text style={styles.headerTitle}>{t("lmraTitle")}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -389,7 +393,7 @@ const LMRA = () => {
             onPress={() => setCurrentStep(currentStep - 1)}
           >
             <Ionicons name="chevron-back" size={20} color="#3B82F6" />
-            <Text style={styles.navButtonText}>Previous</Text>
+            <Text style={styles.navButtonText}>{t("lmraPrevious")}</Text>
           </TouchableOpacity>
         )}
         
@@ -400,7 +404,7 @@ const LMRA = () => {
             style={styles.navButtonPrimary}
             onPress={() => setCurrentStep(currentStep + 1)}
           >
-            <Text style={styles.navButtonPrimaryText}>Next</Text>
+            <Text style={styles.navButtonPrimaryText}>{t("lmraNext")}</Text>
             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         ) : (
@@ -413,7 +417,7 @@ const LMRA = () => {
             disabled={!form.supervisorApproval || getSelectedHazards().length === 0}
           >
             <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.submitButtonText}>Submit LMRA</Text>
+            <Text style={styles.submitButtonText}>{t("lmraSubmit")}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -421,7 +425,7 @@ const LMRA = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

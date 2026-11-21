@@ -28,6 +28,7 @@ import {
   reportDefect,
   updateInventoryQuantity,
 } from "@/services/inventoryApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 const PAGE_SIZE = 20;
 const DAY = 24 * 3600 * 1000;
@@ -56,6 +57,7 @@ const expiryState = (iso: string | null): "expired" | "soon" | null => {
 };
 
 export default function StockScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { t, isRTL, currentLanguage } = useLanguage();
   const { user } = useAuth();
   const isManager = user?.role === "admin" || user?.role === "sst_manager";
@@ -202,7 +204,7 @@ export default function StockScreen() {
     </TouchableOpacity>
   );
 
-  const back = () => (router.canGoBack() ? router.back() : router.replace("/(tabs)/menu"));
+  const back = () => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home"));
 
   return (
     <View style={[styles.container, { direction: isRTL ? "rtl" : "ltr" }]}>
@@ -356,6 +358,7 @@ export default function StockScreen() {
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(baseStyles);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -364,7 +367,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
   topBar: { flexDirection: "row", alignItems: "center", paddingTop: 48, paddingHorizontal: 12, paddingBottom: 8, backgroundColor: "#fff" },
   backBtn: { padding: 8 },

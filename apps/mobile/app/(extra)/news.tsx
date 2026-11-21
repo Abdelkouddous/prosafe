@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NewsArticle {
   id: string;
@@ -28,6 +30,8 @@ interface NewsArticle {
 }
 
 const News = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [filteredArticles, setFilteredArticles] = useState<NewsArticle[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -191,7 +195,7 @@ const News = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.articleDetailTitle}>Article</Text>
+        <Text style={styles.articleDetailTitle}>{t("newsArticle")}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -287,7 +291,7 @@ const News = () => {
         >
           <Ionicons name="arrow-back" size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>News & Updates</Text>
+        <Text style={styles.headerTitle}>{t("newsTitle")}</Text>
         <TouchableOpacity style={styles.notificationButton}>
           <Ionicons name="notifications" size={24} color="#1F2937" />
           <View style={styles.notificationBadge}>
@@ -304,7 +308,7 @@ const News = () => {
           <Ionicons name="search" size={20} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search news..."
+            placeholder={t("newsSearch")}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -361,7 +365,7 @@ const News = () => {
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="newspaper-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateTitle}>No articles found</Text>
+            <Text style={styles.emptyStateTitle}>{t("newsNoArticles")}</Text>
             <Text style={styles.emptyStateText}>
               Try adjusting your search or category filter
             </Text>
@@ -372,7 +376,7 @@ const News = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

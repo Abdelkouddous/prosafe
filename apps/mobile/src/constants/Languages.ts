@@ -6,6 +6,7 @@ import {
   INCIDENT_TRANSLATIONS,
   IncidentTranslationKey,
 } from "./IncidentTranslations";
+import { NAV_TRANSLATIONS, NavTranslationKey } from "./NavTranslations";
 
 export interface Language {
   code: string;
@@ -54,7 +55,8 @@ export type TranslationKey =
   | "pageNotFound"
   | "goHome"
   | IncidentTranslationKey
-  | EquipmentTranslationKey;
+  | EquipmentTranslationKey
+  | NavTranslationKey;
 
 export const LANGUAGES: Language[] = [
   {
@@ -236,15 +238,18 @@ export const TRANSLATIONS = {
     ...BASE_TRANSLATIONS["ar-DZ"],
     ...INCIDENT_TRANSLATIONS["ar-DZ"],
     ...EQUIPMENT_TRANSLATIONS["ar-DZ"],
+    ...NAV_TRANSLATIONS["ar-DZ"],
   },
   fr: {
     ...BASE_TRANSLATIONS.fr,
     ...INCIDENT_TRANSLATIONS.fr,
     ...EQUIPMENT_TRANSLATIONS.fr,
+    ...NAV_TRANSLATIONS.fr,
   },
   en: {
     ...BASE_TRANSLATIONS.en,
     ...INCIDENT_TRANSLATIONS.en,
     ...EQUIPMENT_TRANSLATIONS.en,
+    ...NAV_TRANSLATIONS.en,
   },
 } as Record<LanguageCode, Record<TranslationKey, string>>;

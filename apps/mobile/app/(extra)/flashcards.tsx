@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +32,8 @@ interface Category {
 }
 
 const Flashcards = () => {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -249,7 +253,7 @@ const Flashcards = () => {
       <ScrollView style={styles.content}>
         {!selectedCategory ? (
           <>
-            <Text style={styles.sectionTitle}>Choose a Category</Text>
+            <Text style={styles.sectionTitle}>{t("flashcardsChooseCategory")}</Text>
             <View style={styles.categoriesGrid}>
               {categories.map((category) => (
                 <TouchableOpacity
@@ -302,7 +306,7 @@ const Flashcards = () => {
                     <View style={styles.cardContent}>
                       <Ionicons name="help-circle" size={48} color="#3B82F6" style={styles.cardIcon} />
                       <Text style={styles.questionText}>{currentCard.question}</Text>
-                      <Text style={styles.tapHint}>Tap to reveal answer</Text>
+                      <Text style={styles.tapHint}>{t("flashcardsTapReveal")}</Text>
                     </View>
                   </Animated.View>
 
@@ -369,7 +373,7 @@ const Flashcards = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

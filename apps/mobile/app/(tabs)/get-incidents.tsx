@@ -22,6 +22,7 @@ import {
   IncidentType,
   fetchIncidents,
 } from "@/services/incidentApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 const PAGE_SIZE = 15;
 
@@ -37,6 +38,7 @@ const STATUS_CHIPS: { value: StatusFilter; key: "all" | "statusPending" | "statu
 ];
 
 export default function IncidentsListScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { t, isRTL, currentLanguage } = useLanguage();
 
   const [items, setItems] = useState<Incident[]>([]);
@@ -253,7 +255,7 @@ export default function IncidentsListScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5F5", paddingTop: 50 },
   title: { fontSize: 22, fontWeight: "bold", color: "#1F2937", paddingHorizontal: 16, marginBottom: 8 },
   list: { paddingHorizontal: 16, paddingBottom: 40 },
