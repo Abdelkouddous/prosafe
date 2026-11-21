@@ -7,19 +7,23 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const handleManualPress = (section: string) => {
   // TODO: Navigate to specific manual section or open modal
   console.log(`Opening manual section: ${section}`);
 };
 export default function SafetyManualScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   return (
     <ScrollView>
       <View>
         {/* Manual Section */}
         <View style={styles.manualSection}>
           <Text style={styles.manualTitle}>
-            Safety Manual / Manuel de Sécurité
+            {t("manualTitle")}
           </Text>
 
           <TouchableOpacity
@@ -28,7 +32,7 @@ export default function SafetyManualScreen() {
           >
             <Ionicons name="warning" size={24} color="#DC2626" />
             <View style={styles.manualItemContent}>
-              <Text style={styles.manualItemTitle}>Emergency Procedures</Text>
+              <Text style={styles.manualItemTitle}>{t("manualEmergencyProcedures")}</Text>
               <Text style={styles.manualItemSubtitle}>
                 Procédures d'urgence
               </Text>
@@ -42,7 +46,7 @@ export default function SafetyManualScreen() {
           >
             <Ionicons name="shield-checkmark" size={24} color="#10B981" />
             <View style={styles.manualItemContent}>
-              <Text style={styles.manualItemTitle}>Safety Guidelines</Text>
+              <Text style={styles.manualItemTitle}>{t("manualSafetyGuidelines")}</Text>
               <Text style={styles.manualItemSubtitle}>
                 Directives de sécurité
               </Text>
@@ -56,7 +60,7 @@ export default function SafetyManualScreen() {
           >
             <Ionicons name="construct" size={24} color="#F59E0B" />
             <View style={styles.manualItemContent}>
-              <Text style={styles.manualItemTitle}>Equipment Usage</Text>
+              <Text style={styles.manualItemTitle}>{t("manualEquipmentUsage")}</Text>
               <Text style={styles.manualItemSubtitle}>
                 Utilisation de l'équipement
               </Text>
@@ -70,7 +74,7 @@ export default function SafetyManualScreen() {
           >
             <Ionicons name="document-text" size={24} color="#3B82F6" />
             <View style={styles.manualItemContent}>
-              <Text style={styles.manualItemTitle}>Work Protocols</Text>
+              <Text style={styles.manualItemTitle}>{t("manualWorkProtocols")}</Text>
               <Text style={styles.manualItemSubtitle}>
                 Protocoles de travail
               </Text>
@@ -84,7 +88,7 @@ export default function SafetyManualScreen() {
           >
             <Ionicons name="call" size={24} color="#8B5CF6" />
             <View style={styles.manualItemContent}>
-              <Text style={styles.manualItemTitle}>Emergency Contacts</Text>
+              <Text style={styles.manualItemTitle}>{t("manualEmergencyContacts")}</Text>
               <Text style={styles.manualItemSubtitle}>Contacts d'urgence</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
@@ -95,7 +99,7 @@ export default function SafetyManualScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",

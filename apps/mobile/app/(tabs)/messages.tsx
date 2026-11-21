@@ -15,6 +15,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { fetchMyMessages, fetchMyUser } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const { width } = Dimensions.get("window");
 
@@ -38,6 +40,8 @@ interface Message {
 }
 
 export default function MessagesScreen() {
+  const styles = useThemedStyles(baseStyles);
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [filteredMessages, setFilteredMessages] = useState<Message[]>([]); // Stores filtered messages
   const [searchQuery, setSearchQuery] = useState(""); // Stores search input
@@ -143,7 +147,7 @@ export default function MessagesScreen() {
       setFilteredMessages(data); // Initialize filtered messages with all messages
     } catch (error) {
       console.error("Error loading messages:", error);
-      Alert.alert("Error", "Failed to load messages. Please try again.");
+      Alert.alert(t("error"), t("messagesLoadFailed"));
     } finally {
       setLoading(false);
     }
@@ -208,7 +212,7 @@ export default function MessagesScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0095F6" />
-        <Text style={styles.loadingText}>Loading messages...</Text>
+        <Text style={styles.loadingText}>{t("messagesLoading")}</Text>
       </View>
     );
   }
@@ -219,7 +223,7 @@ export default function MessagesScreen() {
         <View style={styles.headerContent}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>PROSAFE</Text>
-            <Text style={styles.logoSubtext}>MESSAGES</Text>
+            <Text style={styles.logoSubtext}>{t("messagesTitle")}</Text>
           </View>
         </View>
       </View>
@@ -233,7 +237,7 @@ export default function MessagesScreen() {
         />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search messages..."
+          placeholder={t("messagesSearch")}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor="#8E8E8E"
@@ -320,7 +324,7 @@ export default function MessagesScreen() {
               <TouchableOpacity onPress={closeMessageModal}>
                 <Ionicons name="close" size={24} color="#374151" />
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Message Details</Text>
+              <Text style={styles.modalTitle}>{t("messageDetails")}</Text>
               <View style={{ width: 24 }} />
             </View>
 
@@ -342,7 +346,7 @@ export default function MessagesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",

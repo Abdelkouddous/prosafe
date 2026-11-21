@@ -18,10 +18,12 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/services/notificationApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 const PAGE_SIZE = 20;
 
 export default function NotificationsScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { t, isRTL, currentLanguage } = useLanguage();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [page, setPage] = useState(1);
@@ -83,7 +85,7 @@ export default function NotificationsScreen() {
     }
   };
 
-  const back = () => (router.canGoBack() ? router.back() : router.replace("/(tabs)/menu"));
+  const back = () => (router.canGoBack() ? router.back() : router.replace("/(tabs)/home"));
   const hasUnread = items.some((n) => !n.readAt);
 
   const renderItem = ({ item }: { item: AppNotification }) => {
@@ -167,7 +169,7 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5F5" },
   topBar: {
     flexDirection: "row",

@@ -22,10 +22,10 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     }
 
     if (inAuthGroup) {
-      router.replace(isManager ? "/dashboard" : "/(tabs)/menu");
+      router.replace("/(tabs)/home");
     } else if (root === "dashboard" && !isManager) {
       // Only admin / sst_manager may open the manager dashboard
-      router.replace("/(tabs)/menu");
+      router.replace("/(tabs)/home");
     }
   }, [isAuthenticated, isLoading, segments, user, router]);
 

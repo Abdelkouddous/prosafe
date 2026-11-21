@@ -32,6 +32,7 @@ import {
   createIncident,
   rewardPoints,
 } from "@/services/incidentApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: "image/jpeg",
@@ -61,6 +62,7 @@ const toLocalMedia = (a: ImagePicker.ImagePickerAsset, idx: number): LocalMediaF
 };
 
 export default function ReportIncidentScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { t, isRTL } = useLanguage();
 
   const [type, setType] = useState<IncidentType | null>(null);
@@ -459,6 +461,7 @@ function MediaButton({
   label: string;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(baseStyles);
   return (
     <TouchableOpacity style={styles.mediaBtn} onPress={onPress}>
       <Ionicons name={icon} size={20} color="#2563EB" />
@@ -467,7 +470,7 @@ function MediaButton({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F5F5" },
   content: { padding: 20, paddingTop: 56, paddingBottom: 60 },
   title: { fontSize: 22, fontWeight: "bold", color: "#1F2937", marginBottom: 8 },

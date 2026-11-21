@@ -14,12 +14,8 @@ export default function Index() {
       // User is not authenticated, redirect to login
       router.replace("/(auth)/login");
     } else {
-      // User is authenticated, redirect to appropriate dashboard based on role
-      if (user?.role === "admin" || user?.role === "sst_manager") {
-        router.replace("/dashboard"); // Admin goes to messages
-      } else {
-        router.replace("/(tabs)/menu"); // Regular user goes to camera
-      }
+      // Everyone (managers included) lands on Accueil; managers get a dashboard button there
+      router.replace("/(tabs)/home");
     }
   }, [isAuthenticated, isLoading, user, router]);
 

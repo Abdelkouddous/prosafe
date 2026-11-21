@@ -25,6 +25,7 @@ import {
   fetchTrainingCatalogue,
   fetchUpcomingSessions,
 } from "@/services/trainingApi";
+import { useThemedStyles } from "@/hooks/useThemedStyles";
 
 type Segment = "catalogue" | "sessions" | "mine";
 
@@ -42,6 +43,7 @@ const STATUS_KEYS: Record<string, TranslationKey> = {
 };
 
 export default function TrainingsScreen() {
+  const styles = useThemedStyles(baseStyles);
   const { t, isRTL, currentLanguage } = useLanguage();
   const { user } = useAuth();
   const [segment, setSegment] = useState<Segment>("catalogue");
@@ -267,7 +269,7 @@ export default function TrainingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
   header: { fontSize: 22, fontWeight: "700", color: "#1F2937", paddingTop: 56, paddingHorizontal: 16 },
   segments: { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: 12 },
