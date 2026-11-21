@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,35 +35,9 @@ import Updates from "./pages/Updates";
 import Messages from "./components/Messages";
 import Services from "./pages/Services";
 
-// Get the API URL from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const queryClient = new QueryClient();
 
 function App() {
-  useEffect(() => {
-    // Function to test backend connection
-    const testBackendConnection = async () => {
-      if (!API_BASE_URL) {
-        console.error("Admin: API_BASE_URL is not defined!");
-        return;
-      }
-      try {
-        console.log(
-          `Admin: Attempting to connect to backend at ${API_BASE_URL}/health-check`
-        );
-        const response = await fetch(`${API_BASE_URL}/health-check`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("Admin: Backend connection successful!", data); // Log success
-      } catch (error) {
-        console.error("Admin: Failed to connect to backend:", error); // Log failure
-      }
-    };
-
-    testBackendConnection();
-  }, []); // Run once on component mount
-  const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

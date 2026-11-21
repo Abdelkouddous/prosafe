@@ -113,8 +113,7 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Label } from "@radix-ui/react-label";
-import { t } from "node_modules/i18next";
+import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import { alertApi, Alert, AlertStats } from "@/services/alertApi";
 import AdminNotifications from "@/components/AdminNotifications";
@@ -141,7 +140,7 @@ interface BackendMessage {
   id: number;
   content: string;
   created_at: string; // ISO date string
-  status: string; // e.g., 'UNREAD', 'READ'
+  status: string; // e.g., 'unread', 'read'
   sender?: {
     id: number;
     firstName?: string;
@@ -349,15 +348,15 @@ const Dashboard = () => {
     location: "",
   });
   //
-  const categories = [
-    t("adminDashboard.categories.allCategories"),
-    t("adminDashboard.categories.electronics"),
-    t("adminDashboard.categories.officeSupplies"),
-    t("adminDashboard.categories.furniture"),
-    t("adminDashboard.categories.safetyEquipment"),
-    t("adminDashboard.categories.tools"),
-    t("adminDashboard.categories.consumables"),
-    t("adminDashboard.categories.other"),
+  const categories: { value: string; label: string }[] = [
+    { value: "all", label: t("adminDashboard.categories.allCategories") },
+    { value: InventoryCategory.ELECTRONICS, label: t("adminDashboard.categories.electronics") },
+    { value: InventoryCategory.OFFICE_SUPPLIES, label: t("adminDashboard.categories.officeSupplies") },
+    { value: InventoryCategory.FURNITURE, label: t("adminDashboard.categories.furniture") },
+    { value: InventoryCategory.SAFETY_EQUIPMENT, label: t("adminDashboard.categories.safetyEquipment") },
+    { value: InventoryCategory.TOOLS, label: t("adminDashboard.categories.tools") },
+    { value: InventoryCategory.CONSUMABLES, label: t("adminDashboard.categories.consumables") },
+    { value: InventoryCategory.OTHER, label: t("adminDashboard.categories.other") },
   ];
 
   const handleAddEquipment = async () => {
@@ -444,17 +443,17 @@ const Dashboard = () => {
   });
   const [inventory, setInventory] = useState<BackendInventoryItem[]>([]);
   const [inventorySearchTerm, setInventorySearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [isRefreshingInventory, setIsRefreshingInventory] = useState(false);
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const isAdmin = user?.roles.includes("admin");
+  const isAdmin = !!user?.roles?.includes("admin");
 
   // Calculate unread message count from backend messages
   const unreadMessageCount = latestMessages.filter(
-    (msg) => msg.status === "UNREAD"
+    (msg) => msg.status === "unread"
   ).length;
 
   // Calculate notification count for incidents
@@ -787,7 +786,6 @@ const Dashboard = () => {
       const response = await inventoryApi.updateItem(id, {
         quantity: newQuantity,
       });
-      console.log(response.data);
 
       // Update local state
       setInventory((prevInventory) =>
@@ -855,7 +853,7 @@ const Dashboard = () => {
       .toLowerCase()
       .includes(inventorySearchTerm.toLowerCase());
     const matchesCategory =
-      selectedCategory === "Tous" || item.category === selectedCategory;
+      selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1235,7 +1233,7 @@ const Dashboard = () => {
                     {/* Filter incidents by current user ID */}
                     {incidents &&
                     incidents.filter(
-                      (incident) => incident.reporter_name === user?.id
+                      (incident) => (incident.reporter?.id != null && String(incident.reporter.id) === String(user?.id))
                     ).length > 0 ? (
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead>
@@ -1252,7 +1250,7 @@ const Dashboard = () => {
                           {incidents
                             .filter(
                               (incident) =>
-                                incident?.reporter.firstName === user?.id
+                                (incident?.reporter?.id != null && String(incident.reporter.id) === String(user?.id))
                             )
                             .map((incident, idx) => (
                               <tr key={idx}>
@@ -1639,30 +1637,6 @@ const Dashboard = () => {
                               Admin Access
                             </p>
                           </div>
-                          <Link
-                            to="/admin/users"
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <Users className="h-4 w-4" />
-                            User Management
-                          </Link>
-                          <Link
-                            to="/admin/roles"
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <Shield className="h-4 w-4" />
-                            Role Management
-                          </Link>
-                          <Link
-                            to="/admin/permissions"
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            <Settings className="h-4 w-4" />
-                            Permissions
-                          </Link>
                         </>
                       )}
                     </div>
@@ -1766,7 +1740,11 @@ const Dashboard = () => {
                                   Pending
                                 </Badge>
                               ) : (
-                                <Badge variant="outline">Standard</Badge>
+                                <Badge variant="outline">
+                                  {user.roles.includes("sst_manager")
+                                    ? "SST Manager"
+                                    : "Employee"}
+                                </Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
@@ -1809,6 +1787,7 @@ const Dashboard = () => {
                                   </Button>
                                 )}
 
+                                {isAdmin && (
                                 <Button
                                   variant="outline"
                                   size="icon"
@@ -1818,8 +1797,9 @@ const Dashboard = () => {
                                 >
                                   <UserCog className="h-4 w-4" />
                                 </Button>
+                                )}
 
-                                {!user.roles.includes("admin") && (
+                                {isAdmin && !user.roles.includes("admin") && (
                                   <Button
                                     variant="outline"
                                     size="icon"
@@ -1831,6 +1811,7 @@ const Dashboard = () => {
                                   </Button>
                                 )}
 
+                                {isAdmin && (
                                 <Button
                                   variant="outline"
                                   size="icon"
@@ -1840,6 +1821,7 @@ const Dashboard = () => {
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -2392,20 +2374,20 @@ const Dashboard = () => {
                     <div className="flex gap-2 overflow-x-auto pb-1">
                       {categories.map((category) => (
                         <Button
-                          key={category}
+                          key={category.value}
                           variant={
-                            selectedCategory === category
+                            selectedCategory === category.value
                               ? "default"
                               : "outline"
                           }
                           className={
-                            selectedCategory === category
+                            selectedCategory === category.value
                               ? "bg-prosafe-600 hover:bg-prosafe-700"
                               : ""
                           }
-                          onClick={() => setSelectedCategory(category)}
+                          onClick={() => setSelectedCategory(category.value)}
                         >
-                          {category}
+                          {category.label}
                         </Button>
                       ))}
                     </div>
@@ -3091,8 +3073,8 @@ const Dashboard = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="standard">Standard</SelectItem>
-              <SelectItem value="premium">Premium</SelectItem>
+              <SelectItem value="sst_manager">SST Manager</SelectItem>
+              <SelectItem value="employee">Employee</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
             </SelectContent>
           </Select>
