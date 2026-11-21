@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import { TasksService } from '../tasks/tasks.service';
 import { MessagesService } from '../messages/messages.service';
 import { InventoryService } from '../inventory/inventory.service';
+import { ListIncidentsQueryDto } from '../incidents/dto/list-incidents-query.dto';
 import { IncidentsService } from '../incidents/incidents.service';
 import { AlertsService } from '../alerts/alerts.service';
 import { AdminCreateUserDto as CreateUserDto } from '../users/dto/create-user.dto';
@@ -37,7 +38,7 @@ export class AdminService {
     const [totalUsers, totalTasks, totalIncidents, alertStats, inventoryStats, unreadMessages] = await Promise.all([
       this.usersService.findAll().then((users) => users.length),
       this.tasksService.getTaskStats().then((stats) => stats.total),
-      this.incidentsService.findAll().then((incidents) => incidents.length),
+      this.incidentsService.count(),
       this.alertsService.getAlertStats(),
       this.inventoryService.getInventoryStats(),
       this.messagesService.findAllUnread().then((messages) => messages.length),
@@ -178,8 +179,8 @@ export class AdminService {
   }
 
   // Incident Management
-  async getIncidents() {
-    return await this.incidentsService.findAll();
+  async getIncidents(query: ListIncidentsQueryDto = {}) {
+    return await this.incidentsService.findAllUnpaged(query);
   }
 
   async getIncident(id: string) {
@@ -187,7 +188,7 @@ export class AdminService {
   }
 
   async createIncident(createIncidentDto: CreateIncidentDto, adminId: number) {
-    return await this.incidentsService.create(createIncidentDto, null, adminId);
+    return await this.incidentsService.create(createIncidentDto, [], adminId);
   }
 
   async updateIncidentStatus(id: string, data: UpdateIncidentStatusDto, adminId: number) {

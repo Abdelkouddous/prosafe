@@ -18,6 +18,24 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(50)
   lastName?: string;
+
+  @ApiPropertyOptional({ maxLength: 30 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  phone?: string;
+
+  @ApiPropertyOptional({ maxLength: 100 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  department?: string;
+
+  @ApiPropertyOptional({ maxLength: 100 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  zone?: string;
 }
 
 /**

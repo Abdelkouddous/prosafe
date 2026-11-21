@@ -10,8 +10,8 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 
 | ID | Requirement | Apps | Status | Gap notes (v1.0.0) |
 |---|---|---|---|---|
-| E1.1 | Employees report incidents with description, **photos, videos**, etc. | B M | partial | One photo only (gallery, stored as `bytea`), no video, no camera capture; `notes`/`date` DTO fields ignored |
-| E1.2 | Precise geolocation of incident | B M | partial | Works on mobile; `app.json` lacks location/image-picker permission plugins |
+| E1.1 | Employees report incidents with description, **photos, videos**, etc. | B M | partial | Backend done (Phase 2A): multipart `media[]` up to 5 images/videos on disk (`stored_file`, `incident_media`), notes/date/zone/department honoured. Mobile still sends a single photo; no video/camera yet |
+| E1.2 | Precise geolocation of incident | B M | partial | Backend stores latitude/longitude or manualAddress (flat multipart fields) and filters by radius. Mobile: `app.json` lacks location/image-picker permission plugins |
 | E2.1 | Track available safety equipment | B M A | partial | Inventory CRUD works; categories are generic (electronics, furniture…) |
 | E2.2 | Notification when equipment out of stock | B M A | missing | Status recomputed on update only; no notification, no cron |
 | E3.1 | Manage employee SST trainings | B M A | partial | Implemented on top of `tasks`; no per-user enrollment |
@@ -53,9 +53,9 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 |---|---|---|---|---|
 | M0.1 | Home dashboard: total incidents, by status (pending / in progress / resolved), active alerts | M A | partial | Mobile employee home is a static grid; admin KPIs mostly hardcoded |
 | M0.2 | Quick access: "Signaler un incident", "Voir les risques", "Accéder aux rapports" | M | partial | Only report/view incidents |
-| M1.1 | Déclarer un incident (type, description, photos/videos, geolocation) | M A | partial | See E1 |
-| M1.2 | Incidents signalés by status + filters (date, location, type) | B M A | partial | Free-text search only; no filters/pagination |
-| M1.3 | Historique des incidents with resolution | B M A | missing | No detail view, no status history |
+| M1.1 | Déclarer un incident (type, description, photos/videos, geolocation) | M A | partial | Backend done (see E1); admin/mobile UI pending |
+| M1.2 | Incidents signalés by status + filters (date, location, type) | B M A | partial | Backend done: paginated `GET /incidents` with status/type/severity/from/to/zone/department/search/reporterId/lat,lng,radiusKm; admin/mobile UI pending |
+| M1.3 | Historique des incidents with resolution | B M A | partial | Backend done: `GET /incidents/:id` (numeric or INC- code) with media, ordered `incident_history`, reporter; `PATCH /incidents/:id/status {status, comment?}`; admin/mobile UI pending |
 | M2.1 | Catalogue des risques (description, gravity, recommended solutions) | B M A | missing | |
 | M2.2 | Évaluation des risques (by employees or managers) | B M A | missing | |
 | M2.3 | Plans d'action (in progress / validated) | B A | missing | |
@@ -72,7 +72,7 @@ Statuses below were seeded from the code audit of v1.0.0 (2026-11). Update them 
 | M6.2 | Employee enrollment | B M | missing | `currentParticipants` never incremented |
 | M6.3 | Evaluations & participant progress | B M A | missing | |
 | M7.1 | User profile: personal info, role, preferences | B M A | partial | Mobile profile read-only |
-| M7.2 | Notification settings (incidents, trainings, audits) | B M A | missing | Admin stores in localStorage only |
+| M7.2 | Notification settings (incidents, trainings, audits) | B M A | partial | Backend done: `GET/PUT /notifications/preferences`, devices, list/read, Expo push + email dispatch (`NotificationsService`); admin/mobile UI pending |
 | M7.3 | Language & accessibility (text size, high contrast) | M A | partial | i18n set up (fr/en/ar) but barely applied; no accessibility options; Arabic RTL not applied in admin |
 
 ## 5. Autres éléments d'interface

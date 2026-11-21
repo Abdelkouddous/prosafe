@@ -22,6 +22,7 @@ import { UpdateTaskDto } from '../tasks/dto/update-task.dto';
 import { CreateMessageDto, UpdateMessageDto } from '../messages/dto/message.dto';
 import { CreateInventoryDto } from '../inventory/dto/create-inventory.dto';
 import { UpdateInventoryDto } from '../inventory/dto/update-inventory.dto';
+import { ListIncidentsQueryDto } from '../incidents/dto/list-incidents-query.dto';
 import { UpdateIncidentStatusDto } from '../incidents/dto/update-incident-status.dto';
 import { CreateAlertDto } from '../alerts/dto/create-alert.dto';
 import { UpdateAlertDto } from '../alerts/dto/update-alert.dto';
@@ -312,12 +313,12 @@ export class AdminController {
 
   // Incident Management
   @Get('incidents')
-  async getIncidents(@Request() req) {
+  async getIncidents(@Request() req, @Query() query: ListIncidentsQueryDto) {
     const adminId = req.user?.id;
     if (!adminId) {
       throw new BadRequestException('User not authenticated');
     }
-    return await this.adminService.getIncidents();
+    return await this.adminService.getIncidents(query);
   }
 
   @Get('incidents/:id')

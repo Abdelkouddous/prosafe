@@ -107,6 +107,9 @@ export class UsersService {
 
     if (updateUserDto.firstName) user.firstName = updateUserDto.firstName;
     if (updateUserDto.lastName) user.lastName = updateUserDto.lastName;
+    if (updateUserDto.phone !== undefined) user.phone = updateUserDto.phone || null;
+    if (updateUserDto.department !== undefined) user.department = updateUserDto.department || null;
+    if (updateUserDto.zone !== undefined) user.zone = updateUserDto.zone || null;
 
     return this.usersRepository.save(user);
   }
