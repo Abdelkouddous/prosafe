@@ -15,7 +15,9 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "actions": "Actions",
+    "totalCount": "{{count}} résultat(s)"
   },
   "navigation": {
     "home": "Accueil",
@@ -34,7 +36,9 @@
     "logout": "Déconnexion",
     "about": "À propos",
     "services": "Services",
-    "contact": "Contact"
+    "contact": "Contact",
+    "equipment": "Équipements",
+    "trainings": "Formations"
   },
   "auth": {
     "login": "Connexion",
@@ -353,5 +357,269 @@
     "phone": "Téléphone",
     "department": "Département",
     "zone": "Zone"
+  },
+  "manager": {
+    "backToDashboard": "Retour au tableau de bord"
+  },
+  "equipment": {
+    "title": "Inventaire",
+    "subtitle": "Équipements de sécurité, stocks et état",
+    "nav": {
+      "inventory": "Inventaire",
+      "maintenance": "Maintenance et vérifications",
+      "history": "Historique"
+    },
+    "add": "Ajouter un équipement",
+    "edit": "Modifier l'équipement",
+    "saved": "Équipement enregistré",
+    "deleted": "Équipement supprimé",
+    "searchPlaceholder": "Rechercher par nom, référence...",
+    "allCategories": "Toutes les catégories",
+    "allStatuses": "Tous les statuts",
+    "allConditions": "Tous les états",
+    "empty": "Aucun équipement trouvé",
+    "min": "Min",
+    "increase": "Augmenter le stock",
+    "decrease": "Diminuer le stock",
+    "expired": "expiré",
+    "expiresIn": "dans {{count}} jour(s)",
+    "deleteTitle": "Supprimer l'équipement",
+    "deleteConfirm": "Supprimer « {{name}} » ? Cette action est irréversible.",
+    "stats": {
+      "total": "Total des équipements",
+      "lowStock": "Stock faible",
+      "outOfStock": "Rupture de stock",
+      "nonFunctional": "Hors service",
+      "value": "Valeur du stock"
+    },
+    "fields": {
+      "name": "Nom",
+      "sku": "Référence",
+      "description": "Description",
+      "category": "Catégorie",
+      "status": "Statut du stock",
+      "condition": "État",
+      "quantity": "Quantité",
+      "min_stock_level": "Stock minimum",
+      "price": "Prix unitaire",
+      "expiryDate": "Date d'expiration",
+      "lastInspectionAt": "Dernière vérification",
+      "nextInspectionAt": "Prochaine vérification",
+      "supplier": "Fournisseur",
+      "location": "Emplacement"
+    },
+    "category": {
+      "ppe": "EPI",
+      "fire_extinguisher": "Extincteurs",
+      "first_aid": "Premiers secours",
+      "detection": "Détection",
+      "signage": "Signalisation",
+      "tools": "Outils",
+      "consumables": "Consommables",
+      "other": "Autre"
+    },
+    "status": {
+      "active": "En stock",
+      "inactive": "Inactif",
+      "out_of_stock": "Rupture de stock",
+      "discontinued": "Abandonné",
+      "low_stock": "Stock faible"
+    },
+    "condition": {
+      "functional": "Fonctionnel",
+      "non_functional": "Hors service"
+    },
+    "errors": {
+      "load": "Impossible de charger les équipements",
+      "save": "Impossible d'enregistrer l'équipement",
+      "delete": "Impossible de supprimer l'équipement",
+      "required": "Le nom et la description sont obligatoires"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance et vérifications",
+    "subtitle": "Maintenances planifiées et en retard, regroupées par semaine",
+    "add": "Planifier une maintenance",
+    "pickItem": "Choisir un équipement",
+    "complete": "Clôturer",
+    "cancel": "Annuler",
+    "empty": "Aucune maintenance planifiée",
+    "created": "Maintenance planifiée",
+    "completed": "Maintenance clôturée",
+    "cancelled": "Maintenance annulée",
+    "overdueSection": "En retard ({{count}})",
+    "week": "Semaine du {{from}} au {{to}}",
+    "fields": {
+      "item": "Équipement",
+      "type": "Type",
+      "scheduledAt": "Date prévue",
+      "doneAt": "Réalisée le",
+      "result": "Résultat",
+      "notes": "Remarques",
+      "nextScheduledAt": "Prochaine maintenance (facultatif)"
+    },
+    "type": {
+      "inspection": "Vérification",
+      "preventive": "Préventive",
+      "corrective": "Corrective"
+    },
+    "status": {
+      "planned": "Planifiée",
+      "done": "Réalisée",
+      "overdue": "En retard",
+      "cancelled": "Annulée"
+    },
+    "result": {
+      "ok": "Conforme",
+      "issues": "Anomalies constatées",
+      "failed": "Échec"
+    },
+    "resultHint": {
+      "ok": "L'équipement sera marqué comme fonctionnel.",
+      "issues": "L'état de l'équipement reste inchangé.",
+      "failed": "L'équipement sera marqué hors service."
+    },
+    "errors": {
+      "load": "Impossible de charger les maintenances",
+      "save": "Impossible d'enregistrer la maintenance",
+      "required": "L'équipement et la date sont obligatoires"
+    }
+  },
+  "history": {
+    "title": "Historique des maintenances",
+    "subtitle": "Maintenances et vérifications réalisées",
+    "allItems": "Tous les équipements",
+    "from": "Du",
+    "to": "Au",
+    "performedBy": "Réalisée par",
+    "empty": "Aucune maintenance réalisée"
+  },
+  "trainings": {
+    "title": "Catalogue des formations",
+    "subtitle": "Formations, validité et rôles concernés",
+    "nav": {
+      "catalogue": "Catalogue",
+      "sessions": "Sessions",
+      "compliance": "Conformité des compétences"
+    },
+    "add": "Ajouter une formation",
+    "edit": "Modifier la formation",
+    "saved": "Formation enregistrée",
+    "deleted": "Formation supprimée",
+    "empty": "Aucune formation trouvée",
+    "searchPlaceholder": "Rechercher une formation...",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noExpiry": "Sans expiration",
+    "deleteTitle": "Supprimer la formation",
+    "deleteConfirm": "Supprimer « {{name}} » ?",
+    "fields": {
+      "title": "Titre",
+      "description": "Description",
+      "category": "Catégorie",
+      "durationHours": "Durée (h)",
+      "validityMonths": "Validité (mois)",
+      "mandatoryForRoles": "Obligatoire pour les rôles",
+      "status": "Statut"
+    },
+    "roles": {
+      "admin": "Administrateur",
+      "sst_manager": "Responsable SST",
+      "employee": "Employé"
+    },
+    "errors": {
+      "load": "Impossible de charger les formations",
+      "save": "Impossible d'enregistrer la formation",
+      "delete": "Impossible de supprimer la formation",
+      "titleRequired": "Le titre est obligatoire",
+      "hasEnrollments": "Cette formation a des inscriptions : désactivez-la plutôt que de la supprimer."
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "Planifier les sessions et gérer les inscriptions",
+    "add": "Ajouter une session",
+    "edit": "Modifier la session",
+    "saved": "Session enregistrée",
+    "deleted": "Session supprimée",
+    "cancelled": "Session annulée",
+    "cancel": "Annuler la session",
+    "empty": "Aucune session trouvée",
+    "allTrainings": "Toutes les formations",
+    "allStatuses": "Tous les statuts",
+    "pickTraining": "Choisir une formation",
+    "unlimited": "Illimitée",
+    "cancelTitle": "Annuler la session",
+    "cancelConfirm": "La session sera marquée comme annulée.",
+    "deleteTitle": "Supprimer la session",
+    "deleteConfirm": "Supprimer cette session ?",
+    "enrollments": "Inscriptions",
+    "pickUser": "Choisir un participant",
+    "enroll": "Inscrire",
+    "enrolled": "Participant inscrit",
+    "noEnrollments": "Aucun participant pour le moment",
+    "enrollmentSaved": "Inscription mise à jour",
+    "expiresAt": "Valable jusqu'au {{date}}",
+    "fields": {
+      "training": "Formation",
+      "startAt": "Début",
+      "endAt": "Fin",
+      "location": "Lieu",
+      "trainer": "Formateur",
+      "capacity": "Capacité",
+      "enrolled": "Inscrits",
+      "status": "Statut",
+      "score": "Note",
+      "progress": "Progression (%)"
+    },
+    "status": {
+      "planned": "Planifiée",
+      "ongoing": "En cours",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    },
+    "enrollmentStatus": {
+      "registered": "Inscrit",
+      "attended": "Présent",
+      "passed": "Réussi",
+      "failed": "Échoué",
+      "cancelled": "Annulé"
+    },
+    "errors": {
+      "load": "Impossible de charger les sessions",
+      "save": "Impossible d'enregistrer",
+      "delete": "Impossible de supprimer la session",
+      "required": "La formation et la date de début sont obligatoires",
+      "hasEnrollments": "Cette session a des inscriptions : annulez-la plutôt que de la supprimer.",
+      "loadEnrollments": "Impossible de charger les inscriptions",
+      "loadUsers": "Impossible de charger les utilisateurs",
+      "enroll": "Impossible d'inscrire le participant"
+    }
+  },
+  "compliance": {
+    "title": "Conformité des compétences",
+    "subtitle": "Formations obligatoires par employé",
+    "autoPlan": "Planifier automatiquement",
+    "rate": "Taux de conformité",
+    "compliantUsers": "Employés conformes",
+    "acquired": "Acquises",
+    "expiring": "À renouveler",
+    "missing": "Manquantes",
+    "expired": "expirée",
+    "user": "Employé",
+    "department": "Service",
+    "departmentFilter": "Filtrer par service",
+    "empty": "Aucune donnée",
+    "previewTitle": "Planification automatique (aperçu)",
+    "previewDesc": "{{count}} employé(s) n'ont pas toutes les formations obligatoires valides et seront notifiés.",
+    "previewNone": "Tous les employés sont conformes.",
+    "nextSession": "prochaine session le {{date}}",
+    "noSession": "aucune session planifiée",
+    "confirmNotify": "Confirmer et notifier",
+    "planDone": "{{count}} employé(s) notifié(s)",
+    "errors": {
+      "load": "Impossible de charger le rapport",
+      "plan": "Impossible de lancer la planification automatique"
+    }
   }
 }

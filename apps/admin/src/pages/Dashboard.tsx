@@ -90,17 +90,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import Messages from "@/components/Messages";
 
-// this code refers to the inventory management
-import {
-  inventoryApi,
-  InventoryStats,
-  InventoryCategory,
-  InventoryItem as BackendInventoryItem,
-  CreateInventoryItemDto,
-  InventoryStatus,
-} from "@/services/inventoryApi";
-import InventoryManagement from "@/components/InventoryManagement";
-import TrainingManagement from "@/components/TrainingManagement";
+// inventory stats card (full inventory lives at /equipment)
+import { inventoryApi, InventoryStats } from "@/services/inventoryApi";
 import NotificationPreferences from "@/components/NotificationPreferences";
 import NotificationBell from "@/components/NotificationBell";
 import NotificationSettings from "@/components/NotificationSettings";
@@ -334,92 +325,11 @@ const Dashboard = () => {
   const [inventoryStats, setInventoryStats] = useState<InventoryStats | null>(
     null
   );
-  const [inventoryLoading, setInventoryLoading] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newItem, setNewItem] = useState<CreateInventoryItemDto>({
-    name: "",
-    description: "",
-    sku: "",
-    price: 0,
-    quantity: 0,
-    min_stock_level: 1,
-    category: InventoryCategory.OTHER,
-    status: InventoryStatus.ACTIVE,
-    supplier: "",
-    location: "",
-  });
-  //
-  const categories: { value: string; label: string }[] = [
-    { value: "all", label: t("adminDashboard.categories.allCategories") },
-    { value: InventoryCategory.ELECTRONICS, label: t("adminDashboard.categories.electronics") },
-    { value: InventoryCategory.OFFICE_SUPPLIES, label: t("adminDashboard.categories.officeSupplies") },
-    { value: InventoryCategory.FURNITURE, label: t("adminDashboard.categories.furniture") },
-    { value: InventoryCategory.SAFETY_EQUIPMENT, label: t("adminDashboard.categories.safetyEquipment") },
-    { value: InventoryCategory.TOOLS, label: t("adminDashboard.categories.tools") },
-    { value: InventoryCategory.CONSUMABLES, label: t("adminDashboard.categories.consumables") },
-    { value: InventoryCategory.OTHER, label: t("adminDashboard.categories.other") },
-  ];
-
-  const handleAddEquipment = async () => {
-    try {
-      await inventoryApi.createItem(newItem);
-      toast({
-        title: t("dashboard.equipmentAdded"),
-        description: t("dashboard.equipmentAddedDescription"),
-      });
-      setIsAddModalOpen(false);
-      fetchInventoryData();
-      setNewItem({
-        name: "",
-        description: "",
-        sku: "",
-        price: 0,
-        quantity: 0,
-        min_stock_level: 1,
-        category: InventoryCategory.OTHER,
-        status: InventoryStatus.ACTIVE,
-        supplier: "",
-        location: "",
-      });
-    } catch (error) {
-      toast({
-        title: t("dashboard.equipmentAddError"),
-        description: t("dashboard.equipmentAddErrorDescription"),
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchInventoryData = async () => {
-    try {
-      setInventoryLoading(true);
-      const response = await inventoryApi.getItems(1, 100);
-      setInventory(response.data.items);
-    } catch (error) {
-      console.error("Error fetching inventory data:", error);
-      toast({
-        title: t("errors.error"),
-        description: t("errors.inventoryLoadError"),
-        variant: "destructive",
-      });
-    } finally {
-      setInventoryLoading(false);
-    }
-  };
-
-  // Add to useEffect:
   useEffect(() => {
-    const fetchInventoryStats = async () => {
-      try {
-        const response = await inventoryApi.getStats();
-        setInventoryStats(response.data);
-      } catch (error) {
-        console.error("Error fetching inventory stats:", error);
-      }
-    };
-
-    fetchInventoryStats();
-    fetchInventoryData();
+    inventoryApi
+      .getStats()
+      .then((res) => setInventoryStats(res.data))
+      .catch((error) => console.error("Error fetching inventory stats:", error));
   }, []);
 
   // alert stats fetch
@@ -435,10 +345,6 @@ const Dashboard = () => {
     investigating: 0,
     critical: 0,
   });
-  const [inventory, setInventory] = useState<BackendInventoryItem[]>([]);
-  const [inventorySearchTerm, setInventorySearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [isRefreshingInventory, setIsRefreshingInventory] = useState(false);
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -754,86 +660,6 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
-  const updateInventoryQuantity = async (id: number, newQuantity: number) => {
-    try {
-      const response = await inventoryApi.updateItem(id, {
-        quantity: newQuantity,
-      });
-
-      // Update local state
-      setInventory((prevInventory) =>
-        prevInventory.map((item) =>
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        )
-      );
-
-      const updatedItem = inventory.find((item) => item.id === id);
-      if (updatedItem) {
-        toast({
-          title: "Success",
-          description: `Quantité de ${updatedItem.name} mise à jour`,
-        });
-
-        if (newQuantity < updatedItem.min_stock_level && newQuantity >= 0) {
-          toast({
-            title: "Warning",
-            description: `Stock faible: ${updatedItem.name} (${newQuantity} restants)`,
-            variant: "destructive",
-          });
-        }
-      }
-
-      // Refresh inventory stats
-      const statsResponse = await inventoryApi.getStats();
-      setInventoryStats(statsResponse.data);
-    } catch (error) {
-      console.error("Error updating inventory quantity:", error);
-      toast({
-        title: "Error",
-        description: "Erreur lors de la mise à jour de la quantité",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const refreshInventory = async () => {
-    setIsRefreshingInventory(true);
-    try {
-      await Promise.all([
-        fetchInventoryData(),
-        (async () => {
-          const response = await inventoryApi.getStats();
-          setInventoryStats(response.data);
-        })(),
-      ]);
-      toast({
-        title: "Success",
-        description: "Inventaire mis à jour",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Erreur lors de l'actualisation",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRefreshingInventory(false);
-    }
-  };
-
-  const filteredInventory = inventory.filter((item) => {
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(inventorySearchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const lowStockItems = inventory.filter(
-    (item) => item.quantity <= item.min_stock_level
-  );
 
   const handleLogout = () => {
     logout();
@@ -1348,10 +1174,6 @@ const Dashboard = () => {
         return "User Settings";
       case "messages":
         return "Messages";
-      case "inventory":
-        return "Inventory Management";
-      case "training":
-        return "Training Management";
       case "notifications":
         return "Notification Settings";
       case "admin-notifications":
@@ -1427,20 +1249,20 @@ const Dashboard = () => {
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("inventory")}
+            onClick={() => navigate("/equipment")}
           >
             <Box className="mr-2 h-5 w-5" />
             Inventory
-            {lowStockItems.length > 0 && (
+            {(inventoryStats?.lowStockItems ?? 0) > 0 && (
               <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                {lowStockItems.length}
+                {(inventoryStats?.lowStockItems ?? 0)}
               </span>
             )}
           </Button>
           <Button
             variant="ghost"
             className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("training")}
+            onClick={() => navigate("/trainings")}
           >
             <GraduationCap className="mr-2 h-5 w-5" />
             Training Management
@@ -1891,335 +1713,6 @@ const Dashboard = () => {
                 </Card>
               </div>
             </div>
-          ) : activeTab === "inventory" ? (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">
-                  Inventory Management
-                </h2>
-                <p className="text-muted-foreground">
-                  Suivi et gestion de vos équipements de sécurité
-                </p>
-              </div>
-
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={refreshInventory}
-                    disabled={isRefreshingInventory}
-                  >
-                    <RefreshCw
-                      className={`h-4 w-4 mr-2 ${isRefreshingInventory ? "animate-spin" : ""}`}
-                    />
-                    Actualiser
-                  </Button>
-                  <Button
-                    className="bg-prosafe-600 hover:bg-prosafe-700"
-                    onClick={() => setIsAddModalOpen(true)}
-                  >
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Ajouter un équipement
-                  </Button>
-                  <Dialog
-                    open={isAddModalOpen}
-                    onOpenChange={setIsAddModalOpen}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Ajouter un équipement</DialogTitle>
-                        <DialogDescription>
-                          Remplissez les informations de l'équipement à ajouter.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Label htmlFor="nom">
-                          Nom
-                          <Input
-                            id="nom"
-                            placeholder="Nom"
-                            value={newItem.name}
-                            onChange={(e) =>
-                              setNewItem({ ...newItem, name: e.target.value })
-                            }
-                          />
-                        </Label>
-                        <Label htmlFor="description">
-                          Description
-                          <Input
-                            id="description"
-                            placeholder="Description"
-                            value={newItem.description}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                description: e.target.value,
-                              })
-                            }
-                          />
-                        </Label>
-                        <Label htmlFor="sku">
-                          SKU
-                          <Input
-                            id="sku"
-                            placeholder="SKU"
-                            value={newItem.sku}
-                            onChange={(e) =>
-                              setNewItem({ ...newItem, sku: e.target.value })
-                            }
-                          />
-                        </Label>
-                        <Label htmlFor="prix">
-                          Prix (DZD)
-                          <Input
-                            id="prix"
-                            type="number"
-                            step="5"
-                            placeholder="Prix en DZD"
-                            value={newItem.price}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                price: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </Label>
-
-                        <Label htmlFor="quantite">
-                          Quantité
-                          <Input
-                            id="quantite"
-                            type="number"
-                            placeholder="Quantité"
-                            value={newItem.quantity}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                quantity: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </Label>
-
-                        <Label htmlFor="seuil-stock">
-                          Seuil de stock minimum
-                          <Input
-                            id="seuil-stock"
-                            type="number"
-                            placeholder="Seuil de stock minimum"
-                            value={newItem.min_stock_level}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                min_stock_level: Number(e.target.value),
-                              })
-                            }
-                          />
-                        </Label>
-                        <Label htmlFor="category">
-                          Category
-                          <select
-                            id="category"
-                            value={newItem.category}
-                            onChange={(e) =>
-                              setNewItem({
-                                ...newItem,
-                                category: e.target.value as InventoryCategory,
-                              })
-                            }
-                            className="w-full border rounded p-2"
-                          >
-                            {Object.values(InventoryCategory).map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
-                              </option>
-                            ))}
-                          </select>
-                        </Label>
-                        <Input
-                          placeholder="Fournisseur"
-                          value={newItem.supplier}
-                          onChange={(e) =>
-                            setNewItem({ ...newItem, supplier: e.target.value })
-                          }
-                        />
-                        <Input
-                          placeholder="Emplacement"
-                          value={newItem.location}
-                          onChange={(e) =>
-                            setNewItem({ ...newItem, location: e.target.value })
-                          }
-                        />
-                      </div>
-                      <DialogFooter>
-                        <Button onClick={handleAddEquipment}>Ajouter</Button>
-                        <DialogClose asChild>
-                          <Button variant="outline">Annuler</Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {lowStockItems.length > 0 && (
-                <Card className="border-yellow-200 bg-yellow-50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-yellow-800 flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5" />
-                      Alertes de stock
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {lowStockItems.map((item) => (
-                        <div
-                          key={`alert-${item.id}`}
-                          className="text-sm flex justify-between"
-                        >
-                          <span>{item.name}</span>
-                          <span className="font-medium text-yellow-800">
-                            {item.quantity} restants (seuil:{" "}
-                            {item.min_stock_level})
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Équipements de sécurité</CardTitle>
-                  <CardDescription>
-                    Gérez votre inventaire et recevez des alertes lors de
-                    ruptures de stock
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col md:flex-row gap-4 mb-6">
-                    <div className="relative flex-grow">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Rechercher un équipement..."
-                        className="pl-10"
-                        value={inventorySearchTerm}
-                        onChange={(e) => setInventorySearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {categories.map((category) => (
-                        <Button
-                          key={category.value}
-                          variant={
-                            selectedCategory === category.value
-                              ? "default"
-                              : "outline"
-                          }
-                          className={
-                            selectedCategory === category.value
-                              ? "bg-prosafe-600 hover:bg-prosafe-700"
-                              : ""
-                          }
-                          onClick={() => setSelectedCategory(category.value)}
-                        >
-                          {category.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {filteredInventory.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground">
-                      Aucun équipement trouvé
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredInventory.map((item) => (
-                        <Card
-                          key={item.id}
-                          className={`border ${item.quantity <= item.min_stock_level ? "border-yellow-300 bg-yellow-50" : ""}`}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className="font-medium text-lg">
-                                  {item.name}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.category}
-                                </p>
-                              </div>
-                              {item.quantity <= item.min_stock_level && (
-                                <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                              )}
-                            </div>
-
-                            <div className="mt-4">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm font-medium">
-                                  Quantité:
-                                </span>
-                                <div className="flex items-center space-x-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => {
-                                      if (item.quantity > 0) {
-                                        updateInventoryQuantity(
-                                          item.id,
-                                          item.quantity - 1
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    <MinusCircle className="h-4 w-4" />
-                                  </Button>
-
-                                  <span className="font-medium min-w-[2rem] text-center">
-                                    {item.quantity}
-                                  </span>
-
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() =>
-                                      updateInventoryQuantity(
-                                        item.id,
-                                        item.quantity + 1
-                                      )
-                                    }
-                                  >
-                                    <PlusCircle className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-
-                              <div className="mt-2 text-xs text-muted-foreground">
-                                Seuil minimum: {item.min_stock_level}
-                              </div>
-
-                              {item.quantity <= item.min_stock_level && (
-                                <p className="mt-3 text-xs text-yellow-700 flex items-center gap-1">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  Stock faible, réapprovisionnement nécessaire
-                                </p>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
           ) : activeTab === "profile" ? (
             <div className="space-y-6">
               <div>
@@ -2656,10 +2149,6 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               </div>
-            </div>
-          ) : activeTab === "training" ? (
-            <div className="space-y-6 ">
-              <TrainingManagement />
             </div>
           ) : activeTab === "notifications" ? (
             <div className="space-y-6">

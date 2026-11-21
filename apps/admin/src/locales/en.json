@@ -26,7 +26,10 @@
     "address": "Address",
     "city": "City",
     "country": "Country",
-    "language": "Language"
+    "language": "Language",
+    "totalCount": "{{count}} result(s)",
+    "no": "No",
+    "yes": "Yes"
   },
   "navigation": {
     "home": "Home",
@@ -46,7 +49,9 @@
     "logout": "Logout",
     "about": "About",
     "services": "Services",
-    "contact": "Contact"
+    "contact": "Contact",
+    "equipment": "Equipment",
+    "trainings": "Trainings"
   },
   "auth": {
     "login": "Login",
@@ -347,5 +352,269 @@
     "phone": "Phone",
     "department": "Department",
     "zone": "Zone"
+  },
+  "manager": {
+    "backToDashboard": "Back to dashboard"
+  },
+  "equipment": {
+    "title": "Inventory",
+    "subtitle": "Safety equipment, stock levels and condition",
+    "nav": {
+      "inventory": "Inventory",
+      "maintenance": "Maintenance & inspections",
+      "history": "History"
+    },
+    "add": "Add equipment",
+    "edit": "Edit equipment",
+    "saved": "Equipment saved",
+    "deleted": "Equipment deleted",
+    "searchPlaceholder": "Search by name, SKU...",
+    "allCategories": "All categories",
+    "allStatuses": "All statuses",
+    "allConditions": "All conditions",
+    "empty": "No equipment found",
+    "min": "Min",
+    "increase": "Increase stock",
+    "decrease": "Decrease stock",
+    "expired": "expired",
+    "expiresIn": "in {{count}} day(s)",
+    "deleteTitle": "Delete equipment",
+    "deleteConfirm": "Delete \"{{name}}\"? This cannot be undone.",
+    "stats": {
+      "total": "Total items",
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock",
+      "nonFunctional": "Non-functional",
+      "value": "Stock value"
+    },
+    "fields": {
+      "name": "Name",
+      "sku": "SKU",
+      "description": "Description",
+      "category": "Category",
+      "status": "Stock status",
+      "condition": "Condition",
+      "quantity": "Quantity",
+      "min_stock_level": "Minimum stock",
+      "price": "Unit price",
+      "expiryDate": "Expiry date",
+      "lastInspectionAt": "Last inspection",
+      "nextInspectionAt": "Next inspection",
+      "supplier": "Supplier",
+      "location": "Location"
+    },
+    "category": {
+      "ppe": "PPE",
+      "fire_extinguisher": "Fire extinguishers",
+      "first_aid": "First aid",
+      "detection": "Detection",
+      "signage": "Signage",
+      "tools": "Tools",
+      "consumables": "Consumables",
+      "other": "Other"
+    },
+    "status": {
+      "active": "In stock",
+      "inactive": "Inactive",
+      "out_of_stock": "Out of stock",
+      "discontinued": "Discontinued",
+      "low_stock": "Low stock"
+    },
+    "condition": {
+      "functional": "Functional",
+      "non_functional": "Non-functional"
+    },
+    "errors": {
+      "load": "Could not load equipment",
+      "save": "Could not save equipment",
+      "delete": "Could not delete equipment",
+      "required": "Name and description are required"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance & inspections",
+    "subtitle": "Planned and overdue maintenance, grouped by week",
+    "add": "Plan maintenance",
+    "pickItem": "Select equipment",
+    "complete": "Complete",
+    "cancel": "Cancel",
+    "empty": "No planned maintenance",
+    "created": "Maintenance planned",
+    "completed": "Maintenance completed",
+    "cancelled": "Maintenance cancelled",
+    "overdueSection": "Overdue ({{count}})",
+    "week": "Week of {{from}} to {{to}}",
+    "fields": {
+      "item": "Equipment",
+      "type": "Type",
+      "scheduledAt": "Scheduled date",
+      "doneAt": "Done on",
+      "result": "Result",
+      "notes": "Notes",
+      "nextScheduledAt": "Next maintenance (optional)"
+    },
+    "type": {
+      "inspection": "Inspection",
+      "preventive": "Preventive",
+      "corrective": "Corrective"
+    },
+    "status": {
+      "planned": "Planned",
+      "done": "Done",
+      "overdue": "Overdue",
+      "cancelled": "Cancelled"
+    },
+    "result": {
+      "ok": "OK",
+      "issues": "Issues found",
+      "failed": "Failed"
+    },
+    "resultHint": {
+      "ok": "The equipment will be marked functional.",
+      "issues": "The equipment condition is unchanged.",
+      "failed": "The equipment will be marked non-functional."
+    },
+    "errors": {
+      "load": "Could not load maintenance",
+      "save": "Could not save maintenance",
+      "required": "Equipment and date are required"
+    }
+  },
+  "history": {
+    "title": "Maintenance history",
+    "subtitle": "Completed maintenance and inspections",
+    "allItems": "All equipment",
+    "from": "From",
+    "to": "To",
+    "performedBy": "Performed by",
+    "empty": "No completed maintenance"
+  },
+  "trainings": {
+    "title": "Training catalogue",
+    "subtitle": "Trainings, validity and mandatory roles",
+    "nav": {
+      "catalogue": "Catalogue",
+      "sessions": "Sessions",
+      "compliance": "Skills compliance"
+    },
+    "add": "Add training",
+    "edit": "Edit training",
+    "saved": "Training saved",
+    "deleted": "Training deleted",
+    "empty": "No training found",
+    "searchPlaceholder": "Search trainings...",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noExpiry": "No expiry",
+    "deleteTitle": "Delete training",
+    "deleteConfirm": "Delete \"{{name}}\"?",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "durationHours": "Duration (h)",
+      "validityMonths": "Validity (months)",
+      "mandatoryForRoles": "Mandatory for roles",
+      "status": "Status"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sst_manager": "SST manager",
+      "employee": "Employee"
+    },
+    "errors": {
+      "load": "Could not load trainings",
+      "save": "Could not save training",
+      "delete": "Could not delete training",
+      "titleRequired": "Title is required",
+      "hasEnrollments": "This training has enrollments: deactivate it instead of deleting it."
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "Plan sessions and manage enrollments",
+    "add": "Add session",
+    "edit": "Edit session",
+    "saved": "Session saved",
+    "deleted": "Session deleted",
+    "cancelled": "Session cancelled",
+    "cancel": "Cancel session",
+    "empty": "No session found",
+    "allTrainings": "All trainings",
+    "allStatuses": "All statuses",
+    "pickTraining": "Select a training",
+    "unlimited": "Unlimited",
+    "cancelTitle": "Cancel session",
+    "cancelConfirm": "The session will be marked as cancelled.",
+    "deleteTitle": "Delete session",
+    "deleteConfirm": "Delete this session?",
+    "enrollments": "Enrollments",
+    "pickUser": "Select a participant",
+    "enroll": "Enroll",
+    "enrolled": "Participant enrolled",
+    "noEnrollments": "No participants yet",
+    "enrollmentSaved": "Enrollment updated",
+    "expiresAt": "Valid until {{date}}",
+    "fields": {
+      "training": "Training",
+      "startAt": "Start",
+      "endAt": "End",
+      "location": "Location",
+      "trainer": "Trainer",
+      "capacity": "Capacity",
+      "enrolled": "Enrolled",
+      "status": "Status",
+      "score": "Score",
+      "progress": "Progress (%)"
+    },
+    "status": {
+      "planned": "Planned",
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "enrollmentStatus": {
+      "registered": "Registered",
+      "attended": "Attended",
+      "passed": "Passed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "errors": {
+      "load": "Could not load sessions",
+      "save": "Could not save",
+      "delete": "Could not delete session",
+      "required": "Training and start date are required",
+      "hasEnrollments": "This session has enrollments: cancel it instead of deleting it.",
+      "loadEnrollments": "Could not load enrollments",
+      "loadUsers": "Could not load users",
+      "enroll": "Could not enroll participant"
+    }
+  },
+  "compliance": {
+    "title": "Skills compliance",
+    "subtitle": "Mandatory trainings per employee",
+    "autoPlan": "Plan automatically",
+    "rate": "Compliance rate",
+    "compliantUsers": "Compliant employees",
+    "acquired": "Acquired",
+    "expiring": "Expiring",
+    "missing": "Missing",
+    "expired": "expired",
+    "user": "Employee",
+    "department": "Department",
+    "departmentFilter": "Filter by department",
+    "empty": "No data",
+    "previewTitle": "Automatic planning (preview)",
+    "previewDesc": "{{count}} employee(s) lack valid mandatory trainings and will be notified.",
+    "previewNone": "All employees are compliant.",
+    "nextSession": "next session {{date}}",
+    "noSession": "no session planned",
+    "confirmNotify": "Confirm and notify",
+    "planDone": "{{count}} employee(s) notified",
+    "errors": {
+      "load": "Could not load the report",
+      "plan": "Could not run automatic planning"
+    }
   }
 }

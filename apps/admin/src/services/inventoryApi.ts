@@ -1,43 +1,54 @@
 import api from "./api";
 
+export const INVENTORY_CATEGORIES = [
+  "ppe",
+  "fire_extinguisher",
+  "first_aid",
+  "detection",
+  "signage",
+  "tools",
+  "consumables",
+  "other",
+] as const;
+export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
+
+export const INVENTORY_STATUSES = [
+  "active",
+  "inactive",
+  "out_of_stock",
+  "discontinued",
+  "low_stock",
+] as const;
+export type InventoryStatus = (typeof INVENTORY_STATUSES)[number];
+
+export type InventoryCondition = "functional" | "non_functional";
+
 export interface InventoryItem {
   id: number;
   name: string;
-  description: string;
   sku: string;
+  description: string;
   price: number;
   quantity: number;
   min_stock_level: number;
-  category:
-    | "all"
-    | "electronics"
-    | "office_supplies"
-    | "furniture"
-    | "safety_equipment"
-    | "tools"
-    | "consumables"
-    | "other";
-  status: "active" | "inactive" | "out_of_stock" | "discontinued" | "low_stock";
-  supplier?: string;
-  location?: string;
-  created_by?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  updated_by?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-  };
-  created_at: string;
-  updated_at: string;
+  category: InventoryCategory;
+  status: InventoryStatus;
+  condition: InventoryCondition;
+  expiryDate?: string | null;
+  lastInspectionAt?: string | null;
+  nextInspectionAt?: string | null;
+  supplier?: string | null;
+  location?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface InventoryResponse {
+export interface InventoryListResponse {
+  data: InventoryItem[];
   items: InventoryItem[];
   total: number;
   page: number;
+  limit: number;
   totalPages: number;
 }
 
@@ -46,115 +57,49 @@ export interface InventoryStats {
   lowStockItems: number;
   outOfStockItems: number;
   activeItems: number;
+  nonFunctionalItems: number;
   totalValue: number;
 }
 
-// Add the enum definition at the top of the file
-export enum InventoryCategory {
-  ELECTRONICS = "electronics",
-  OFFICE_SUPPLIES = "office_supplies",
-  FURNITURE = "furniture",
-  SAFETY_EQUIPMENT = "safety_equipment",
-  TOOLS = "tools",
-  CONSUMABLES = "consumables",
-  OTHER = "other",
+export interface InventoryFilters {
+  page?: number;
+  limit?: number;
+  category?: string;
+  status?: string;
+  condition?: string;
+  search?: string;
 }
 
-export enum InventoryStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  DISCONTINUED = "discontinued",
-  LOW_STOCK = "low_stock",
-  OUT_OF_STOCK = "out_of_stock",
-}
-
-export interface CreateInventoryItemDto {
+export interface InventoryPayload {
   name: string;
-  description: string;
   sku: string;
+  description: string;
   price: number;
   quantity: number;
   min_stock_level: number;
-  category: InventoryCategory; // Changed from string to InventoryCategory
-  status?: InventoryStatus; // Changed from string to InventoryStatus
+  category: InventoryCategory;
+  status?: InventoryStatus;
+  condition?: InventoryCondition;
+  expiryDate?: string | null;
+  lastInspectionAt?: string | null;
+  nextInspectionAt?: string | null;
   supplier?: string;
   location?: string;
 }
 
+const clean = (f: InventoryFilters) =>
+  Object.fromEntries(
+    Object.entries(f).filter(([, v]) => v !== undefined && v !== "" && v !== "all")
+  );
+
 export const inventoryApi = {
-  getItems: async (
-    page = 1,
-    limit = 10,
-    category?: string,
-    status?: string
-  ) => {
-    try {
-      const params = new URLSearchParams();
-      params.append("page", page.toString());
-      params.append("limit", limit.toString());
-      if (category) params.append("category", category);
-      if (status) params.append("status", status);
-
-      return await api.get<InventoryResponse>(
-        `/inventory?${params.toString()}`
-      );
-    } catch (error) {
-      console.error("Error fetching inventory items:", error);
-      throw error;
-    }
-  },
-
-  getItem: async (id: number) => {
-    try {
-      return await api.get<InventoryItem>(`/inventory/${id}`);
-    } catch (error) {
-      console.error(`Error fetching inventory item ${id}:`, error);
-      throw error;
-    }
-  },
-
-  createItem: async (data: CreateInventoryItemDto) => {
-    try {
-      return await api.post<InventoryItem>("/inventory", data);
-    } catch (error) {
-      console.error("Error creating inventory item:", error);
-      throw error;
-    }
-  },
-
-  updateItem: async (id: number, data: Partial<InventoryItem>) => {
-    try {
-      return await api.patch<InventoryItem>(`/inventory/${id}`, data);
-    } catch (error) {
-      console.error(`Error updating inventory item ${id}:`, error);
-      throw error;
-    }
-  },
-
-  deleteItem: async (id: number) => {
-    try {
-      return await api.delete(`/inventory/${id}`);
-    } catch (error) {
-      console.error(`Error deleting inventory item ${id}:`, error);
-      throw error;
-    }
-  },
-
-  getStats: async () => {
-    try {
-      return await api.get<InventoryStats>("/inventory/stats");
-    } catch (error) {
-      console.error("Error fetching inventory stats:", error);
-      throw error;
-    }
-  },
-
-  getLowStockItems: async () => {
-    try {
-      return await api.get<InventoryItem[]>("/inventory/low-stock");
-    } catch (error) {
-      console.error("Error fetching low stock items:", error);
-      throw error;
-    }
-  },
+  getItems: (filters: InventoryFilters = {}) =>
+    api.get<InventoryListResponse>("/inventory", { params: clean(filters) }),
+  getItem: (id: number) => api.get<InventoryItem>(`/inventory/${id}`),
+  createItem: (data: InventoryPayload) =>
+    api.post<InventoryItem>("/inventory", data),
+  updateItem: (id: number, data: Partial<InventoryPayload>) =>
+    api.patch<InventoryItem>(`/inventory/${id}`, data),
+  deleteItem: (id: number) => api.delete(`/inventory/${id}`),
+  getStats: () => api.get<InventoryStats>("/inventory/stats"),
 };
