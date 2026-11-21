@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useTranslation } from "react-i18next";
+import NotificationPreferences from "@/components/NotificationPreferences";
 import api from "@/services/api";
 
 const Settings = () => {
@@ -47,15 +48,6 @@ const Settings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Notification Settings
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    securityAlerts: true,
-    incidentUpdates: true,
-    systemMaintenance: false,
-    weeklyReports: true,
-  });
 
   // Privacy Settings
   const [privacySettings, setPrivacySettings] = useState({
@@ -101,26 +93,6 @@ const Settings = () => {
       }));
     } catch (error) {
       console.error("Error loading settings:", error);
-    }
-  };
-
-  const handleNotificationSettingsUpdate = async () => {
-    setLoading(true);
-    try {
-      await api.patch("/users/notification-settings", notificationSettings);
-      toast({
-        title: "Success",
-        description: "Notification settings updated successfully",
-      });
-    } catch (error) {
-      console.error("Error updating notification settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update notification settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -270,132 +242,8 @@ const Settings = () => {
                     Choose what notifications you want to receive
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Email Notifications</Label>
-                        <p className="text-sm text-gray-500">
-                          Receive notifications via email
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.emailNotifications}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            emailNotifications: checked
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Push Notifications</Label>
-                        <p className="text-sm text-gray-500">
-                          Receive push notifications in your browser
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.pushNotifications}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            pushNotifications: checked
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Security Alerts</Label>
-                        <p className="text-sm text-gray-500">
-                          Get notified about security-related events
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.securityAlerts}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            securityAlerts: checked
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Incident Updates</Label>
-                        <p className="text-sm text-gray-500">
-                          Receive updates about incident reports
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.incidentUpdates}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            incidentUpdates: checked
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>System Maintenance</Label>
-                        <p className="text-sm text-gray-500">
-                          Get notified about scheduled maintenance
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.systemMaintenance}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            systemMaintenance: checked
-                          }))
-                        }
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Weekly Reports</Label>
-                        <p className="text-sm text-gray-500">
-                          Receive weekly summary reports
-                        </p>
-                      </div>
-                      <Switch
-                        checked={notificationSettings.weeklyReports}
-                        onCheckedChange={(checked) =>
-                          setNotificationSettings(prev => ({
-                            ...prev,
-                            weeklyReports: checked
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button onClick={handleNotificationSettingsUpdate} disabled={loading}>
-                      {loading ? "Saving..." : "Save Notification Settings"}
-                    </Button>
-                  </div>
+                <CardContent>
+                  <NotificationPreferences />
                 </CardContent>
               </Card>
             </TabsContent>

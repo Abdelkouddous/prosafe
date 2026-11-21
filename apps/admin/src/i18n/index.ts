@@ -36,4 +36,13 @@ i18n
     },
   });
 
+const applyDirection = (lng?: string) => {
+  const code = (lng || "en").split("-")[0];
+  document.documentElement.dir = code === "ar" ? "rtl" : "ltr";
+  document.documentElement.lang = code;
+};
+
+i18n.on("languageChanged", applyDirection);
+applyDirection(i18n.language);
+
 export default i18n;

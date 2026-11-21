@@ -1,127 +1,164 @@
 import api from "./api";
 
+export type IncidentStatus = "open" | "investigating" | "resolved" | "closed";
+export type IncidentType =
+  | "safety"
+  | "security"
+  | "hr_violation"
+  | "environment"
+  | "near_miss"
+  | "equipment_failure"
+  | "other";
+export type IncidentSeverity = "low" | "medium" | "high" | "critical";
+
+export const INCIDENT_STATUSES: IncidentStatus[] = [
+  "open",
+  "investigating",
+  "resolved",
+  "closed",
+];
+export const INCIDENT_TYPES: IncidentType[] = [
+  "safety",
+  "security",
+  "hr_violation",
+  "environment",
+  "near_miss",
+  "equipment_failure",
+  "other",
+];
+export const INCIDENT_SEVERITIES: IncidentSeverity[] = [
+  "low",
+  "medium",
+  "high",
+  "critical",
+];
+
+export interface PersonRef {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+export interface IncidentMedia {
+  id: number;
+  kind: "image" | "video";
+  mimeType: string;
+}
+
+export interface IncidentHistoryEntry {
+  id: number;
+  fromStatus: IncidentStatus | null;
+  toStatus: IncidentStatus;
+  comment?: string | null;
+  changedAt: string;
+  changedBy?: PersonRef | null;
+}
+
 export interface Incident {
   id: number;
   incidentId: string;
+  type: IncidentType;
+  severity: IncidentSeverity;
+  status: IncidentStatus;
   description: string;
-  type:
-    | "accident"
-    | "near_miss"
-    | "unsafe_condition"
-    | "environmental"
-    | "security";
-  severity: "low" | "medium" | "high" | "critical";
-  status: "open" | "investigating" | "resolved";
-  reporter_name?: string;
-  reporter_email?: string;
-  reporter?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  location?: {
-    lat?: number;
-    long?: number;
-    manualAddress?: string;
-  };
-  photo_url?: string;
-  resolved_by_id?: number;
-  resolved_by?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  resolved_at?: string;
-  created_at: string;
-  updatedAt: string;
-}
-
-export interface IncidentStats {
-  total: number;
-  open: number;
-  investigating: number;
-  resolved: number;
-  critical: number;
-  high: number;
-  medium: number;
-  low: number;
+  notes?: string | null;
+  zone?: string | null;
+  department?: string | null;
+  timestamp: string;
+  geoLatitude?: number | string | null;
+  geoLongitude?: number | string | null;
+  manualAddress?: string | null;
+  reporter?: PersonRef | null;
+  resolver?: PersonRef | null;
+  media: IncidentMedia[];
+  history?: IncidentHistoryEntry[];
+  createdAt: string;
+  resolvedAt?: string | null;
 }
 
 export interface IncidentsResponse {
-  incidents: Incident[];
+  data: Incident[];
   total: number;
   page: number;
-  totalPages: number;
+  limit: number;
 }
 
+export interface IncidentFilters {
+  page?: number;
+  limit?: number;
+  status?: string;
+  type?: string;
+  severity?: string;
+  from?: string;
+  to?: string;
+  zone?: string;
+  department?: string;
+  search?: string;
+  reporterId?: number;
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+}
+
+export interface CreateIncidentInput {
+  type: string;
+  severity: string;
+  description: string;
+  notes?: string;
+  date?: string;
+  latitude?: number;
+  longitude?: number;
+  manualAddress?: string;
+  zone?: string;
+  department?: string;
+  media?: File[];
+}
+
+export const getIncidentCoords = (
+  i: Pick<Incident, "geoLatitude" | "geoLongitude">
+): [number, number] | null => {
+  if (i.geoLatitude == null || i.geoLongitude == null) return null;
+  const lat = Number(i.geoLatitude);
+  const lng = Number(i.geoLongitude);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? [lat, lng] : null;
+};
+
 export const incidentApi = {
-  // Update the getIncidents function to handle both paginated and direct array responses
-  getIncidents: (
-    page = 1,
-    limit = 10,
-    severity?: string,
-    status?: string,
-    type?: string
-  ) => {
-    const params = new URLSearchParams();
-    params.append("page", page.toString());
-    params.append("limit", limit.toString());
-    if (severity) params.append("severity", severity);
-    if (status) params.append("status", status);
-    if (type) params.append("type", type);
-
-    return api.get<IncidentsResponse | Incident[]>(
-      `/incidents?${params.toString()}`
-    );
+  list: (filters: IncidentFilters = {}) => {
+    const params: Record<string, string | number> = {};
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") params[k] = v as string | number;
+    });
+    return api.get<IncidentsResponse>("/incidents", { params });
   },
 
-  getIncident: (incidentId: string) => {
-    return api.get<Incident>(`/incidents/${incidentId}`);
-  },
+  get: (id: number | string) => api.get<Incident>(`/incidents/${id}`),
 
-  updateIncident: (
-    incidentId: string, // Change from number to string
-    data: {
-      status?: string;
-      severity?: string;
-      resolved_by_id?: number;
-    }
-  ) => {
-    // here is where we update the incident status after we click on button
-    return api.patch<Incident>(`/incidents/${incidentId}/status`, data); // Use the status endpoint
-  },
+  updateStatus: (id: number | string, status: IncidentStatus, comment?: string) =>
+    api.patch<Incident>(`/incidents/${id}/status`, {
+      status,
+      ...(comment ? { comment } : {}),
+    }),
 
-  deleteIncident: (id: number) => {
-    return api.delete(`/incidents/${id}`);
-  },
-
-  getIncidentStats: () => {
-    return api.get<IncidentStats>("/incidents/stats");
-  },
-
-  createIncident: (data: FormData) => {
-    return api.post<Incident>("/incidents", data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+  create: (input: CreateIncidentInput) => {
+    const fd = new FormData();
+    const { media, ...fields } = input;
+    Object.entries(fields).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") fd.append(k, String(v));
+    });
+    (media || []).forEach((f) => fd.append("media", f));
+    return api.post<Incident & { rewardPoints?: number }>("/incidents", fd, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 120000,
     });
   },
 
-  getIncidentPhoto: (id: number) => {
-    return api.get(`/incidents/${id}/photo`, {
+  /** Fetch a stored file with the bearer token; caller must revoke the URL. */
+  fetchFileBlobUrl: async (fileId: number): Promise<string> => {
+    const res = await api.get<Blob>(`/files/${fileId}`, {
       responseType: "blob",
+      timeout: 120000,
     });
-  },
-
-  assignIncident: (id: number, userId: number) => {
-    return api.patch<Incident>(`/incidents/${id}/assign`, {
-      assigned_to_id: userId,
-    });
-  },
-
-  getRecentIncidents: (limit = 5) => {
-    return api.get<Incident[]>(`/incidents/recent?limit=${limit}`);
+    return URL.createObjectURL(res.data);
   },
 };
