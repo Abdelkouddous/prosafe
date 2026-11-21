@@ -10,7 +10,7 @@ PROSAFE is an Occupational Health & Safety (SST / OHS) application for organizat
 - When you finish an item, update its status in `docs/SPEC.md` (`missing` → `partial` → `done`) in the same change.
 - Out of scope: the admin marketing pages (`/about`, `/blog`, `/pricing`, `/careers`…), IT-security features
   ("threat distribution", "security score"), and `apps/mobile/app-example/`. Do not extend them.
-- Work phase by phase in the order given in `docs/SPEC.md` § Roadmap. Security fixes (Phase 1) come before new features.
+- All roadmap phases are complete; new work = fixes or client change requests. Keep `docs/SPEC.md` statuses accurate.
 
 ## Monorepo
 pnpm 9 workspaces + Turborepo. Node ≥ 18 (Railway uses 20).
@@ -26,7 +26,6 @@ pnpm 9 workspaces + Turborepo. Node ≥ 18 (Railway uses 20).
 `admin` · `sst_manager` (responsable SST) · `employee` · `pending` (awaiting approval).
 Management features (risk matrix, audits, reports, KPIs, user admin) live in **admin web**.
 Employee flows (report incident, trainings, messages, emergency, risks view, rewards) live in **mobile**.
-(Legacy roles `standard`/`premium` exist in code until Phase 1 migrates them.)
 
 ## Conventions
 ### Backend (`apps/backend/src`)
@@ -40,7 +39,7 @@ Employee flows (report incident, trainings, messages, emergency, risks view, rew
 - Scheduled jobs use `@nestjs/schedule` `@Cron` inside the owning module.
 
 ### Mobile (`apps/mobile`)
-- `app/` contains routes only. Services, contexts, components, hooks, constants go in `apps/mobile/src/` (moved in Phase 1).
+- `app/` contains routes only. Services, contexts, components, hooks, constants go in `apps/mobile/src/`.
 - All user-facing strings go through `t()` from `LanguageContext` (fr default, en, ar-DZ with RTL).
 - Tokens in `expo-secure-store`; API base URL from `EXPO_PUBLIC_API_URL`.
 - Native permissions and identity are configured in `app.json` (plugins) and then `expo prebuild` — never edit `android/` or `ios/` by hand.
@@ -62,8 +61,9 @@ pnpm --filter backend test             # backend unit tests
 pnpm --filter backend test:e2e
 pnpm --filter backend migration:generate src/migrations/<Name>
 pnpm --filter backend migration:run
-pnpm --filter admin dev | build | lint
-pnpm --filter mobile start | lint
+pnpm --filter admin dev | build | lint | test | check-types
+pnpm --filter backend seed             # demo data (dev only)
+pnpm --filter mobile start | lint | test
 cd apps/backend && docker compose up -d postgres   # local DB
 ```
 Check actual package names with `cat apps/*/package.json | grep '"name"'` if a filter fails.
