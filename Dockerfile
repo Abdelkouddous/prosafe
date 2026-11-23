@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY apps/admin/package.json ./apps/admin/
 
-RUN npm install
+RUN npm install --legacy-peer-deps --workspace=apps/admin --include-workspace-root
 
 COPY . .
 
