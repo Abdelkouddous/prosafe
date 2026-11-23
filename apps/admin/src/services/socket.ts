@@ -3,8 +3,11 @@ import { getToken } from "@/lib/auth";
 
 /** API origin without the `/api` suffix (Socket.IO namespace `/ws` lives there). */
 export const apiOrigin = (): string => {
-  const base = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-  return base.replace(/\/api\/?$/, "").replace(/\/$/, "");
+  const configured = import.meta.env.VITE_API_URL;
+  if (configured) {
+    return configured.replace(/\/api\/?$/, "").replace(/\/$/, "");
+  }
+  return typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
 };
 
 let socket: Socket | null = null;

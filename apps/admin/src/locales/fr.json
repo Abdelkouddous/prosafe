@@ -83,7 +83,105 @@
     "and": "et",
     "privacyPolicy": "Politique de confidentialité",
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
-    "forgotPasswordLink": "Mot de passe oublié ?"
+    "forgotPasswordLink": "Mot de passe oublié ?",
+    "demoAccess": "Accès Démo",
+    "demoAccessHint": "Connexion instantanée en un clic en tant qu'administrateur HSE avec données ISO 45001 préchargées.",
+    "forgotPasswordTitle": "Réinitialiser votre mot de passe",
+    "forgotPasswordSubtitle": "Saisissez votre adresse e-mail professionnelle pour transmettre une demande de réinitialisation à votre administrateur HSE.",
+    "sendResetLink": "Envoyer la demande",
+    "resetSentTitle": "Demande enregistrée",
+    "resetSentDescription": "Si un compte correspond à {{email}}, les instructions de réinitialisation ont été transmises à votre administrateur.",
+    "forgotPasswordError": "Impossible d'envoyer la demande de réinitialisation. Veuillez réessayer."
+  },
+  "hero": {
+    "introducing": "Plateforme Santé et Sécurité au Travail ISO 45001",
+    "title": "Gestion Moderne de la Santé et Sécurité au Travail",
+    "description": "Unifiez la déclaration d'incidents, les matrices de risques 5×5, les audits ISO 45001, le suivi des EPI, les formations obligatoires et les alertes d'urgence en temps réel.",
+    "requestDemo": "Contacter l'équipe",
+    "tryLiveDemo": "Essayer la démo",
+    "dashboardPreview": "Centre de pilotage HSE PROSAFE"
+  },
+  "heroPreview": {
+    "complianceRate": "Conformité ISO 45001",
+    "openIncidents": "Incidents ouverts",
+    "trainingCoverage": "Couverture formations",
+    "meanResolution": "Résolution moyenne",
+    "monthlyTrendSubtitle": "Incidents et presqu'accidents sur 6 mois",
+    "months": {
+      "jan": "Jan",
+      "feb": "Fév",
+      "mar": "Mar",
+      "apr": "Avr",
+      "may": "Mai",
+      "jun": "Juin"
+    },
+    "alert1Title": "Arc électrique armoire — Atelier B",
+    "alert1Meta": "Critique · Consignation active",
+    "alert2Title": "Étalonnage détecteur multigaz en retard",
+    "alert2Meta": "Élevée · Laboratoire Maintenance",
+    "alert3Title": "Audit de surveillance ISO 45001 planifié",
+    "alert3Meta": "Dans 16 jours"
+  },
+  "landingStats": {
+    "uptime": "Disponibilité plateforme",
+    "support": "Veille alertes HSE",
+    "enterprises": "Sites industriels",
+    "compliance": "Conforme audits & risques"
+  },
+  "testimonials": {
+    "title": "Approuvé par les responsables HSE",
+    "subtitle": "Découvrez pourquoi les organisations industrielles choisissent PROSAFE pour prévenir les risques professionnels.",
+    "item1Role": "Directeur HSE, TechCorp Industries",
+    "item1Quote": "PROSAFE a transformé notre gestion SST. Le délai de traitement des incidents a chuté de 60 % et nos audits ISO 45001 se préparent en quelques heures.",
+    "item2Role": "Responsable SST, FinSecure Facilities",
+    "item2Quote": "La matrice des risques, le suivi des actions correctives et les rappels de formation alignent tous nos superviseurs sur chaque site.",
+    "item3Role": "Responsable Conformité, GlobalHealth",
+    "item3Quote": "Dans un secteur réglementé, la traçabilité est indispensable. PROSAFE offre à nos équipes terrain et auditeurs une source unique et fiable."
+  },
+  "cta": {
+    "title": "Prêt à renforcer la sécurité sur vos sites ?",
+    "subtitle": "Explorez le tableau de bord interactif PROSAFE dès aujourd'hui ou échangez avec notre équipe pour un déploiement multi-sites.",
+    "startFreeTrial": "Accéder à la plateforme",
+    "contactSales": "Contacter l'équipe"
+  },
+  "chooseUs": {
+    "title": "Pourquoi choisir PROSAFE",
+    "subtitle": "Conçu pour les responsables HSE, animateurs sécurité et équipes terrain avec une traçabilité opérationnelle complète.",
+    "item1Title": "Maîtrise complète des incidents et risques",
+    "item1Desc": "Signalez les incidents géolocalisés, évaluez les dangers sur une matrice 5×5 et suivez chaque action corrective jusqu'à clôture.",
+    "item2Title": "Suivi proactif des équipements et EPI",
+    "item2Desc": "Surveillez les stocks d'EPI, les échéances d'inspection et la maintenance préventive avant toute non-conformité.",
+    "item3Title": "Conformité automatisée des formations",
+    "item3Desc": "Suivez les habilitations obligatoires par rôle, les renouvellements à venir et la planification automatique des sessions.",
+    "item4Title": "Prêt pour les audits ISO 45001",
+    "item4Desc": "Exécutez vos grilles d'audit internes et externes, calculez automatiquement la conformité et centralisez vos certificats."
+  },
+  "footer": {
+    "tagline": "Gestion complète de la Santé et Sécurité au Travail (SST/HSE) pour les entreprises modernes.",
+    "product": "Produit",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "updates": "Mises à jour",
+    "company": "Entreprise",
+    "careers": "Carrières",
+    "blog": "Blog",
+    "legal": "Légal",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "security": "Sécurité",
+    "rights": "Tous droits réservés."
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "overview": "Aperçu",
+    "statistics": "Statistiques",
+    "recentActivity": "Activité récente",
+    "securityOverview": "Aperçu Santé & Sécurité",
+    "recentAlerts": "Alertes HSE récentes",
+    "totalUsers": "Total des utilisateurs",
+    "activeIncidents": "Incidents actifs",
+    "completedTraining": "Formations terminées",
+    "systemHealth": "État du système"
   },
   "errors": {
     "loginFailed": "Échec de la connexion",
@@ -167,25 +265,6 @@
       "critical": "critique",
       "moderate": "modéré",
       "low": "faible"
-    },
-    "hero": {
-      "introducing": "Présentation du système PROSAFE Guardian",
-      "title": "Gestion de sécurité avancée pour les entreprises modernes",
-      "description": "Protection complète de vos actifs commerciaux avec surveillance en temps réel, détection des menaces et capacités de réponse intelligente.",
-      "requestDemo": "Demander une démo",
-      "dashboardPreview": "Tableau de bord PROSAFE"
-    },
-    "dashboard": {
-      "title": "Tableau de bord",
-      "overview": "Aperçu",
-      "statistics": "Statistiques",
-      "recentActivity": "Activité récente",
-      "securityOverview": "Aperçu de la sécurité",
-      "recentAlerts": "Alertes récentes",
-      "totalUsers": "Total des utilisateurs",
-      "activeIncidents": "Incidents actifs",
-      "completedTraining": "Formations terminées",
-      "systemHealth": "État du système"
     },
     "events": {
       "title": "Événements",

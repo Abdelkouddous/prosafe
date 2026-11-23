@@ -8,7 +8,7 @@
  * drills, messages... Every account uses the password documented in README.md ("Demo data").
  * The run is skipped when the marker user `admin@prosafe.demo` already exists.
  */
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { deflateSync } from 'zlib';

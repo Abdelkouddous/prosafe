@@ -41,6 +41,7 @@ const AuditExecution = lazy(() => import("./pages/audits/AuditExecution"));
 const ComplianceDocuments = lazy(() => import("./pages/audits/ComplianceDocuments"));
 const Emergency = lazy(() => import("./pages/emergency/Emergency"));
 const Feedback = lazy(() => import("./pages/feedback/Feedback"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const Login = lazy(() => import("./pages/Login"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -95,6 +96,7 @@ function App() {
                   </AuthRedirect>
                 }
               />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
 
               {/* Admin-only routes */}
               <Route element={<AdminRoute />}>

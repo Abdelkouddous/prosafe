@@ -2,9 +2,11 @@
 import axios from "axios";
 import { getToken, removeToken } from "@/lib/auth";
 
+export const AUTH_EXPIRED_EVENT = "prosafe:auth-expired";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
-  timeout: 10000,
+  baseURL: import.meta.env.VITE_API_URL || "/api",
+  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
@@ -19,10 +21,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      removeToken();
-      localStorage.removeItem("user_data");
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      const requestUrl = String(error.config?.url || "");
+      const isAuthEndpoint =
+        requestUrl.includes("/auth/login") ||
+        requestUrl.includes("/auth/firebase") ||
+        requestUrl.includes("/auth/demo");
+      if (!isAuthEndpoint) {
+        removeToken();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+        }
       }
     }
     return Promise.reject(error);

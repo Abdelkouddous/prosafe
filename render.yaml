@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: prosafe
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run build && ([ -z "$DATABASE_URL" ] || npm run db:push)
+    startCommand: npx tsx server.ts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_URL
+        value: https://prosafe.aymenhamel.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

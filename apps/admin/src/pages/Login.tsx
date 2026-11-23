@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield, ArrowLeft, PlayCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -13,17 +13,16 @@ import api from "@/services/api";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { toast } = useToast();
-  const { login, isAuthenticated, isManager } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-
-  // const { register } = useAuth(); // Uncomment if using AuthContext for registration
-
+  const [submitting, setSubmitting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const { toast } = useToast();
+  const { login, loginWithGoogle, loginDemo, isAuthenticated, isManager } = useAuth();
   const navigate = useNavigate();
-  // const t = useTranslation(); const { t, i18n } = useTranslation();
-  const { t, i18n } = useTranslation();
-  // Handle navigation after successful authentication
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (isAuthenticated) {
       if (isManager) {
@@ -36,32 +35,41 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await login(email, password);
-      // Navigation is now handled by useEffect hook
-    } catch (error) {
-      console.error("Login failed:", error);
-      // Display specific error message if available
-      if (error.response && error.response.data && error.response.data.msg) {
-        toast({
-          title: "Login Failed",
-          description: error.response.data.msg,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "An error occurred during login. Please try again.",
-          variant: "destructive",
-        });
-      }
+    } catch {
+      // Error toast is already displayed by AuthContext
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+    } catch {
+      // Error toast is already displayed by AuthContext
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    try {
+      await loginDemo();
+    } catch {
+      // Error toast is already displayed by AuthContext
+    } finally {
+      setDemoLoading(false);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
-    // Made function async
     e.preventDefault();
-
+    setSubmitting(true);
     try {
       const { data: result } = await api.post("/auth/register", {
         firstName,
@@ -70,19 +78,21 @@ const Login = () => {
         password,
       });
       toast({
-        title: "Registration Successful",
-        description: result?.msg || "Your account has been created. An administrator must approve it before you can log in.",
+        title: t("errors.registrationSuccessful"),
+        description: result?.message || t("errors.accountCreated"),
       });
-      navigate("/login");
-    } catch (error: any) {
-      const msg = error?.response?.data?.msg ?? error?.response?.data?.message;
+      await login(email, password);
+    } catch (error: unknown) {
+      const eObj = error as { response?: { data?: { msg?: string; message?: string } } };
+      const msg = eObj?.response?.data?.msg ?? eObj?.response?.data?.message;
       toast({
-        title: "Registration Failed",
+        title: t("errors.registrationFailed"),
         description:
-          (Array.isArray(msg) ? msg.join(", ") : msg) ||
-          "An error occurred during registration.",
+          (Array.isArray(msg) ? msg.join(", ") : msg) || t("errors.registrationError"),
         variant: "destructive",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -102,9 +112,7 @@ const Login = () => {
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-prosafe-100 mb-4">
             <Shield className="h-6 w-6 text-prosafe-600" />
           </div>
-          <h1 className="text-2xl font-bold text-center">
-            {t("auth.welcomeTitle")}
-          </h1>
+          <h1 className="text-2xl font-bold text-center">{t("auth.welcomeTitle")}</h1>
           <p className="text-sm text-gray-500 mt-2">{t("auth.signIn")}</p>
         </div>
 
@@ -134,7 +142,7 @@ const Login = () => {
                     to="/forgot-password"
                     className="text-sm text-prosafe-600 hover:text-prosafe-800"
                   >
-                    {t("auth.forgotPassword")}
+                    {t("auth.forgotPasswordLink")}
                   </Link>
                 </div>
                 <Input
@@ -148,8 +156,12 @@ const Login = () => {
               </div>
               <Button
                 type="submit"
+                disabled={submitting}
                 className="w-full bg-prosafe-600 hover:bg-prosafe-700"
               >
+                {submitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
                 {t("auth.signIn")}
               </Button>
 
@@ -164,40 +176,59 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" type="button">
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      fill="#EA4335"
-                    />
-                    <path d="M1 1h22v22H1z" fill="none" />
-                  </svg>
-                  Google
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  type="button"
+                  disabled={googleLoading || demoLoading}
+                  onClick={handleGoogleLogin}
+                >
+                  {googleLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <path
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                        fill="#4285F4"
+                      />
+                      <path
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                        fill="#34A853"
+                      />
+                      <path
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                        fill="#FBBC05"
+                      />
+                      <path
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        fill="#EA4335"
+                      />
+                      <path d="M1 1h22v22H1z" fill="none" />
+                    </svg>
+                  )}
+                  {t("auth.googleLogin")}
                 </Button>
-                <Button variant="outline" type="button">
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                  </svg>
-                  Facebook
+
+                <Button
+                  variant="secondary"
+                  type="button"
+                  disabled={demoLoading || googleLoading}
+                  onClick={handleDemoLogin}
+                  data-testid="demo-access-btn"
+                  className="border border-prosafe-200 bg-prosafe-50 text-prosafe-800 hover:bg-prosafe-100"
+                >
+                  {demoLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <PlayCircle className="mr-2 h-4 w-4 text-prosafe-600" />
+                  )}
+                  {t("auth.demoAccess")}
                 </Button>
               </div>
+
+              <p className="text-xs text-center text-muted-foreground pt-2">
+                {t("auth.demoAccessHint")}
+              </p>
             </form>
           </TabsContent>
 
@@ -208,7 +239,7 @@ const Login = () => {
                   <Label htmlFor="first-name">{t("auth.firstName")}</Label>
                   <Input
                     id="first-name"
-                    placeholder="John"
+                    placeholder={t("auth.firstNamePlaceholder")}
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
@@ -218,7 +249,7 @@ const Login = () => {
                   <Label htmlFor="last-name">{t("auth.lastName")}</Label>
                   <Input
                     id="last-name"
-                    placeholder="Doe"
+                    placeholder={t("auth.lastNamePlaceholder")}
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
@@ -230,7 +261,7 @@ const Login = () => {
                 <Input
                   id="email-signup"
                   type="email"
-                  placeholder="name@company.com"
+                  placeholder={t("auth.emailPlaceholder")}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -246,44 +277,35 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-                <p className="text-xs text-gray-500">
-                  {t("auth.passwordMinLength")}
-                </p>
+                <p className="text-xs text-gray-500">{t("auth.passwordMinLength")}</p>
               </div>
 
               <Button
                 type="submit"
+                disabled={submitting}
                 className="w-full bg-prosafe-600 hover:bg-prosafe-700"
               >
+                {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {t("auth.signUp")}
               </Button>
 
               <p className="text-xs text-center text-gray-500 pt-4">
                 {t("auth.termsAgreement")}{" "}
-                <Link
-                  to="/terms"
-                  className="text-prosafe-600 hover:text-prosafe-800"
-                >
+                <Link to="/terms" className="text-prosafe-600 hover:text-prosafe-800">
                   {t("auth.termsOfService")}
                 </Link>{" "}
                 {t("auth.and")}{" "}
-                <Link
-                  to="/privacy"
-                  className="text-prosafe-600 hover:text-prosafe-800"
-                >
+                <Link to="/privacy" className="text-prosafe-600 hover:text-prosafe-800">
                   {t("auth.privacyPolicy")}
                 </Link>
                 .
               </p>
 
               <p className="text-sm text-center text-gray-500 pt-2">
-                {t("auth.alreadyHaveAccount")}{" "}
+                {t("auth.alreadyHaveAccount")}
               </p>
-              <TabsList className="flex w-full  mb-8">
-                <TabsTrigger
-                  value="login"
-                  className="text-prosafe-600 hover:text-prosafe-800"
-                >
+              <TabsList className="flex w-full mb-8">
+                <TabsTrigger value="login" className="text-prosafe-600 hover:text-prosafe-800">
                   {t("auth.loginTab")}
                 </TabsTrigger>
               </TabsList>

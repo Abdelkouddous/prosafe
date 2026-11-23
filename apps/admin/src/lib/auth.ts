@@ -1,35 +1,23 @@
 // src/lib/auth.ts
-const TOKEN_KEY = "auth_token";
+// Keep active session Bearer tokens strictly in JS memory rather than localStorage.
+let memoryToken: string | null = null;
 
-// Save token to localStorage
 export const setToken = (token: string) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(TOKEN_KEY, token);
-  }
+  memoryToken = token || null;
 };
 
-// Get token from localStorage
 export const getToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem(TOKEN_KEY);
-  }
-  return null;
+  return memoryToken;
 };
 
-// Remove token from localStorage
 export const removeToken = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(TOKEN_KEY);
-  }
+  memoryToken = null;
 };
 
-// Verify if user is authenticated
 export const isAuthenticated = (): boolean => {
-  return getToken() !== null;
+  return memoryToken !== null;
 };
 
-// Get authorization header for API calls
-export const getAuthHeader = (): { Authorization: string } | {} => {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+export const getAuthHeader = (): { Authorization: string } | Record<string, never> => {
+  return memoryToken ? { Authorization: `Bearer ${memoryToken}` } : {};
 };
