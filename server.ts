@@ -78,9 +78,25 @@ wsNamespace.on("connection", (socket) => {
   }
 });
 
-// Health probe (no eager DB calls)
-app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, service: "prosafe-api" });
+// Health probe (no eager DB calls unless ?db=1 is explicitly requested)
+app.get("/api/health", async (req, res) => {
+  if (req.query.db === "1") {
+    try {
+      const { pool } = await import("./src/db/index.ts");
+      await pool.query("SELECT 1");
+      return res.json({ ok: true, service: "prosafe-api", db: "connected" });
+    } catch (err) {
+      const e = err as { code?: string };
+      console.error("[HEALTH DB CHECK FAILED]:", err);
+      return res.status(503).json({
+        ok: false,
+        service: "prosafe-api",
+        db: "error",
+        code: e?.code || "DB_UNREACHABLE",
+      });
+    }
+  }
+  return res.json({ ok: true, service: "prosafe-api" });
 });
 
 // Mount API routes
@@ -92,20 +108,49 @@ app.use("/api", (_req, res) => {
   res.status(404).json({ error: "API route not found", message: "API route not found" });
 });
 
-// Serve built admin SPA from apps/admin/dist
-const distDir = path.resolve(process.cwd(), "apps/admin/dist");
-if (fs.existsSync(distDir)) {
-  app.use(express.static(distDir));
-  app.get("/{*splat}", (_req, res) => {
-    res.sendFile(path.join(distDir, "index.html"));
-  });
-} else {
-  app.get("/", (_req, res) => {
-    res.status(503).send("Admin build not found. Run npm run build first.");
+// Serve built admin SPA from apps/admin/dist, or mount Vite dev middleware when dist is absent
+const adminRoot = path.resolve(process.cwd(), "apps/admin");
+const distDir = path.join(adminRoot, "dist");
+const PORT = Number(process.env.PORT || 3000);
+
+async function startServer() {
+  if (fs.existsSync(path.join(distDir, "index.html"))) {
+    app.use(express.static(distDir));
+    app.get("/{*splat}", (_req, res) => {
+      res.sendFile(path.join(distDir, "index.html"));
+    });
+  } else {
+    const viteCandidates = [
+      path.join(adminRoot, "node_modules/vite/dist/node/index.js"),
+      path.resolve(process.cwd(), "node_modules/vite/dist/node/index.js"),
+    ];
+    const viteEntry = viteCandidates.find((p) => fs.existsSync(p));
+    if (viteEntry) {
+      const { pathToFileURL } = await import("url");
+      const { createServer: createViteServer } = await import(pathToFileURL(viteEntry).href);
+      const vite = await createViteServer({
+        root: adminRoot,
+        configFile: path.join(adminRoot, "vite.config.ts"),
+        appType: "spa",
+        server: {
+          middlewareMode: true,
+          hmr: false,
+        },
+      });
+      app.use(vite.middlewares);
+    } else {
+      app.get("/", (_req, res) => {
+        res.status(503).send("Admin build not found. Run npm run build first.");
+      });
+    }
+  }
+
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`PROSAFE unified server listening on http://0.0.0.0:${PORT}`);
   });
 }
 
-const PORT = Number(process.env.PORT || 3000);
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`PROSAFE unified server listening on http://0.0.0.0:${PORT}`);
+startServer().catch((err) => {
+  console.error("[SERVER STARTUP FAILED]:", err);
+  process.exit(1);
 });

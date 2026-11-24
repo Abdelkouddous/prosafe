@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { Loader2, Map as MapIcon, List, RotateCcw, Home } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { FileText, Loader2, Map as MapIcon, List, RotateCcw } from "lucide-react";
+import PageShell from "@/components/PageShell";
+import SafetyReportPdfModal from "@/components/SafetyReportPdfModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +80,7 @@ const IncidentsManagement = () => {
   const [showMap, setShowMap] = useState(false);
   const [mapItems, setMapItems] = useState<Incident[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   // Debounce text inputs; selects/dates are applied through the same path.
   useEffect(() => {
@@ -169,34 +170,36 @@ const IncidentsManagement = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="container mx-auto px-4 py-6 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h1 className="text-2xl font-bold">{t("incidents.managementTitle")}</h1>
-            <p className="text-sm text-gray-500">{t("incidents.managementSubtitle")}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/dashboard">
-                <Home className="h-4 w-4 me-2" />
-                {t("navigation.dashboard")}
-              </Link>
-            </Button>
-            <Button
-              variant={showMap ? "default" : "outline"}
-              onClick={() => setShowMap((s) => !s)}
-            >
-              {showMap ? (
-                <List className="h-4 w-4 me-2" />
-              ) : (
-                <MapIcon className="h-4 w-4 me-2" />
-              )}
-              {t("incidents.map")}
-            </Button>
-          </div>
+    <PageShell
+      title={t("incidents.managementTitle")}
+      subtitle={t("incidents.managementSubtitle")}
+      actions={
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setPdfOpen(true)}
+            data-testid="incidents-pdf-btn"
+            className="whitespace-nowrap shrink-0"
+          >
+            <FileText className="h-4 w-4 me-2 text-prosafe-600" />
+            PDF ISO 45001
+          </Button>
+          <Button
+            variant={showMap ? "default" : "outline"}
+            onClick={() => setShowMap((s) => !s)}
+            className="whitespace-nowrap shrink-0"
+          >
+            {showMap ? (
+              <List className="h-4 w-4 me-2" />
+            ) : (
+              <MapIcon className="h-4 w-4 me-2" />
+            )}
+            {t("incidents.map")}
+          </Button>
         </div>
+      }
+    >
+      <div className="space-y-4">
 
         <Card>
           <CardContent className="pt-6">
@@ -365,7 +368,12 @@ const IncidentsManagement = () => {
         onClose={() => setSelectedId(null)}
         onChanged={load}
       />
-    </div>
+      <SafetyReportPdfModal
+        open={pdfOpen}
+        onOpenChange={setPdfOpen}
+        initialIncidents={items}
+      />
+    </PageShell>
   );
 };
 

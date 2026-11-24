@@ -1,11 +1,10 @@
 services:
   - type: web
     name: prosafe
-    runtime: node
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     plan: free
     region: frankfurt
-    buildCommand: npm install --legacy-peer-deps --workspace=apps/admin --include-workspace-root && npm run build && ([ -z "$DATABASE_URL" ] || npm run db:push)
-    startCommand: npx tsx server.ts
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

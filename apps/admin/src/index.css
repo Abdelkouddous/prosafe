@@ -108,11 +108,11 @@
   text-align: right;
 }
 
-[dir="rtl"] .flex {
+[dir="rtl"] .flex:not(.flex-col) {
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .justify-between {
+[dir="rtl"] .justify-between:not(.flex-col) {
   flex-direction: row-reverse;
 }
 

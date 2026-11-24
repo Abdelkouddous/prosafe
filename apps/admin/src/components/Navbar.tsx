@@ -1,6 +1,6 @@
 import NotificationBell from "@/components/NotificationBell";
-import ManagerSubNav from "@/components/ManagerSubNav";
 import EmergencyBanner from "@/components/EmergencyBanner";
+import DemoRoleSwitcher from "@/components/DemoRoleSwitcher";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -74,29 +74,55 @@ const Navbar = () => {
               // Regular navigation
               <>
                 <Link
-                  to="/"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                  to="/features"
+                  className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                    location.pathname === "/features"
+                      ? "text-prosafe-600"
+                      : "text-slate-700 hover:text-prosafe-600"
+                  }`}
                 >
-                  {t("navigation.home")}
-                </Link>
-                {/* <Link
-                  to="/about"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
-                >
-                  {t("navigation.about")}
+                  {t("footer.features")}
                 </Link>
                 <Link
                   to="/services"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                  className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                    location.pathname === "/services"
+                      ? "text-prosafe-600"
+                      : "text-slate-700 hover:text-prosafe-600"
+                  }`}
                 >
                   {t("navigation.services")}
                 </Link>
                 <Link
+                  to="/pricing"
+                  className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                    location.pathname === "/pricing"
+                      ? "text-prosafe-600"
+                      : "text-slate-700 hover:text-prosafe-600"
+                  }`}
+                >
+                  {t("footer.pricing")}
+                </Link>
+                <Link
+                  to="/about"
+                  className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                    location.pathname === "/about"
+                      ? "text-prosafe-600"
+                      : "text-slate-700 hover:text-prosafe-600"
+                  }`}
+                >
+                  {t("navigation.about")}
+                </Link>
+                <Link
                   to="/contact"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
+                  className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                    location.pathname === "/contact"
+                      ? "text-prosafe-600"
+                      : "text-slate-700 hover:text-prosafe-600"
+                  }`}
                 >
                   {t("navigation.contact")}
-                </Link> */}
+                </Link>
               </>
             )}
 
@@ -129,6 +155,7 @@ const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
+            <DemoRoleSwitcher />
             <NotificationBell />
             {/* Language Switcher */}
             <div className="relative group flex">
@@ -347,11 +374,11 @@ const Navbar = () => {
                   {t("navigation.home")}
                 </Link>
                 <Link
-                  to="/about"
+                  to="/features"
                   className="text-lg font-medium hover:text-prosafe-600 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  {t("navigation.about")}
+                  {t("footer.features")}
                 </Link>
                 <Link
                   to="/services"
@@ -359,6 +386,20 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   {t("navigation.services")}
+                </Link>
+                <Link
+                  to="/pricing"
+                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {t("footer.pricing")}
+                </Link>
+                <Link
+                  to="/about"
+                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {t("navigation.about")}
                 </Link>
                 <Link
                   to="/contact"
@@ -385,7 +426,8 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {/* Mobile User Info */}
-                <div className="text-center border-t border-gray-300 pt-4 w-full">
+                <div className="text-center border-t border-gray-300 pt-4 w-full flex flex-col items-center gap-2">
+                  <DemoRoleSwitcher />
                   <p className="text-sm font-medium text-gray-900">
                     {user?.firstName} {user?.lastName}
                   </p>
@@ -476,7 +518,6 @@ const Navbar = () => {
           </nav>
         )}
       </div>
-      {isAdmin && isAuthenticated && <ManagerSubNav />}
       {isAdmin && isAuthenticated && <EmergencyBanner />}
     </nav>
   );

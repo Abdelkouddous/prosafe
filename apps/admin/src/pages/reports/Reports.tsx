@@ -17,6 +17,7 @@ import {
   YAxis,
 } from "recharts";
 import PageShell from "@/components/PageShell";
+import SafetyReportPdfModal from "@/components/SafetyReportPdfModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,6 +92,7 @@ const Reports = () => {
   const [bySeverity, setBySeverity] = useState<GroupCount[]>([]);
   const [forecast, setForecast] = useState<ForecastResult | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -174,7 +176,20 @@ const Reports = () => {
   };
 
   return (
-    <PageShell title={t("reports.title")} subtitle={t("reports.subtitle")}>
+    <PageShell
+      title={t("reports.title")}
+      subtitle={t("reports.subtitle")}
+      actions={
+        <Button
+          onClick={() => setPdfOpen(true)}
+          data-testid="reports-pdf-btn"
+          className="bg-prosafe-600 hover:bg-prosafe-700 whitespace-nowrap shrink-0"
+        >
+          <FileText className="h-4 w-4 me-2" />
+          PDF ISO 45001
+        </Button>
+      }
+    >
       <Card className="mb-6">
         <CardContent className="space-y-4 pt-6">
           <div className="flex flex-wrap gap-2">
@@ -407,6 +422,11 @@ const Reports = () => {
           </div>
         </div>
       )}
+      <SafetyReportPdfModal
+        open={pdfOpen}
+        onOpenChange={setPdfOpen}
+        periodLabel={range.from && range.to ? `${range.from} → ${range.to}` : undefined}
+      />
     </PageShell>
   );
 };

@@ -6,6 +6,7 @@ import { db } from "../db/index.ts";
 import {
   alerts,
   audits,
+  contactInquiries,
   conversationMessages,
   conversations,
   correctiveActions,
@@ -22,7 +23,11 @@ import {
   trainings,
   users,
 } from "../db/schema.ts";
-import { DEMO_ADMIN_EMAIL, ensureDemoDataSeeded } from "../db/seed.ts";
+import {
+  DEMO_ADMIN_EMAIL,
+  DEMO_EMPLOYEE_EMAIL,
+  ensureDemoDataSeeded,
+} from "../db/seed.ts";
 import { adminAuth } from "../lib/firebase-admin.ts";
 import {
   computeRiskScore,
@@ -121,13 +126,21 @@ async function safeEnsureSeed() {
 // AUTHENTICATION & USER MANAGEMENT
 // ============================================================================
 
-router.post("/auth/demo", async (_req, res) => {
+router.post("/auth/demo", async (req, res) => {
+  const requestedRole =
+    typeof req.body?.role === "string" ? req.body.role.trim().toLowerCase() : "admin";
+  if (requestedRole !== "admin" && requestedRole !== "employee") {
+    return sendError(res, 400, "Invalid demo role. Use 'admin' or 'employee'.");
+  }
+  const targetEmail =
+    requestedRole === "employee" ? DEMO_EMPLOYEE_EMAIL : DEMO_ADMIN_EMAIL;
+
   try {
     await ensureDemoDataSeeded();
     const [demoUser] = await db
       .select()
       .from(users)
-      .where(eq(users.email, DEMO_ADMIN_EMAIL))
+      .where(eq(users.email, targetEmail))
       .limit(1);
 
     if (!demoUser) {
@@ -140,7 +153,7 @@ router.post("/auth/demo", async (_req, res) => {
       email: safe.email,
       roles: safe.roles,
     });
-    return res.json({ access_token, user: safe });
+    return res.json({ access_token, user: safe, demoRole: requestedRole });
   } catch (err) {
     return sendError(res, 500, "Failed to initialize demo session.", err);
   }
@@ -296,6 +309,50 @@ router.post("/auth/forgot-password", async (req, res) => {
   } catch (err) {
     return sendError(res, 500, "Unable to process password reset request.", err);
   }
+});
+
+router.post("/public/contact", async (req, res) => {
+  const fullName = typeof req.body?.fullName === "string" ? req.body.fullName.trim() : "";
+  const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const company = typeof req.body?.company === "string" ? req.body.company.trim() : "";
+  const phone = typeof req.body?.phone === "string" ? req.body.phone.trim() : "";
+  const topic = typeof req.body?.topic === "string" ? req.body.topic.trim() : "demo";
+  const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (fullName.length < 2) {
+    return sendError(res, 400, "Please enter your full name (at least 2 characters).");
+  }
+  if (!emailPattern.test(email)) {
+    return sendError(res, 400, "Please enter a valid work email address.");
+  }
+  if (message.length < 10) {
+    return sendError(res, 400, "Please include a brief message (at least 10 characters).");
+  }
+
+  const referenceId = `INQ-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  const receivedAt = new Date().toISOString();
+
+  try {
+    await db.insert(contactInquiries).values({
+      referenceId,
+      fullName: fullName.slice(0, 120),
+      email: email.slice(0, 160),
+      company: company ? company.slice(0, 120) : null,
+      phone: phone ? phone.slice(0, 40) : null,
+      topic: topic.slice(0, 60) || "demo",
+      message: message.slice(0, 4000),
+    });
+  } catch (err) {
+    console.warn("[PUBLIC CONTACT] Database persistence skipped:", (err as Error)?.message);
+  }
+
+  return res.status(201).json({
+    ok: true,
+    referenceId,
+    receivedAt,
+    message: "Your inquiry has been received. Our HSE team will reply within one business day.",
+  });
 });
 
 router.get("/auth/me", requireAuth, async (req: AuthRequest, res) => {

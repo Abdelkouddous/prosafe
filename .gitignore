@@ -115,7 +115,6 @@ Thumbs.db
 # Docker
 Dockerfile.prod
 docker-compose.prod.yml
-.dockerignore
 
 # Husky
 .husky/

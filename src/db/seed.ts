@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "./index.ts";
 import {
   actionPlans,
@@ -31,6 +31,7 @@ import {
 import { computeRiskScore } from "../lib/riskMath.ts";
 
 export const DEMO_ADMIN_EMAIL = "admin@prosafe.demo";
+export const DEMO_EMPLOYEE_EMAIL = "karim.benali@prosafe.demo";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -63,11 +64,21 @@ async function runSeedIfNeeded(): Promise<void> {
     .where(eq(users.email, DEMO_ADMIN_EMAIL))
     .limit(1);
 
-  if (existing.length > 0) return;
+  const existingIncident = await db.select({ id: incidents.id }).from(incidents).limit(1);
+  if (existing.length > 0 && existingIncident.length > 0) return;
 
-  const demoHash = await bcrypt.hash("Prosafe2026!", 10);
+  const demoHash = await bcrypt.hash("Prosafe2026!", 8);
+  const demoEmails = [
+    DEMO_ADMIN_EMAIL,
+    "salima.ouali@prosafe.demo",
+    "mourad.kaci@prosafe.demo",
+    "karim.benali@prosafe.demo",
+    "amina.boudiaf@prosafe.demo",
+    "yacine.messaoudi@prosafe.demo",
+    "nadia.cherif@prosafe.demo",
+  ];
 
-  const insertedUsers = await db
+  await db
     .insert(users)
     .values([
       {
@@ -148,16 +159,27 @@ async function runSeedIfNeeded(): Promise<void> {
         isActive: true,
       },
     ])
-    .onConflictDoNothing()
-    .returning();
+    .onConflictDoNothing();
 
-  const [admin, salima, mourad, karim, amina, yacine, nadia] = insertedUsers;
-  if (!admin) return;
+  const fetchedUsers = await db
+    .select()
+    .from(users)
+    .where(inArray(users.email, demoEmails));
+
+  const userByEmail = new Map(fetchedUsers.map((u) => [u.email, u]));
+  const admin = userByEmail.get(DEMO_ADMIN_EMAIL);
+  const salima = userByEmail.get("salima.ouali@prosafe.demo") ?? admin;
+  const mourad = userByEmail.get("mourad.kaci@prosafe.demo") ?? admin;
+  const karim = userByEmail.get("karim.benali@prosafe.demo") ?? admin;
+  const amina = userByEmail.get("amina.boudiaf@prosafe.demo") ?? admin;
+  const yacine = userByEmail.get("yacine.messaoudi@prosafe.demo") ?? admin;
+  const nadia = userByEmail.get("nadia.cherif@prosafe.demo") ?? admin;
+  if (!admin || !salima || !mourad || !karim || !amina || !yacine || !nadia) return;
 
   await db
     .insert(notificationPreferences)
     .values(
-      insertedUsers.map((u) => ({
+      fetchedUsers.map((u) => ({
         userId: u.id,
         incidents: true,
         trainings: true,
@@ -170,6 +192,8 @@ async function runSeedIfNeeded(): Promise<void> {
       }))
     )
     .onConflictDoNothing();
+
+  if (existingIncident.length > 0) return;
 
   const incidentSpecs = [
     {

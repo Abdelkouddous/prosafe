@@ -401,3 +401,15 @@ export const passwordResetRequests = pgTable("password_reset_requests", {
   status: text("status").notNull().default("requested"),
   requestedAt: timestamp("requested_at").defaultNow().notNull(),
 });
+
+export const contactInquiries = pgTable("contact_inquiries", {
+  id: serial("id").primaryKey(),
+  referenceId: text("reference_id").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  company: text("company"),
+  phone: text("phone"),
+  topic: text("topic").notNull().default("demo"),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

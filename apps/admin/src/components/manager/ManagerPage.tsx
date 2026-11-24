@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { ArrowLeft, Shield } from "lucide-react";
+import { NavLink } from "react-router-dom";
+import WorkspaceShell from "@/components/WorkspaceShell";
 import { cn } from "@/lib/utils";
 
 export interface ManagerNavLink {
@@ -20,30 +19,10 @@ interface Props {
 
 /** Shared shell for back-office manager pages (equipment, trainings). */
 export const ManagerPage = ({ title, subtitle, nav, actions, children }: Props) => {
-  const { t } = useTranslation();
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <Shield className="h-6 w-6 text-prosafe-600" />
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-1 text-sm text-gray-600 hover:text-prosafe-600"
-          >
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
-            {t("manager.backToDashboard")}
-          </Link>
-        </div>
-      </header>
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-            {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
-          </div>
-          {actions && <div className="flex gap-2">{actions}</div>}
-        </div>
-        <nav className="flex flex-wrap gap-1 border-b">
+    <WorkspaceShell title={title} subtitle={subtitle} actions={actions}>
+      <div className="space-y-6">
+        <nav className="flex flex-wrap gap-1 border-b border-slate-200">
           {nav.map((l) => (
             <NavLink
               key={l.to}
@@ -51,10 +30,10 @@ export const ManagerPage = ({ title, subtitle, nav, actions, children }: Props) 
               end={l.end}
               className={({ isActive }) =>
                 cn(
-                  "px-4 py-2 text-sm font-medium border-b-2 -mb-px",
+                  "px-4 py-2 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors",
                   isActive
                     ? "border-prosafe-600 text-prosafe-700"
-                    : "border-transparent text-gray-600 hover:text-gray-900"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
                 )
               }
             >
@@ -63,8 +42,8 @@ export const ManagerPage = ({ title, subtitle, nav, actions, children }: Props) 
           ))}
         </nav>
         {children}
-      </main>
-    </div>
+      </div>
+    </WorkspaceShell>
   );
 };
 

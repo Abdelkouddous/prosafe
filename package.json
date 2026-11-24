@@ -2,8 +2,7 @@
   "name": "prosafe",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/admin"
   ],
   "scripts": {
     "build": "npm run build --workspace=apps/admin",

@@ -10,37 +10,24 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Shield,
   Bell,
-  Settings,
-  Home,
   Users,
   Lock,
-  LogOut,
-  Menu,
-  X,
-  ChevronDown,
   CheckCircle,
   ShieldCheck,
   Trash2,
   UserCog,
   LockOpen,
-  MessageSquare,
-  AlertTriangle,
   User,
-  Box,
-  GraduationCap,
   Send,
-  ClipboardCheck,
-  BarChart3,
-  Trophy,
+  LayoutDashboard,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import api from "@/services/api";
 
 import { useToast } from "@/components/ui/use-toast";
-// 
 import {
   Table,
   TableBody,
@@ -60,11 +47,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 
-// inventory stats card (full inventory lives at /equipment)
-import { inventoryApi, InventoryStats } from "@/services/inventoryApi";
 import NotificationPreferences from "@/components/NotificationPreferences";
-import NotificationBell from "@/components/NotificationBell";
 import NotificationSettings from "@/components/NotificationSettings";
+import WorkspaceShell from "@/components/WorkspaceShell";
+import SafetyReportPdfModal from "@/components/SafetyReportPdfModal";
 import {
   Dialog,
   DialogContent,
@@ -76,8 +62,8 @@ import {
 import { useTranslation } from "react-i18next";
 import AdminNotifications from "@/components/AdminNotifications";
 import Overview from "@/components/dashboard/Overview";
-import { statsApi } from "@/services/statsApi";
-import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { usePublicLocale } from "@/lib/publicSiteCopy";
+
 interface User {
   id: number;
   firstName: string;
@@ -87,11 +73,9 @@ interface User {
   roles: string[];
 }
 
-
 const Dashboard = () => {
   const { t } = useTranslation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const locale = usePublicLocale();
   const [activeTab, setActiveTab] = useState("overview");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,43 +83,18 @@ const Dashboard = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  // This is the inventory management concept
-  const [inventoryStats, setInventoryStats] = useState<InventoryStats | null>(
-    null
-  );
-  useEffect(() => {
-    inventoryApi
-      .getStats()
-      .then((res) => setInventoryStats(res.data))
-      .catch((error) => console.error("Error fetching inventory stats:", error));
-  }, []);
+  const [pdfOpen, setPdfOpen] = useState(false);
 
-  // alert stats fetch
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const [incidentStats, setIncidentStats] = useState({ open: 0, investigating: 0 });
-  const unreadMessageCount = useUnreadMessages();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const isAdmin = !!user?.roles?.includes("admin");
-
-  useEffect(() => {
-    statsApi
-      .overview()
-      .then((res) =>
-        setIncidentStats({
-          open: res.data.incidents.open,
-          investigating: res.data.incidents.investigating,
-        })
-      )
-      .catch(() => undefined);
-  }, []);
 
   useEffect(() => {
     if (activeTab === "users") {
@@ -284,8 +243,7 @@ const Dashboard = () => {
   const handleProfileUpdate = async () => {
     try {
       setLoading(true);
-      // API call to update profile
-      const response = await api.patch("/users/profile", {
+      await api.patch("/users/profile", {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         phone: profileData.phone,
@@ -354,10 +312,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
 
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
@@ -406,293 +360,87 @@ const Dashboard = () => {
     }
   };
 
+  const dashboardTabs = [
+    {
+      id: "overview",
+      label: t("adminDashboard.sidebar.dashboard"),
+      icon: LayoutDashboard,
+    },
+    {
+      id: "users",
+      label: t("adminDashboard.sidebar.users"),
+      icon: Users,
+    },
+    {
+      id: "notifications",
+      label: t("adminDashboard.sidebar.notificationSettings"),
+      icon: Bell,
+    },
+    {
+      id: "admin-notifications",
+      label: t("adminDashboard.sidebar.sendNotifications"),
+      icon: Send,
+    },
+    {
+      id: "profile",
+      label: t("navigation.myProfile"),
+      icon: User,
+    },
+  ];
+
+  const pdfBtnLabel =
+    locale === "fr"
+      ? "Rapport PDF ISO 45001"
+      : locale === "ar"
+        ? "تقرير ISO 45001 PDF"
+        : "ISO 45001 PDF Report";
+
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:relative md:translate-x-0 transition-transform duration-300 ease-in-out w-64 bg-white border-r border-gray-200`}
+    <WorkspaceShell
+      title={getTabTitle()}
+      actions={
+        <Button
+          variant="outline"
+          onClick={() => setPdfOpen(true)}
+          data-testid="dashboard-pdf-btn"
+          className="whitespace-nowrap shrink-0"
+        >
+          <FileText className="h-4 w-4 me-2 text-prosafe-600" />
+          {pdfBtnLabel}
+        </Button>
+      }
+    >
+      {/* Horizontal Workspace Sub-Tabs for Dashboard Views */}
+      <div
+        role="tablist"
+        aria-label="Dashboard sections"
+        className="mb-6 border-b border-slate-200 flex items-center gap-1 overflow-x-auto"
       >
-        <div className="p-4 border-b flex items-center gap-2">
-          <Shield className="h-6 w-6 text-prosafe-600" />
-          <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-prosafe-900">PROSAFE</span>
-          </Link>
-          <button
-            className="ml-auto md:hidden"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Close sidebar"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <nav className="p-4 space-y-1">
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => setActiveTab("overview")}
-          >
-            <Home className="mr-2 h-5 w-5" />
-            {t("adminDashboard.sidebar.dashboard")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/incidents/manage")}
-          >
-            <AlertTriangle className="mr-2 h-5 w-5" />
-            Incidents
-            <span className="ml-auto bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5">
-              {incidentStats?.open + incidentStats?.investigating || 0}
-            </span>
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/corrective-actions")}
-          >
-            <ClipboardCheck className="mr-2 h-5 w-5" />
-            {t("navigation.correctiveActions")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/alerts")}
-          >
-            <Bell className="mr-2 h-5 w-5" />
-            {t("navigation.alerts")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/reports")}
-          >
-            <BarChart3 className="mr-2 h-5 w-5" />
-            {t("navigation.reports")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/rewards")}
-          >
-            <Trophy className="mr-2 h-5 w-5" />
-            {t("navigation.rewards")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("users")}
-          >
-            <Users className="mr-2 h-5 w-5" />
-            {t("adminDashboard.sidebar.users")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/messages")}
-          >
-            <MessageSquare className="mr-2 h-5 w-5" />
-            {t("adminDashboard.sidebar.messages")}
-            {unreadMessageCount > 0 && (
-              <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                {unreadMessageCount}
-              </span>
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/equipment")}
-          >
-            <Box className="mr-2 h-5 w-5" />
-            {t("navigation.inventory")}
-            {(inventoryStats?.lowStockItems ?? 0) > 0 && (
-              <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                {(inventoryStats?.lowStockItems ?? 0)}
-              </span>
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => navigate("/trainings")}
-          >
-            <GraduationCap className="mr-2 h-5 w-5" />
-            {t("navigation.training")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("notifications")}
-          >
-            <Bell className="mr-2 h-5 w-5" />
-            {t("adminDashboard.sidebar.notificationSettings")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("admin-notifications")}
-          >
-            <Send className="mr-2 h-5 w-5" />
-            {t("adminDashboard.sidebar.sendNotifications")}
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-600"
-            onClick={() => setActiveTab("profile")}
-          >
-            <User className="mr-2 h-5 w-5" />
-            {t("navigation.myProfile")}
-          </Button>
-
-          <div className="pt-6 mt-6 border-t border-gray-100">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-2 h-5 w-5" />
-              {t("adminDashboard.sidebar.logout")}
-            </Button>
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Enhanced Header with Access Control Menu */}
-        <header className="bg-white border-b p-4 flex items-center justify-between">
-          <div className="flex items-center">
+        {dashboardTabs.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
             <button
-              className="mr-4 md:hidden"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Open sidebar"
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setActiveTab(tab.id)}
+              className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-sm whitespace-nowrap shrink-0 border-b-2 transition-colors ${
+                active
+                  ? "border-prosafe-600 text-prosafe-700 font-semibold"
+                  : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 font-medium"
+              }`}
             >
-              <Menu className="h-6 w-6" />
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{tab.label}</span>
             </button>
-            <h1 className="text-xl font-semibold">{getTabTitle()}</h1>
-          </div>
+          );
+        })}
+      </div>
 
-          <div className="flex items-center gap-4">
-            {/* Go to Home Link */}
-            <Link
-              to="/"
-              className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-            >
-              <Home className="h-4 w-4" />
-              {t("navigation.goToHome")}
-            </Link>
-
-            <NotificationBell />
-
-            {/* Access Control Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100"
-              >
-                <div className="w-8 h-8 rounded-full bg-prosafe-100 flex items-center justify-center text-prosafe-600 font-semibold">
-                  {user?.firstName?.charAt(0) ||
-                    user?.email?.charAt(0) ||
-                    "User"}
-                </div>
-                <span className="hidden sm:block">{user?.firstName}</span>
-                {isAdmin && (
-                  <span className="hidden sm:block text-xs bg-prosafe-100 text-prosafe-800 px-2 py-1 rounded">
-                    Admin
-                  </span>
-                )}
-                <ChevronDown className="h-4 w-4" />
-              </button>
-
-              {/* Dropdown Menu */}
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <div className="py-1">
-                    {/* User Info Section */}
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-sm text-gray-500">{user?.email}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500">Role:</span>
-                        {user?.roles.map((role, index) => (
-                          <span
-                            key={index}
-                            className={`text-xs px-2 py-1 rounded ${
-                              role === "admin"
-                                ? "bg-prosafe-100 text-prosafe-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {role}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Navigation Links */}
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setActiveTab("profile");
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      >
-                        <User className="h-4 w-4" />
-                        {t("navigation.myProfile")}
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setActiveTab("user-settings");
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                      >
-                        <Settings className="h-4 w-4" />
-                        User Settings
-                      </button>
-
-                      {/* Admin-only access control links */}
-                      {isAdmin && (
-                        <>
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <div className="px-4 py-1">
-                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                              Admin Access
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Logout Section */}
-                    <div className="border-t border-gray-100 py-1">
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        {t("adminDashboard.sidebar.logout")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
-        <main className="flex-1 overflow-auto p-6 bg-background">
+      {/* Dashboard Content */}
+      <div>
           {activeTab === "users" ? (
             <div className="space-y-6">
               <div>
@@ -1208,16 +956,7 @@ const Dashboard = () => {
           ) : (
             renderDashboardContent()
           )}
-        </main>
       </div>
-
-      {/* Click outside to close user menu */}
-      {isUserMenuOpen && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setIsUserMenuOpen(false)}
-        ></div>
-      )}
 
       {/* Change Role Dialog */}
       <Dialog open={openRoleDialog} onOpenChange={setOpenRoleDialog}>
@@ -1248,7 +987,9 @@ const Dashboard = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+
+      <SafetyReportPdfModal open={pdfOpen} onOpenChange={setPdfOpen} />
+    </WorkspaceShell>
   );
 };
 

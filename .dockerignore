@@ -1,0 +1,35 @@
+# Dependencies & lockfiles
+node_modules
+**/node_modules
+package-lock.json
+bun.lock
+yarn.lock
+pnpm-lock.yaml
+
+# Unused monorepo apps & docs (keep build context minimal and conflict-free)
+apps/backend
+apps/mobile
+packages
+docs
+assets
+public
+
+# Local build outputs, tests, and environment secrets
+apps/admin/dist
+dist
+build
+coverage
+.env
+.env.*
+!.env.example
+
+# Tooling, VCS, and OS artifacts
+.git
+.gitignore
+.aistudio
+.claude
+.turbo
+.vscode
+.idea
+*.log
+.DS_Store

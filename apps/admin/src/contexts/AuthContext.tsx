@@ -5,6 +5,7 @@ import api, { AUTH_EXPIRED_EVENT } from "@/services/api";
 import { setToken, getToken, removeToken } from "@/lib/auth";
 import { firebaseAuth, googleAuthProvider } from "@/lib/firebase";
 import { useToast } from "@/components/ui/use-toast";
+import { isDemoAccount, type DemoPersonaRole } from "@/lib/workspaceFeatures";
 
 export type Role = "admin" | "sst_manager" | "employee" | "pending";
 
@@ -29,12 +30,13 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<AuthResponse>;
   loginWithGoogle: () => Promise<AuthResponse>;
-  loginDemo: () => Promise<AuthResponse>;
+  loginDemo: (role?: DemoPersonaRole) => Promise<AuthResponse>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
   isManager: boolean;
+  isDemoSession: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>(null!);
@@ -147,9 +149,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const loginDemo = async () => {
+  const loginDemo = async (role: DemoPersonaRole = "admin") => {
+    const attemptDemo = () => api.post<AuthResponse>("/auth/demo", { role });
     try {
-      const response = await api.post<AuthResponse>("/auth/demo");
+      let response;
+      try {
+        response = await attemptDemo();
+      } catch (firstErr) {
+        const status = (firstErr as { response?: { status?: number } })?.response?.status;
+        const shouldRetry = !status || status >= 502;
+        if (!shouldRetry) throw firstErr;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        response = await attemptDemo();
+      }
       return await completeSession(response.data);
     } catch (error) {
       toast({
@@ -171,6 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isAdmin = !!user?.roles?.includes("admin");
   const isManager = isAdmin || !!user?.roles?.includes("sst_manager");
+  const isDemoSession = isDemoAccount(user?.email);
 
   const value: AuthContextType = {
     user,
@@ -182,6 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isLoading,
     isAdmin,
     isManager,
+    isDemoSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
