@@ -90,27 +90,6 @@
     "tryLiveDemo": "جرب العرض المباشر",
     "dashboardPreview": "مركز قيادة الصحة والسلامة PROSAFE"
   },
-  "heroPreview": {
-    "complianceRate": "امتثال ISO 45001",
-    "openIncidents": "الحوادث المفتوحة",
-    "trainingCoverage": "تغطية التكوينات",
-    "meanResolution": "متوسط وقت الحل",
-    "monthlyTrendSubtitle": "الحوادث وشبه الحوادث خلال 6 أشهر",
-    "months": {
-      "jan": "يناير",
-      "feb": "فبراير",
-      "mar": "مارس",
-      "apr": "أبريل",
-      "may": "مايو",
-      "jun": "يونيو"
-    },
-    "alert1Title": "تنبيه قوس كهربائي — الورشة ب",
-    "alert1Meta": "حرج · العزل الكهربائي نشط",
-    "alert2Title": "معايرة كاشف الغاز متأخرة",
-    "alert2Meta": "مرتفع · مختبر الصيانة",
-    "alert3Title": "تدقيق مراقبة ISO 45001 مجدول",
-    "alert3Meta": "خلال 16 يوماً"
-  },
   "landingStats": {
     "modules": "وحدة سلامة متكاملة",
     "riskMatrix": "مصفوفة المخاطر و LMRA",

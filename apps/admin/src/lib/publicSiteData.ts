@@ -196,7 +196,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "Custom SAML / Google Workspace SSO & granular RBAC",
       "ERP, HRIS & IoT gas-sensor webhook integrations",
       "On-site ISO 45001 readiness audit & team training",
-      "99.9% uptime SLA and priority 24/7 incident support",
+      "Dedicated deployment and priority engineering support",
     ],
   },
 ];
@@ -301,14 +301,14 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: "Preparing an Industrial Site for ISO 45001 Surveillance Audits Without Spreadsheet Chaos",
     excerpt:
       "How HSE coordinators link daily near-miss reports, calibration logs, and training matrices into a single verifiable audit trail.",
-    author: "Salima Ouali",
-    authorRole: "Lead HSE Operations Advisor",
+    author: "PROSAFE Editorial",
+    authorRole: "ISO 45001 Reference Guide",
     publishedAt: "October 14, 2026",
     readTime: "6 min read",
     body: [
       "Most manufacturing and logistics facilities already collect plenty of safety data — paper inspection sheets clipped to fire extinguishers, Excel training trackers on a supervisor's laptop, and incident emails buried in shared inboxes. The breakdown happens two weeks before an external ISO 45001 surveillance audit when teams scramble to prove that a non-conformity actually resulted in a verified corrective action.",
       "Under ISO 45001 clauses 6.1.2, 7.2, and 9.1, auditors look for closed loops rather than static binders. When a technician reports an oil leak near a stamping press, the record should flow directly from initial report to risk scoring, assigned owner, completion date, and effectiveness review.",
-      "Sites running PROSAFE cut pre-audit evidence preparation from 5 days to under 3 hours by tying checklist non-conformities directly to corrective actions and maintaining live expiry dates on every safety certificate and calibration log.",
+      "By linking checklist non-conformities directly to corrective actions and maintaining live expiry dates on every safety certificate and calibration log, PROSAFE keeps audit evidence structured and ready for export whenever an inspection is scheduled.",
     ],
   },
   {
@@ -317,8 +317,8 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: "Designing a 90-Second LMRA Checklist Technicians Actually Use Before Energized Work",
     excerpt:
       "Why overly long job safety analyses get rubber-stamped — and how three focused Stop-Work checks prevent severe electrical and dock injuries.",
-    author: "Mourad Kaci",
-    authorRole: "Production Safety Lead",
+    author: "PROSAFE Safety Guide",
+    authorRole: "Field Risk Prevention",
     publishedAt: "September 28, 2026",
     readTime: "5 min read",
     body: [
@@ -333,8 +333,8 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: "Benchmarking Evacuation Drills: Turning Assembly Headcounts Into Actionable Site Improvements",
     excerpt:
       "Tracking siren audibility, bottleneck exits, and full-site evacuation duration across multi-shift warehouses.",
-    author: "Dr. Farid Ziani",
-    authorRole: "Industrial Emergency Consultant",
+    author: "PROSAFE Safety Guide",
+    authorRole: "Emergency Preparedness",
     publishedAt: "September 10, 2026",
     readTime: "4 min read",
     body: [
@@ -349,8 +349,8 @@ export const BLOG_ARTICLES: BlogArticle[] = [
     title: "Eliminating Silent Failures in Multi-Gas Detectors and PPE Stockrooms",
     excerpt:
       "Preventing overdue sensor calibrations and empty cut-resistant glove dispensers before they trigger shift stoppages.",
-    author: "Amina Boudiaf",
-    authorRole: "Maintenance Reliability Engineer",
+    author: "PROSAFE Engineering",
+    authorRole: "Equipment & PPE Compliance",
     publishedAt: "August 22, 2026",
     readTime: "5 min read",
     body: [

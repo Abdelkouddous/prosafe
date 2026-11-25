@@ -112,27 +112,6 @@
     "tryLiveDemo": "Try Live Demo",
     "dashboardPreview": "PROSAFE HSE Command Center"
   },
-  "heroPreview": {
-    "complianceRate": "ISO 45001 Compliance",
-    "openIncidents": "Open Incidents",
-    "trainingCoverage": "Training Coverage",
-    "meanResolution": "Mean Resolution",
-    "monthlyTrendSubtitle": "6-month reported incidents & near-misses",
-    "months": {
-      "jan": "Jan",
-      "feb": "Feb",
-      "mar": "Mar",
-      "apr": "Apr",
-      "may": "May",
-      "jun": "Jun"
-    },
-    "alert1Title": "Electrical cabinet arc flash — Workshop B",
-    "alert1Meta": "Critical · LOTO active",
-    "alert2Title": "Multi-Gas Detector calibration overdue",
-    "alert2Meta": "High · Maintenance Lab",
-    "alert3Title": "ISO 45001 surveillance audit scheduled",
-    "alert3Meta": "Upcoming in 16 days"
-  },
   "landingStats": {
     "modules": "Integrated OHS Modules",
     "riskMatrix": "Risk Matrix & LMRA",

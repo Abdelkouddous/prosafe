@@ -133,7 +133,7 @@ export const PUBLIC_COPY = {
             "Dedicated PostgreSQL schema & custom data retention",
             "ERP / HRIS REST API & webhook integrations",
             "Custom ISO 45001 / MASE / OSHA audit templates",
-            "On-site implementation workshops & 99.9% SLA",
+            "On-site implementation workshops & dedicated deployment support",
           ],
         },
       },
@@ -210,22 +210,22 @@ export const PUBLIC_COPY = {
       requestScope: "Request scope and timeline",
       impactStats: [
         {
-          metric: "-42%",
-          label: "Faster corrective action closure",
+          metric: "ISO 45001",
+          label: "Clause-mapped audit workflows",
           detail:
-            "Measured over 6 months across multi-workshop manufacturing sites replacing email follow-ups with assigned PROSAFE owners.",
+            "Checklists link non-conformities directly to corrective actions, owners, and exportable compliance reports.",
         },
         {
-          metric: "3 hrs",
-          label: "ISO 45001 audit prep time",
+          metric: "RBAC",
+          label: "Strict role & workspace isolation",
           detail:
-            "Down from 5 full days of manual spreadsheet compilation before external surveillance inspections.",
+            "Dedicated workspaces for HSE administrators and field employees backed by server-side access enforcement.",
         },
         {
-          metric: "100%",
-          label: "Gas detector & PPE traceability",
+          metric: "EN · FR · AR",
+          label: "Multilingual & RTL-ready deployment",
           detail:
-            "Automated overdue calibration alerts prevent unverified detection gear from entering confined or energized work zones.",
+            "Instant language switching across English, French, and right-to-left Arabic for headquarters and field teams.",
         },
       ],
     },
@@ -465,7 +465,7 @@ export const PUBLIC_COPY = {
             "Schéma PostgreSQL dédié et rétention personnalisée",
             "Intégrations API REST et webhooks ERP / SIRH",
             "Modèles d'audits ISO 45001 / MASE / OSHA sur mesure",
-            "Ateliers de déploiement sur site et SLA 99,9 %",
+            "Ateliers de déploiement sur site et support dédié",
           ],
         },
       },
@@ -542,22 +542,22 @@ export const PUBLIC_COPY = {
       requestScope: "Demander un cadrage et un planning",
       impactStats: [
         {
-          metric: "-42 %",
-          label: "Clôture plus rapide des actions correctives",
+          metric: "ISO 45001",
+          label: "Grilles d'audit reliées aux actions",
           detail:
-            "Mesuré sur 6 mois sur des sites multi-ateliers remplaçant les relances e-mail par des responsables assignés dans PROSAFE.",
+            "Chaque non-conformité crée une action corrective assignée avec échéance et preuves exportables.",
         },
         {
-          metric: "3 h",
-          label: "Préparation d'audit ISO 45001",
+          metric: "RBAC",
+          label: "Séparation stricte des rôles",
           detail:
-            "Contre 5 jours complets de compilation manuelle sur tableurs avant les visites de certification.",
+            "Espaces distincts pour administrateurs HSE et employés terrain avec contrôle d'accès côté serveur.",
         },
         {
-          metric: "100 %",
-          label: "Traçabilité détecteurs gaz & EPI",
+          metric: "FR · EN · AR",
+          label: "Déploiement multilingue et RTL",
           detail:
-            "Les alertes d'étalonnage empêchent l'utilisation d'équipements expirés en zone confinée ou sous tension.",
+            "Bascule immédiate entre français, anglais et arabe (RTL) pour les équipes siège et terrain.",
         },
       ],
     },
@@ -795,7 +795,7 @@ export const PUBLIC_COPY = {
             "قاعدة بيانات معزولة وسياسة احتفاظ مخصصة",
             "تكامل API وWebhooks مع أنظمة ERP وHRIS",
             "قوالب تدقيق مخصصة لمعايير ISO 45001 وOSHA",
-            "ورش تدريب ميدانية واتفاقية تشغيل بنسبة 99.9%",
+            "ورش تدريب ميدانية ودعم نشر مخصص",
           ],
         },
       },
@@ -871,19 +871,22 @@ export const PUBLIC_COPY = {
       requestScope: "اطلب نطاق العمل والجدول الزمني",
       impactStats: [
         {
-          metric: "-42%",
-          label: "إغلاق أسرع للإجراءات التصحيحية",
-          detail: "نتيجة مقاسة عبر مواقع صناعية استبدلت المتابعة بالبريد الإلكتروني بمسؤولين محددين.",
+          metric: "ISO 45001",
+          label: "قوائم تدقيق مرتبطة بالإجراءات",
+          detail:
+            "تربط كل حالة عدم مطابقة بإجراء تصحيحي ومسؤول محدد وتقارير امتثال قابلة للتصدير.",
         },
         {
-          metric: "3 ساعات",
-          label: "وقت تحضير تدقيق ISO 45001",
-          detail: "بدلاً من 5 أيام كاملة من تجميع الجداول يدوياً قبل الزيارات التفتيشية.",
+          metric: "RBAC",
+          label: "عزل صارم للأدوار والصلاحيات",
+          detail:
+            "مساحات عمل مخصصة لمسؤولي السلامة والموظفين مع تحقق صارم للصلاحيات على الخادم.",
         },
         {
-          metric: "100%",
-          label: "تتبع كواشف الغاز ومعدات الوقاية",
-          detail: "تنبيهات المعايرة تمنع دخول أجهزة غير مفحوصة إلى المناطق الحساسة.",
+          metric: "AR · FR · EN",
+          label: "واجهة متعددة اللغات مع دعم RTL",
+          detail:
+            "تبديل فوري بين العربية والفرنسية والإنجليزية للإدارة والفرق الميدانية.",
         },
       ],
     },

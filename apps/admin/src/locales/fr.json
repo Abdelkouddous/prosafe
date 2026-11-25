@@ -101,27 +101,6 @@
     "tryLiveDemo": "Essayer la démo",
     "dashboardPreview": "Centre de pilotage HSE PROSAFE"
   },
-  "heroPreview": {
-    "complianceRate": "Conformité ISO 45001",
-    "openIncidents": "Incidents ouverts",
-    "trainingCoverage": "Couverture formations",
-    "meanResolution": "Résolution moyenne",
-    "monthlyTrendSubtitle": "Incidents et presqu'accidents sur 6 mois",
-    "months": {
-      "jan": "Jan",
-      "feb": "Fév",
-      "mar": "Mar",
-      "apr": "Avr",
-      "may": "Mai",
-      "jun": "Juin"
-    },
-    "alert1Title": "Arc électrique armoire — Atelier B",
-    "alert1Meta": "Critique · Consignation active",
-    "alert2Title": "Étalonnage détecteur multigaz en retard",
-    "alert2Meta": "Élevée · Laboratoire Maintenance",
-    "alert3Title": "Audit de surveillance ISO 45001 planifié",
-    "alert3Meta": "Dans 16 jours"
-  },
   "landingStats": {
     "modules": "Modules HSE intégrés",
     "riskMatrix": "Matrice de risques & LMRA",
