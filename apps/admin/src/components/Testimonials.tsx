@@ -9,32 +9,32 @@ const Testimonials = () => {
       role: t("testimonials.item1Role"),
       quote: t("testimonials.item1Quote"),
       initials: "MR",
-      accent: "bg-prosafe-100 text-prosafe-700",
+      accent: "bg-prosafe-100 text-prosafe-700 dark:bg-prosafe-500/20 dark:text-prosafe-300",
     },
     {
       name: "Sarah Johnson",
       role: t("testimonials.item2Role"),
       quote: t("testimonials.item2Quote"),
       initials: "SJ",
-      accent: "bg-emerald-100 text-emerald-700",
+      accent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
     },
     {
       name: "David Kumar",
       role: t("testimonials.item3Role"),
       quote: t("testimonials.item3Quote"),
       initials: "DK",
-      accent: "bg-sky-100 text-sky-700",
+      accent: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
     },
   ];
 
   return (
-    <section className="py-20 bg-slate-50">
+    <section className="py-20 bg-slate-50 dark:bg-slate-900/50">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">
             {t("testimonials.title")}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
             {t("testimonials.subtitle")}
           </p>
         </div>
@@ -43,7 +43,7 @@ const Testimonials = () => {
           {items.map((item) => (
             <div
               key={item.name}
-              className="bg-white p-6 rounded-xl border prosafe-shadow flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 prosafe-shadow flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center mb-4">
@@ -54,11 +54,13 @@ const Testimonials = () => {
                     {item.initials}
                   </div>
                   <div className="ms-4">
-                    <h4 className="text-lg font-semibold">{item.name}</h4>
-                    <p className="text-sm text-gray-500">{item.role}</p>
+                    <h4 className="text-lg font-semibold text-slate-900 dark:text-white">
+                      {item.name}
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">{item.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-600">&ldquo;{item.quote}&rdquo;</p>
+                <p className="text-gray-600 dark:text-slate-300">&ldquo;{item.quote}&rdquo;</p>
               </div>
             </div>
           ))}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePublicLocale } from "@/lib/publicSiteCopy";
 import {
   computeOverallCompliance,
@@ -113,12 +114,27 @@ const COPY = {
 
 const Overview = () => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const locale = usePublicLocale();
   const copy = COPY[locale];
   const { user } = useAuth();
   const { toast } = useToast();
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const tooltipStyle = isDark
+    ? {
+        backgroundColor: "#0f172a",
+        borderColor: "#1e293b",
+        color: "#f8fafc",
+        borderRadius: "0.75rem",
+      }
+    : {
+        backgroundColor: "#ffffff",
+        borderColor: "#e2e8f0",
+        color: "#0f172a",
+        borderRadius: "0.75rem",
+      };
 
   useEffect(() => {
     let alive = true;
@@ -152,6 +168,24 @@ const Overview = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const pieData = useMemo(
+    () =>
+      (data?.byType ?? []).map((r) => ({
+        name: t(`incidents.types.${r.key}`, { defaultValue: r.key }),
+        value: r.count,
+      })),
+    [data?.byType, t]
+  );
+
+  const barData = useMemo(
+    () =>
+      (data?.byZone ?? []).map((r) => ({
+        name: r.key || t("overview.noZone"),
+        count: r.count,
+      })),
+    [data?.byZone, t]
+  );
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -168,9 +202,6 @@ const Overview = () => {
   }
 
   const { overview: o, kpis: k } = data;
-  const typeLabel = (key: string) =>
-    t(`incidents.types.${key}`, { defaultValue: key });
-  const zoneLabel = (key: string) => key || t("overview.noZone");
 
   const pipeline = computePipelineSegments(o.incidents);
   const overallCompliance = computeOverallCompliance(k);
@@ -200,11 +231,11 @@ const Overview = () => {
         className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-2"
       >
         <div className="flex-1 min-w-0 max-w-2xl">
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
             {copy.greeting}
             {user?.firstName ? `, ${user.firstName}` : ""}
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {t("adminDashboard.dashboard_description")}
           </p>
 
@@ -217,10 +248,10 @@ const Overview = () => {
                   seg.key === "open"
                     ? "bg-orange-500 text-white"
                     : seg.key === "investigating"
-                      ? "bg-prosafe-600 text-white"
+                      ? "bg-prosafe-600 dark:bg-prosafe-500 text-white"
                       : seg.key === "resolved"
-                        ? "bg-[repeating-linear-gradient(-45deg,#f8fafc,#f8fafc_5px,#e2e8f0_5px,#e2e8f0_10px)] text-slate-800 border border-slate-200"
-                        : "bg-white text-slate-700 border border-slate-300";
+                        ? "bg-[repeating-linear-gradient(-45deg,#f8fafc,#f8fafc_5px,#e2e8f0_5px,#e2e8f0_10px)] dark:bg-[repeating-linear-gradient(-45deg,#0f172a,#0f172a_5px,#1e293b_5px,#1e293b_10px)] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
+                        : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700";
 
                 return (
                   <div
@@ -228,7 +259,7 @@ const Overview = () => {
                     className="min-w-[66px] flex flex-col gap-1.5"
                     style={{ width: widthPct }}
                   >
-                    <span className="text-[11px] font-medium text-slate-500 truncate px-1">
+                    <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate px-1">
                       {copy.pipeline[seg.key]}
                     </span>
                     <div
@@ -253,12 +284,12 @@ const Overview = () => {
         >
           <Link to="/incidents/manage" className="group block">
             <div className="flex items-baseline gap-2">
-              <AlertTriangle className="h-4 w-4 text-slate-400 group-hover:text-prosafe-600 transition-colors" />
-              <span className="text-4xl sm:text-5xl font-light tracking-tight text-slate-900 tabular-nums">
+              <AlertTriangle className="h-4 w-4 text-slate-400 dark:text-slate-500 group-hover:text-prosafe-600 dark:group-hover:text-prosafe-400 transition-colors" />
+              <span className="text-4xl sm:text-5xl font-light tracking-tight text-slate-900 dark:text-white tabular-nums">
                 {o.incidents.total}
               </span>
             </div>
-            <p className="mt-1 text-xs font-medium text-slate-500 group-hover:text-slate-900 transition-colors">
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
               {copy.heroIncidents}
             </p>
           </Link>
@@ -268,33 +299,29 @@ const Overview = () => {
               <Bell
                 className={`h-4 w-4 transition-colors ${
                   o.activeAlerts > 0
-                    ? "text-orange-500"
-                    : "text-slate-400 group-hover:text-prosafe-600"
+                    ? "text-orange-500 dark:text-orange-400"
+                    : "text-slate-400 dark:text-slate-500 group-hover:text-prosafe-600 dark:group-hover:text-prosafe-400"
                 }`}
               />
-              <span
-                className={`text-4xl sm:text-5xl font-light tracking-tight tabular-nums ${
-                  o.activeAlerts > 0 ? "text-slate-900" : "text-slate-900"
-                }`}
-              >
+              <span className="text-4xl sm:text-5xl font-light tracking-tight text-slate-900 dark:text-white tabular-nums">
                 {o.activeAlerts}
               </span>
             </div>
-            <p className="mt-1 text-xs font-medium text-slate-500 group-hover:text-slate-900 transition-colors">
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
               {copy.heroAlerts}
             </p>
           </Link>
 
           <Link to="/compliance" className="group block">
             <div className="flex items-baseline gap-2">
-              <ShieldCheck className="h-4 w-4 text-prosafe-600" />
-              <span className="text-4xl sm:text-5xl font-light tracking-tight text-slate-900 tabular-nums">
+              <ShieldCheck className="h-4 w-4 text-prosafe-600 dark:text-prosafe-400" />
+              <span className="text-4xl sm:text-5xl font-light tracking-tight text-slate-900 dark:text-white tabular-nums">
                 {overallCompliance !== null
                   ? `${Math.round(overallCompliance)}%`
                   : "—"}
               </span>
             </div>
-            <p className="mt-1 text-xs font-medium text-slate-500 group-hover:text-slate-900 transition-colors">
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
               {copy.heroCompliance}
             </p>
           </Link>
@@ -306,7 +333,7 @@ const Overview = () => {
         {/* Col 1: HSE Command Spotlight Card (PROSAFE Navy Signature) */}
         <section
           data-testid="bento-spotlight-card"
-          className="xl:col-span-3 rounded-2xl bg-gradient-to-br from-prosafe-950 via-prosafe-900 to-prosafe-800 text-white p-5 flex flex-col justify-between shadow-[0_6px_20px_-6px_rgba(5,101,211,0.32)]"
+          className="xl:col-span-3 rounded-2xl bg-gradient-to-br from-prosafe-950 via-prosafe-900 to-prosafe-800 border border-transparent dark:border-prosafe-700/40 text-white p-5 flex flex-col justify-between shadow-[0_6px_20px_-6px_rgba(5,101,211,0.32)] dark:shadow-none"
         >
           <div>
             {/* Manager Identity */}
@@ -459,29 +486,37 @@ const Overview = () => {
         <ChartCard
           title={t("overview.charts.byType")}
           empty={data.byType.length === 0 ? t("overview.noData") : undefined}
-          className="rounded-2xl border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+          className="rounded-2xl border-slate-200/80 dark:border-slate-800 dark:bg-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none"
         >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data.byType.map((r) => ({
-                  name: typeLabel(r.key),
-                  value: r.count,
-                }))}
+                data={pieData}
                 dataKey="value"
                 innerRadius={56}
                 outerRadius={86}
                 paddingAngle={3}
+                stroke={isDark ? "#0f172a" : "#ffffff"}
+                isAnimationActive={false}
               >
-                {data.byType.map((_, i) => (
+                {pieData.map((_, i) => (
                   <Cell
                     key={i}
                     fill={CHART_COLORS[i % CHART_COLORS.length]}
                   />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: isDark ? "#cbd5e1" : "#475569", fontWeight: 600 }}
+                itemStyle={{ color: isDark ? "#f8fafc" : "#0f172a" }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: "12px" }}
+                formatter={(value) => (
+                  <span className="text-slate-600 dark:text-slate-300">{value}</span>
+                )}
+              />
             </PieChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -489,26 +524,45 @@ const Overview = () => {
         <ChartCard
           title={t("overview.charts.byZone")}
           empty={data.byZone.length === 0 ? t("overview.noData") : undefined}
-          className="rounded-2xl border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+          className="rounded-2xl border-slate-200/80 dark:border-slate-800 dark:bg-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none"
         >
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={data.byZone.map((r) => ({
-                name: zoneLabel(r.key),
-                count: r.count,
-              }))}
+              data={barData}
               layout="vertical"
               margin={{ left: 16 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis type="number" allowDecimals={false} />
-              <YAxis type="category" dataKey="name" width={110} />
-              <Tooltip />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={isDark ? "#1e293b" : "#e2e8f0"}
+              />
+              <XAxis
+                type="number"
+                allowDecimals={false}
+                tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 12 }}
+                axisLine={{ stroke: isDark ? "#334155" : "#cbd5e1" }}
+                tickLine={{ stroke: isDark ? "#334155" : "#cbd5e1" }}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={110}
+                tick={{ fill: isDark ? "#cbd5e1" : "#475569", fontSize: 12 }}
+                axisLine={{ stroke: isDark ? "#334155" : "#cbd5e1" }}
+                tickLine={{ stroke: isDark ? "#334155" : "#cbd5e1" }}
+              />
+              <Tooltip
+                contentStyle={tooltipStyle}
+                labelStyle={{ color: isDark ? "#cbd5e1" : "#475569", fontWeight: 600 }}
+                itemStyle={{ color: isDark ? "#f8fafc" : "#0f172a" }}
+                cursor={{ fill: isDark ? "rgba(51,65,85,0.35)" : "rgba(241,245,249,0.7)" }}
+              />
               <Bar
                 dataKey="count"
                 name={t("overview.kpi.total")}
-                fill="#0565d3"
+                fill={isDark ? "#3b82f6" : "#0565d3"}
                 radius={[0, 6, 6, 0]}
+                isAnimationActive={false}
               />
             </BarChart>
           </ResponsiveContainer>

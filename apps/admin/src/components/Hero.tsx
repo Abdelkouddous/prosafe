@@ -49,8 +49,8 @@ const Hero = () => {
     <section className="py-16 md:py-24 px-4">
       <div className="container max-w-6xl mx-auto text-center">
         <div className="flex justify-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-prosafe-100 text-prosafe-800 text-sm font-medium">
-            <ShieldCheck className="h-4 w-4 text-prosafe-600" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-prosafe-100 dark:bg-prosafe-500/15 text-prosafe-800 dark:text-prosafe-200 border border-transparent dark:border-prosafe-500/30 text-sm font-medium">
+            <ShieldCheck className="h-4 w-4 text-prosafe-600 dark:text-prosafe-400" />
             <span>{t("hero.introducing")}</span>
           </div>
         </div>
@@ -58,14 +58,14 @@ const Hero = () => {
         <h1 className="text-4xl md:text-6xl font-bold mb-6 gradient-text">
           {t("hero.title")}
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
+        <p className="text-lg md:text-xl text-gray-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto">
           {t("hero.description")}
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
           <Button
             size="lg"
-            className="bg-prosafe-600 hover:bg-prosafe-700 h-12 px-8"
+            className="bg-prosafe-600 hover:bg-prosafe-700 text-white h-12 px-8"
             onClick={handleLaunchDemo}
             disabled={launchingDemo}
             data-testid="hero-live-demo-btn"
@@ -85,7 +85,7 @@ const Hero = () => {
 
         {/* Realistic PROSAFE OHS / SST Dashboard Preview */}
         <div className="relative text-start">
-          <div className="rounded-xl overflow-hidden border border-slate-200 prosafe-shadow bg-slate-950">
+          <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 prosafe-shadow bg-slate-950">
             {/* Browser Chrome */}
             <div className="h-12 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4">
               <div className="flex items-center gap-2">

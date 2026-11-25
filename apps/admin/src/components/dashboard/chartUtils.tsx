@@ -36,10 +36,10 @@ export const fmtHours = (v: number | null | undefined) => {
 
 type Tone = "default" | "danger" | "warning" | "success";
 const toneClass: Record<Tone, string> = {
-  default: "text-gray-900",
-  danger: "text-red-600",
-  warning: "text-orange-600",
-  success: "text-green-600",
+  default: "text-gray-900 dark:text-slate-100",
+  danger: "text-red-600 dark:text-rose-400",
+  warning: "text-orange-600 dark:text-amber-400",
+  success: "text-green-600 dark:text-emerald-400",
 };
 
 export const KpiCard = ({
@@ -57,12 +57,14 @@ export const KpiCard = ({
 }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-gray-500">{label}</CardTitle>
+      <CardTitle className="text-sm font-medium text-gray-500 dark:text-slate-400">
+        {label}
+      </CardTitle>
       {icon}
     </CardHeader>
     <CardContent>
-      <div className={`text-3xl font-bold ${toneClass[tone]}`}>{value}</div>
-      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      <div className={`text-3xl font-bold tabular-nums ${toneClass[tone]}`}>{value}</div>
+      {hint && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{hint}</p>}
     </CardContent>
   </Card>
 );
@@ -84,7 +86,7 @@ export const ChartCard = ({
     </CardHeader>
     <CardContent>
       {empty ? (
-        <div className="flex h-[260px] items-center justify-center text-sm text-gray-500">
+        <div className="flex h-[260px] items-center justify-center text-sm text-gray-500 dark:text-slate-400">
           {empty}
         </div>
       ) : (

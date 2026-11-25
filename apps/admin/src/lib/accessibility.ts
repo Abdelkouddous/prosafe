@@ -35,6 +35,10 @@ export const applyTextSize = (size: TextSize) => {
 
 export const applyHighContrast = (on: boolean) => {
   document.documentElement.classList.toggle("high-contrast", on);
+  if (on) {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
+  }
 };
 
 export const setTextSize = (size: TextSize) => {
@@ -53,6 +57,11 @@ export const setHighContrast = (on: boolean) => {
     /* storage unavailable */
   }
   applyHighContrast(on);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("prosafe:high-contrast-change", { detail: { enabled: on } })
+    );
+  }
 };
 
 /** Apply persisted preferences; call before the first render. */

@@ -1,32 +1,40 @@
 // src/components/ProtectedRoute.tsx
-import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { getHomeRoute } from "@/lib/routeAccess";
 
 // Loading component for reusability
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-screen">
+  <div className="flex items-center justify-center h-screen bg-background text-foreground">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-prosafe-600 mx-auto"></div>
-      <p className="mt-4 text-gray-600">Loading...</p>
+      <p className="mt-4 text-muted-foreground">Loading...</p>
     </div>
   </div>
 );
 
-// Component to redirect authenticated users away from login page
-export const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading, isManager } = useAuth();
-  const location = useLocation();
+// Route guard for guest-only marketing, landing, and auth pages.
+// Authenticated users are strictly routed back into their role-appropriate workspace.
+export const GuestOnlyRoute = () => {
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
-  // Always redirect to dashboard if authenticated admin
-  if (isAuthenticated && isManager) {
-    return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated) {
+    return <Navigate to={getHomeRoute(user?.roles)} replace />;
   }
 
-  // For non-admin authenticated users trying to access login, redirect to home
-  if (isAuthenticated && location.pathname === "/login") {
-    return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+
+// Wrapper component to redirect authenticated users away from guest-only screens
+export const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) return <LoadingSpinner />;
+
+  if (isAuthenticated) {
+    return <Navigate to={getHomeRoute(user?.roles)} replace />;
   }
 
   return <>{children}</>;
@@ -46,7 +54,7 @@ export const ProtectedRoute = () => {
 
 // Admin and SST managers
 export const AdminRoute = () => {
-  const { isAuthenticated, isLoading, isManager } = useAuth();
+  const { isAuthenticated, isLoading, isManager, user } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -55,14 +63,14 @@ export const AdminRoute = () => {
   }
 
   if (!isManager) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getHomeRoute(user?.roles)} replace />;
   }
 
   return <Outlet />;
 };
 
 export const UserRoute = () => {
-  const { isAuthenticated, isLoading, isManager } = useAuth();
+  const { isAuthenticated, isLoading, isManager, user } = useAuth();
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -70,9 +78,9 @@ export const UserRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect admin users to dashboard
+  // Redirect admin/manager users to their dashboard
   if (isManager) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomeRoute(user?.roles)} replace />;
   }
 
   // Only non-admin users can access these routes

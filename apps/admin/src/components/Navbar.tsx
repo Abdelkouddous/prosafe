@@ -1,6 +1,7 @@
 import NotificationBell from "@/components/NotificationBell";
 import EmergencyBanner from "@/components/EmergencyBanner";
 import DemoRoleSwitcher from "@/components/DemoRoleSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -10,17 +11,15 @@ import {
   Shield,
   AlertTriangle,
   Box,
-  GraduationCap,
   LogOut,
   User,
   LayoutDashboard,
-  Home,
   Settings,
-  Users,
   ChevronDown,
   Globe,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getHomeRoute } from "@/lib/routeAccess";
 import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
@@ -33,6 +32,7 @@ const Navbar = () => {
 
   const isAdmin = !!(user?.roles?.includes("admin") || user?.roles?.includes("sst_manager"));
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const homeRoute = isAuthenticated ? getHomeRoute(user?.roles) : "/";
 
   // Add the missing changeLanguage function
   const changeLanguage = (languageCode: string) => {
@@ -49,36 +49,111 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-sm border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-prosafe-600" />
-            <span className="text-xl font-bold text-gray-900">PROSAFE</span>
+          <Link
+            to={homeRoute}
+            data-testid="navbar-brand-link"
+            className="flex items-center gap-2 whitespace-nowrap shrink-0"
+          >
+            <Shield className="h-8 w-8 text-prosafe-600 dark:text-prosafe-400" />
+            <span className="text-xl font-bold text-gray-900 dark:text-white">PROSAFE</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            {isDashboard && isAdmin ? (
-              // Dashboard navigation
-
-              <Link
-                to="/"
-                className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-              >
-                <Home className="h-4 w-4" />
-                {t("navigation.goToHome")}
-              </Link>
+            {isAuthenticated ? (
+              isAdmin ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors flex items-center gap-1.5 ${
+                      location.pathname.startsWith("/dashboard")
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    {t("navigation.dashboard")}
+                  </Link>
+                  <Link
+                    to="/incidents/manage"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors flex items-center gap-1.5 ${
+                      location.pathname.startsWith("/incidents")
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    {t("navigation.incidents")}
+                  </Link>
+                  <Link
+                    to="/equipment"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors flex items-center gap-1.5 ${
+                      location.pathname.startsWith("/equipment")
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    <Box className="h-4 w-4" />
+                    {t("navigation.equipment")}
+                  </Link>
+                  <Link
+                    to="/trainings"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                      location.pathname.startsWith("/trainings")
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    {t("navigation.trainings")}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/incidents"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors flex items-center gap-1.5 ${
+                      location.pathname === "/incidents"
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    {t("navigation.incidents")}
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                      location.pathname === "/profile"
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    {t("navigation.myProfile")}
+                  </Link>
+                  <Link
+                    to="/settings"
+                    className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
+                      location.pathname === "/settings"
+                        ? "text-prosafe-600 dark:text-prosafe-400"
+                        : "text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400"
+                    }`}
+                  >
+                    {t("navigation.settings")}
+                  </Link>
+                </>
+              )
             ) : (
-              // Regular navigation
               <>
                 <Link
                   to="/features"
                   className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                     location.pathname === "/features"
-                      ? "text-prosafe-600"
-                      : "text-slate-700 hover:text-prosafe-600"
+                      ? "text-prosafe-600 dark:text-prosafe-400"
+                      : "text-slate-700 dark:text-slate-300 hover:text-prosafe-600 dark:hover:text-prosafe-400"
                   }`}
                 >
                   {t("footer.features")}
@@ -87,8 +162,8 @@ const Navbar = () => {
                   to="/services"
                   className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                     location.pathname === "/services"
-                      ? "text-prosafe-600"
-                      : "text-slate-700 hover:text-prosafe-600"
+                      ? "text-prosafe-600 dark:text-prosafe-400"
+                      : "text-slate-700 dark:text-slate-300 hover:text-prosafe-600 dark:hover:text-prosafe-400"
                   }`}
                 >
                   {t("navigation.services")}
@@ -97,8 +172,8 @@ const Navbar = () => {
                   to="/pricing"
                   className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                     location.pathname === "/pricing"
-                      ? "text-prosafe-600"
-                      : "text-slate-700 hover:text-prosafe-600"
+                      ? "text-prosafe-600 dark:text-prosafe-400"
+                      : "text-slate-700 dark:text-slate-300 hover:text-prosafe-600 dark:hover:text-prosafe-400"
                   }`}
                 >
                   {t("footer.pricing")}
@@ -107,8 +182,8 @@ const Navbar = () => {
                   to="/about"
                   className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                     location.pathname === "/about"
-                      ? "text-prosafe-600"
-                      : "text-slate-700 hover:text-prosafe-600"
+                      ? "text-prosafe-600 dark:text-prosafe-400"
+                      : "text-slate-700 dark:text-slate-300 hover:text-prosafe-600 dark:hover:text-prosafe-400"
                   }`}
                 >
                   {t("navigation.about")}
@@ -117,68 +192,42 @@ const Navbar = () => {
                   to="/contact"
                   className={`text-sm font-medium whitespace-nowrap shrink-0 transition-colors ${
                     location.pathname === "/contact"
-                      ? "text-prosafe-600"
-                      : "text-slate-700 hover:text-prosafe-600"
+                      ? "text-prosafe-600 dark:text-prosafe-400"
+                      : "text-slate-700 dark:text-slate-300 hover:text-prosafe-600 dark:hover:text-prosafe-400"
                   }`}
                 >
                   {t("navigation.contact")}
                 </Link>
               </>
             )}
-
-            {/* Admin-only inventory link */}
-            {isAdmin && (
-              <Link
-                to="/dashboard"
-                className="text-sm font-medium hover:text-prosafe-600 transition-colors flex items-center gap-1"
-              >
-                <Box className="h-4 w-4" />
-                {t("navigation.dashboard")}
-              </Link>
-            )}
-            {isAdmin && (
-              <>
-                <Link
-                  to="/equipment"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
-                >
-                  {t("navigation.equipment")}
-                </Link>
-                <Link
-                  to="/trainings"
-                  className="text-sm font-medium hover:text-prosafe-600 transition-colors"
-                >
-                  {t("navigation.trainings")}
-                </Link>
-              </>
-            )}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <DemoRoleSwitcher />
+            <ThemeToggle />
             <NotificationBell />
             {/* Language Switcher */}
             <div className="relative group flex">
-              <button className="flex items-center gap-1 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100">
+              <button className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800">
                 <Globe className="h-4 w-4" />
                 <span className="uppercase">{i18n.language}</span>
               </button>
-              <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+              <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                 <button
                   onClick={() => changeLanguage("en")}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
                 >
                   🇺🇸 English
                 </button>
                 <button
                   onClick={() => changeLanguage("fr")}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
                 >
                   🇫🇷 Français
                 </button>
                 <button
                   onClick={() => changeLanguage("ar")}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
                 >
                   🇩🇿 العربية
                 </button>
@@ -191,7 +240,7 @@ const Navbar = () => {
                 <div className="relative">
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 text-sm font-medium hover:text-prosafe-600 transition-colors p-2 rounded-md hover:bg-gray-100"
+                    className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-800"
                   >
                     <User className="h-4 w-4" />
                     <span>{user?.firstName || "User"}</span>
@@ -199,18 +248,18 @@ const Navbar = () => {
                   </button>
 
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                      <div className="p-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
+                    <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-md shadow-lg z-50">
+                      <div className="p-2 border-b border-gray-100 dark:border-slate-800">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">{user?.email}</p>
                       </div>
 
                       <div className="py-1">
                         <Link
                           to="/profile"
-                          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <div className="flex items-center gap-2">
@@ -221,7 +270,7 @@ const Navbar = () => {
 
                         <Link
                           to="/settings"
-                          className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          className="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
                           <div className="flex items-center gap-2">
@@ -234,7 +283,7 @@ const Navbar = () => {
                         {isAdmin && !isDashboard && (
                           <Link
                             to="/dashboard"
-                            className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800"
                             onClick={() => setIsUserMenuOpen(false)}
                           >
                             <div className="flex items-center gap-2">
@@ -245,8 +294,8 @@ const Navbar = () => {
                         )}
 
                         {/* User Notifications Section */}
-                        <div className="border-t border-gray-100 mt-1 pt-1">
-                          <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        <div className="border-t border-gray-100 dark:border-slate-800 mt-1 pt-1">
+                          <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                             {t("navigation.notifications")}
                           </div>
 
@@ -254,7 +303,7 @@ const Navbar = () => {
                           {!isAdmin && (
                             <Link
                               to="/incidents"
-                              className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              className="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800"
                               onClick={() => setIsUserMenuOpen(false)}
                             >
                               <div className="flex items-center gap-2">
@@ -263,23 +312,12 @@ const Navbar = () => {
                               </div>
                             </Link>
                           )}
-
-
-
-                          {/* Admin-only access control links */}
-                          {isAdmin && (
-                            <>
-
-
-
-                            </>
-                          )}
                         </div>
 
-                        <div className="border-t border-gray-100 mt-1 pt-1">
+                        <div className="border-t border-gray-100 dark:border-slate-800 mt-1 pt-1">
                           <button
                             onClick={handleLogout}
-                            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-rose-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                           >
                             <div className="flex items-center gap-2">
                               <LogOut className="h-4 w-4" />
@@ -304,18 +342,21 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Mobile controls */}
+          <div className="md:hidden flex items-center gap-1">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-md text-slate-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <nav className="container flex flex-col items-center gap-6 p-6 bg-slate-100 border-slate-400 shadow-md">
+          <nav className="container flex flex-col items-center gap-6 p-6 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-md">
             {/* Mobile Language Switcher */}
             <div className="flex gap-2 mb-4">
               <button
@@ -323,7 +364,7 @@ const Navbar = () => {
                 className={`px-3 py-1 rounded text-sm ${
                   i18n.language === "en"
                     ? "bg-prosafe-600 text-white"
-                    : "bg-gray-200"
+                    : "bg-gray-200 dark:bg-slate-800 dark:text-slate-200"
                 }`}
               >
                 🇺🇸 EN
@@ -350,60 +391,47 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Mobile navigation based on current page */}
-            {isDashboard ? (
-              // Dashboard mobile navigation
-              isAdmin && (
-                <Link
-                  to="/"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Home className="h-5 w-5" />
-                  {t("navigation.goToHome")}
-                </Link>
-              )
-            ) : (
-              // Regular mobile navigation
+            {/* Mobile navigation: strictly separate guest marketing vs authenticated workspace */}
+            {!isAuthenticated && (
               <>
                 <Link
                   to="/"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("navigation.home")}
                 </Link>
                 <Link
                   to="/features"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("footer.features")}
                 </Link>
                 <Link
                   to="/services"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("navigation.services")}
                 </Link>
                 <Link
                   to="/pricing"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("footer.pricing")}
                 </Link>
                 <Link
                   to="/about"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("navigation.about")}
                 </Link>
                 <Link
                   to="/contact"
-                  className="text-lg font-medium hover:text-prosafe-600 transition-colors"
+                  className="text-lg font-medium text-slate-800 dark:text-slate-100 hover:text-prosafe-600 dark:hover:text-prosafe-400 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {t("navigation.contact")}
@@ -411,34 +439,52 @@ const Navbar = () => {
               </>
             )}
 
-            {/* Admin-only mobile inventory link */}
-            {isAdmin && (
-              <Link
-                to="/dashboard"
-                className="text-lg font-medium hover:text-prosafe-600 transition-colors flex items-center gap-2"
-                onClick={() => setIsOpen(false)}
-              >
-                <Box className="h-5 w-5" />
-                {t("navigation.dashboard")}
-              </Link>
-            )}
-
             {isAuthenticated ? (
               <>
                 {/* Mobile User Info */}
-                <div className="text-center border-t border-gray-300 pt-4 w-full flex flex-col items-center gap-2">
+                <div className="text-center border-t border-gray-300 dark:border-slate-800 pt-4 w-full flex flex-col items-center gap-2">
                   <DemoRoleSwitcher />
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">{user?.email}</p>
                 </div>
 
-                {/* Mobile Access Control Links */}
+                {/* Mobile Workspace Links */}
                 <div className="flex flex-col gap-2 w-full">
+                  {isAdmin ? (
+                    <>
+                      <Link
+                        to="/dashboard"
+                        className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        {t("navigation.dashboard")}
+                      </Link>
+                      <Link
+                        to="/incidents/manage"
+                        className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        {t("navigation.incidents")}
+                      </Link>
+                    </>
+                  ) : (
+                    <Link
+                      to="/incidents"
+                      className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                      {t("navigation.incidents")}
+                    </Link>
+                  )}
+
                   <Link
                     to="/profile"
-                    className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
                     onClick={() => setIsOpen(false)}
                   >
                     <User className="h-4 w-4" />
@@ -447,49 +493,12 @@ const Navbar = () => {
 
                   <Link
                     to="/settings"
-                    className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700"
                     onClick={() => setIsOpen(false)}
                   >
                     <Settings className="h-4 w-4" />
                     {t("navigation.settings")}
                   </Link>
-
-                  {/* Mobile User Notifications Section */}
-                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mt-2 mb-1">
-                    {t("navigation.notifications")}
-                  </div>
-
-                  {/* Mobile Incidents - for regular users */}
-                  {!isAdmin && (
-                    <Link
-                      to="/incidents"
-                      className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <AlertTriangle className="h-4 w-4" />
-                      {t("navigation.incidents")}
-                    </Link>
-                  )}
-
-
-
-                  {/* Admin-only mobile access control links */}
-                  {isAdmin && (
-                    <>
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-2 p-3 bg-white rounded-lg hover:bg-gray-50"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        {t("navigation.dashboard")}
-                      </Link>
-
-
-
-
-                    </>
-                  )}
                 </div>
 
                 <Button

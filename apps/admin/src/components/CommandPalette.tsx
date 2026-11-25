@@ -6,9 +6,11 @@ import {
   ArrowRight,
   FileText,
   HardHat,
+  Moon,
   Search,
   ShieldAlert,
   SlidersHorizontal,
+  Sun,
 } from "lucide-react";
 import {
   Dialog,
@@ -18,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePublicLocale } from "@/lib/publicSiteCopy";
 import { WORKSPACE_NAV_GROUPS } from "@/lib/workspaceNav";
 import {
@@ -47,6 +50,9 @@ const COPY = {
     },
     exportPdf: "Exporter le rapport PDF ISO 45001",
     exportPdfSub: "Ouvrir l'aperçu imprimable et sauvegarder en PDF",
+    toggleDark: "Activer le mode sombre",
+    toggleLight: "Activer le mode clair",
+    toggleThemeSub: "Basculer l'interface entre le thème clair et sombre",
     switchEmployee: "Passer en vue Employé (Démo)",
     switchEmployeeSub: "Tester la déclaration d'incident et le contrôle d'accès",
     openSettings: "Paramètres du compte",
@@ -66,6 +72,9 @@ const COPY = {
     },
     exportPdf: "Export ISO 45001 PDF Report",
     exportPdfSub: "Open print-ready executive safety report preview",
+    toggleDark: "Switch to Dark Mode",
+    toggleLight: "Switch to Light Mode",
+    toggleThemeSub: "Toggle between light and industrial night-shift theme",
     switchEmployee: "Switch to Employee Demo View",
     switchEmployeeSub: "Experience field incident reporting and RBAC boundaries",
     openSettings: "Account Settings",
@@ -85,6 +94,9 @@ const COPY = {
     },
     exportPdf: "تصدير تقرير ISO 45001 بصيغة PDF",
     exportPdfSub: "فتح معاينة التقرير القابل للطباعة والحفظ",
+    toggleDark: "تفعيل الوضع الداكن",
+    toggleLight: "تفعيل الوضع الفاتح",
+    toggleThemeSub: "التبديل بين المظهر الفاتح والوضع الليلي",
     switchEmployee: "التبديل إلى عرض الموظف (تجريبي)",
     switchEmployeeSub: "اختبار الإبلاغ عن الحوادث وصلاحيات الموظفين",
     openSettings: "إعدادات الحساب",
@@ -103,6 +115,7 @@ const CommandPalette = ({
   const copy = COPY[locale];
   const navigate = useNavigate();
   const { isDemoSession, loginDemo } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
@@ -178,6 +191,14 @@ const CommandPalette = ({
 
     const actions: CommandPaletteItem[] = [
       {
+        id: "action-theme",
+        group: "actions",
+        title: isDark ? copy.toggleLight : copy.toggleDark,
+        subtitle: copy.toggleThemeSub,
+        keywords: ["dark", "light", "theme", "sombre", "clair", "mode", "night"],
+        actionId: "toggle-theme",
+      },
+      {
         id: "action-pdf",
         group: "actions",
         title: copy.exportPdf,
@@ -207,7 +228,7 @@ const CommandPalette = ({
     }
 
     return [...navItems, ...actions, ...liveItems];
-  }, [t, locale, copy, isDemoSession, liveItems]);
+  }, [t, locale, copy, isDemoSession, isDark, liveItems]);
 
   const filtered = useMemo(
     () => filterCommandItems(baseItems, query),
@@ -220,6 +241,10 @@ const CommandPalette = ({
 
   const executeItem = async (item: CommandPaletteItem) => {
     onOpenChange(false);
+    if (item.actionId === "toggle-theme") {
+      toggleTheme();
+      return;
+    }
     if (item.actionId === "pdf") {
       onOpenPdfReport();
       return;
@@ -261,26 +286,33 @@ const CommandPalette = ({
   ];
 
   const renderGroupIcon = (item: CommandPaletteItem) => {
-    if (item.group === "incidents") return <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />;
-    if (item.group === "risks") return <ShieldAlert className="h-4 w-4 text-rose-600 shrink-0" />;
-    if (item.actionId === "pdf") return <FileText className="h-4 w-4 text-prosafe-600 shrink-0" />;
-    if (item.actionId === "switch-employee") return <HardHat className="h-4 w-4 text-prosafe-600 shrink-0" />;
-    if (item.group === "actions") return <SlidersHorizontal className="h-4 w-4 text-slate-500 shrink-0" />;
-    return <ArrowRight className="h-4 w-4 text-slate-400 shrink-0 rtl:rotate-180" />;
+    if (item.group === "incidents") return <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />;
+    if (item.group === "risks") return <ShieldAlert className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />;
+    if (item.actionId === "toggle-theme") {
+      return isDark ? (
+        <Sun className="h-4 w-4 text-amber-400 shrink-0" />
+      ) : (
+        <Moon className="h-4 w-4 text-prosafe-600 shrink-0" />
+      );
+    }
+    if (item.actionId === "pdf") return <FileText className="h-4 w-4 text-prosafe-600 dark:text-prosafe-400 shrink-0" />;
+    if (item.actionId === "switch-employee") return <HardHat className="h-4 w-4 text-prosafe-600 dark:text-prosafe-400 shrink-0" />;
+    if (item.group === "actions") return <SlidersHorizontal className="h-4 w-4 text-slate-500 dark:text-slate-400 shrink-0" />;
+    return <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 rtl:rotate-180" />;
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="command-palette"
-        className="max-w-xl p-0 gap-0 overflow-hidden"
+        className="max-w-xl p-0 gap-0 overflow-hidden dark:bg-slate-900 dark:border-slate-800"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>{copy.title}</DialogTitle>
           <DialogDescription>{copy.desc}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex items-center gap-3 ps-4 pe-11 py-3.5 border-b border-slate-200">
+        <div className="flex items-center gap-3 ps-4 pe-11 py-3.5 border-b border-slate-200 dark:border-slate-800">
           <Search className="h-4 w-4 text-slate-400 shrink-0" />
           <input
             type="text"
@@ -290,20 +322,22 @@ const CommandPalette = ({
             onKeyDown={handleKeyDown}
             placeholder={copy.placeholder}
             aria-label={copy.placeholder}
-            className="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none"
           />
         </div>
 
         <div className="max-h-[380px] overflow-y-auto p-2 space-y-3">
           {filtered.length === 0 ? (
-            <div className="py-10 text-center text-sm text-slate-500">{copy.empty}</div>
+            <div className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+              {copy.empty}
+            </div>
           ) : (
             groupOrder.map((groupKey) => {
               const items = filtered.filter((i) => i.group === groupKey);
               if (items.length === 0) return null;
               return (
                 <div key={groupKey}>
-                  <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                     {copy.groups[groupKey]}
                   </p>
                   <div className="space-y-0.5">
@@ -314,19 +348,22 @@ const CommandPalette = ({
                         <button
                           key={item.id}
                           type="button"
+                          data-testid={`command-item-${item.id}`}
                           onMouseEnter={() => setActiveIndex(flatIdx)}
                           onClick={() => void executeItem(item)}
                           className={`w-full flex items-center gap-3 rounded-lg px-2.5 py-2 text-start transition-colors ${
                             isActive
-                              ? "bg-prosafe-50 text-prosafe-900"
-                              : "text-slate-700 hover:bg-slate-50"
+                              ? "bg-prosafe-50 text-prosafe-900 dark:bg-prosafe-500/20 dark:text-white"
+                              : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80"
                           }`}
                         >
                           {renderGroupIcon(item)}
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium truncate">{item.title}</p>
                             {item.subtitle && (
-                              <p className="text-xs text-slate-500 truncate">{item.subtitle}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                {item.subtitle}
+                              </p>
                             )}
                           </div>
                         </button>
@@ -339,7 +376,7 @@ const CommandPalette = ({
           )}
         </div>
 
-        <div className="border-t border-slate-100 bg-slate-50/70 px-4 py-2 text-[11px] text-slate-500 flex items-center justify-between">
+        <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 px-4 py-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
           <span>{copy.hint}</span>
           <span className="font-mono tabular-nums">{filtered.length}</span>
         </div>

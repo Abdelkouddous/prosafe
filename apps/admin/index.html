@@ -15,6 +15,27 @@
       content="Workplace Health &amp; Safety (SST/OHS) Management Platform"
     />
     <meta property="og:type" content="website" />
+    <script>
+      (function () {
+        try {
+          var hc = localStorage.getItem("prosafe_high_contrast") === "true";
+          var root = document.documentElement;
+          if (hc) {
+            root.classList.add("high-contrast");
+            root.classList.remove("dark");
+            root.style.colorScheme = "light";
+            return;
+          }
+          var mode = localStorage.getItem("prosafe_theme");
+          var prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var isDark = mode === "dark" || (mode === "system" && prefersDark);
+          root.classList.toggle("dark", isDark);
+          root.style.colorScheme = isDark ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
   </head>
 
   <body>

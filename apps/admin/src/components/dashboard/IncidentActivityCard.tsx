@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePublicLocale } from "@/lib/publicSiteCopy";
 import { computeMonthlySeries } from "@/lib/dashboardMetrics";
 
@@ -59,28 +60,36 @@ const IncidentActivityCard = ({
   openCount,
 }: IncidentActivityCardProps) => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const locale = usePublicLocale();
   const copy = COPY[locale];
   const bars = computeMonthlySeries(incidentsPerMonth, 7);
 
+  const railColor = isDark ? "#1e293b" : "#f1f5f9";
+  const peakColor = isDark ? "#3b82f6" : "#0565d3";
+  const barColor = isDark ? "#cbd5e1" : "#0f172a";
+  const dotMuted = isDark ? "#475569" : "#94a3b8";
+  const labelPeak = isDark ? "#f8fafc" : "#0f172a";
+  const labelMuted = isDark ? "#94a3b8" : "#64748b";
+
   return (
     <section
       data-testid="bento-activity-card"
-      className="bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white tracking-tight">
             {t("overview.charts.perMonth", { defaultValue: copy.title })}
           </h3>
           <div className="mt-2 flex items-baseline gap-2.5">
-            <span className="text-3xl font-bold tracking-tight text-slate-900 tabular-nums">
+            <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">
               {totalIncidents}
             </span>
-            <span className="text-xs text-slate-500 leading-tight">
+            <span className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
               {copy.unit}
-              <span className="block text-slate-400 tabular-nums">
+              <span className="block text-slate-400 dark:text-slate-500 tabular-nums">
                 {openCount} {copy.openLabel}
               </span>
             </span>
@@ -89,7 +98,7 @@ const IncidentActivityCard = ({
         <Link
           to="/reports"
           aria-label={copy.openReports}
-          className="h-8 w-8 rounded-full border border-slate-200 bg-slate-50/70 hover:bg-prosafe-50 hover:border-prosafe-200 hover:text-prosafe-700 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+          className="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 hover:bg-prosafe-50 dark:hover:bg-prosafe-500/20 hover:border-prosafe-200 dark:hover:border-prosafe-500/40 hover:text-prosafe-700 dark:hover:text-prosafe-300 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
         >
           <ArrowUpRight className="h-4 w-4" />
         </Link>
@@ -98,7 +107,7 @@ const IncidentActivityCard = ({
       {/* Rounded Vertical Pill-Bar Chart (SVG for crisp proportional geometry) */}
       <div className="mt-5 flex-1 flex flex-col justify-end min-h-[172px]">
         {bars.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-xs text-slate-400">
+          <div className="flex-1 flex items-center justify-center text-xs text-slate-400 dark:text-slate-500">
             {copy.empty}
           </div>
         ) : (
@@ -124,7 +133,7 @@ const IncidentActivityCard = ({
                       y1={30}
                       x2={cx}
                       y2={122}
-                      stroke="#f1f5f9"
+                      stroke={railColor}
                       strokeWidth="10"
                       strokeLinecap="round"
                     />
@@ -137,7 +146,7 @@ const IncidentActivityCard = ({
                           width="36"
                           height="19"
                           rx="9.5"
-                          fill="#0565d3"
+                          fill={peakColor}
                         />
                         <text
                           x={cx}
@@ -159,21 +168,21 @@ const IncidentActivityCard = ({
                       width="10"
                       height={barH}
                       rx="5"
-                      fill={bar.isPeak ? "#0565d3" : "#0f172a"}
+                      fill={bar.isPeak ? peakColor : barColor}
                     />
                     {/* Baseline anchor point */}
                     <circle
                       cx={cx}
                       cy={132}
                       r="2.5"
-                      fill={bar.isPeak ? "#0565d3" : "#94a3b8"}
+                      fill={bar.isPeak ? peakColor : dotMuted}
                     />
                     {/* Month Label */}
                     <text
                       x={cx}
                       y={150}
                       textAnchor="middle"
-                      fill={bar.isPeak ? "#0f172a" : "#64748b"}
+                      fill={bar.isPeak ? labelPeak : labelMuted}
                       fontSize="10.5"
                       fontWeight={bar.isPeak ? "600" : "500"}
                     >

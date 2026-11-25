@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   ShieldAlert,
 } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePublicLocale } from "@/lib/publicSiteCopy";
 import {
   computeResolutionFraction,
@@ -69,6 +70,7 @@ const PriorityQueueCard = ({
   recent,
 }: PriorityQueueCardProps) => {
   const { t, i18n } = useTranslation();
+  const { isDark } = useTheme();
   const locale = usePublicLocale();
   const copy = COPY[locale];
   const { resolvedCount, totalCount, percentage } =
@@ -93,19 +95,19 @@ const PriorityQueueCard = ({
       data-testid="bento-priority-column"
       className="flex flex-col gap-3 h-full"
     >
-      {/* Top White Resolution Progress Cap */}
-      <section className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
+      {/* Top Resolution Progress Cap */}
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="text-sm font-semibold text-slate-900 tracking-tight">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white tracking-tight">
             {copy.resolutionTitle}
           </h3>
-          <span className="text-2xl font-bold text-slate-900 tabular-nums">
+          <span className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
             {percentage}%
           </span>
         </div>
 
         {/* 3-segment proportional progress bar */}
-        <div className="mt-3 flex items-center justify-between gap-1 text-[11px] text-slate-500 tabular-nums">
+        <div className="mt-3 flex items-center justify-between gap-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
           <span className="whitespace-nowrap">
             {copy.resolvedLbl} {resPct}%
           </span>
@@ -116,14 +118,19 @@ const PriorityQueueCard = ({
             {copy.openLbl} {openPct}%
           </span>
         </div>
-        <div className="mt-1.5 flex h-2.5 w-full gap-1 rounded-full overflow-hidden bg-slate-100">
+        <div className="mt-1.5 flex h-2.5 w-full gap-1 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
           {resPct > 0 && (
             <svg
               className="h-full rounded-full"
               width={`${(segResolved / segSum) * 100}%`}
               aria-hidden="true"
             >
-              <rect width="100%" height="100%" rx="5" fill="#0565d3" />
+              <rect
+                width="100%"
+                height="100%"
+                rx="5"
+                fill={isDark ? "#3b82f6" : "#0565d3"}
+              />
             </svg>
           )}
           {invPct > 0 && (
@@ -132,7 +139,12 @@ const PriorityQueueCard = ({
               width={`${(segInv / segSum) * 100}%`}
               aria-hidden="true"
             >
-              <rect width="100%" height="100%" rx="5" fill="#0f172a" />
+              <rect
+                width="100%"
+                height="100%"
+                rx="5"
+                fill={isDark ? "#cbd5e1" : "#0f172a"}
+              />
             </svg>
           )}
           {openPct > 0 && (
@@ -147,10 +159,10 @@ const PriorityQueueCard = ({
         </div>
       </section>
 
-      {/* Dark Slate-900 High-Contrast Focal Card */}
+      {/* Dark High-Contrast Focal Card */}
       <section
         data-testid="bento-dark-queue-card"
-        className="bg-slate-900 text-white rounded-2xl p-5 flex-1 flex flex-col justify-between shadow-[0_6px_20px_-6px_rgba(15,23,42,0.28)]"
+        className="bg-slate-900 dark:bg-[#070C16] border border-transparent dark:border-slate-800 text-white rounded-2xl p-5 flex-1 flex flex-col justify-between shadow-[0_6px_20px_-6px_rgba(15,23,42,0.28)] dark:shadow-none"
       >
         <div>
           <div className="flex items-baseline justify-between gap-2">

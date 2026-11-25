@@ -52,7 +52,7 @@ const DemoRoleSwitcher = () => {
       data-testid="demo-role-switcher"
       role="group"
       aria-label={copy.group}
-      className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-100 border border-slate-200/80 shrink-0"
+      className="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shrink-0"
     >
       <button
         type="button"
@@ -62,7 +62,7 @@ const DemoRoleSwitcher = () => {
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
           currentRole === "admin"
             ? "bg-prosafe-600 text-white shadow-sm"
-            : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-white/70"
+            : "bg-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/70 dark:hover:bg-slate-700/60"
         }`}
       >
         {switching === "admin" ? (
@@ -81,7 +81,7 @@ const DemoRoleSwitcher = () => {
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
           currentRole === "employee"
             ? "bg-prosafe-600 text-white shadow-sm"
-            : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-white/70"
+            : "bg-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/70 dark:hover:bg-slate-700/60"
         }`}
       >
         {switching === "employee" ? (

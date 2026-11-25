@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import api from "@/services/api";
+import ThemeToggle from "@/components/ThemeToggle";
+import { getHomeRoute } from "@/lib/routeAccess";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,19 +21,15 @@ const Login = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const { toast } = useToast();
-  const { login, loginWithGoogle, loginDemo, isAuthenticated, isManager } = useAuth();
+  const { login, loginWithGoogle, loginDemo, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (isManager) {
-        navigate("/dashboard");
-      } else {
-        navigate("/profile");
-      }
+      navigate(getHomeRoute(user?.roles), { replace: true });
     }
-  }, [isAuthenticated, isManager, navigate]);
+  }, [isAuthenticated, user?.roles, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +95,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <div className="container max-w-md mx-auto flex-grow flex flex-col justify-center px-4 py-12">
         <div className="absolute top-4 left-4">
           <Button variant="ghost" size="icon" asChild>
@@ -107,13 +105,16 @@ const Login = () => {
             </Link>
           </Button>
         </div>
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
 
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-prosafe-100 mb-4">
-            <Shield className="h-6 w-6 text-prosafe-600" />
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-prosafe-100 dark:bg-prosafe-500/20 mb-4">
+            <Shield className="h-6 w-6 text-prosafe-600 dark:text-prosafe-400" />
           </div>
           <h1 className="text-2xl font-bold text-center">{t("auth.welcomeTitle")}</h1>
-          <p className="text-sm text-gray-500 mt-2">{t("auth.signIn")}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">{t("auth.signIn")}</p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
@@ -167,10 +168,10 @@ const Login = () => {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-gray-200 dark:border-slate-800"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-background px-2 text-gray-500">
+                  <span className="bg-background px-2 text-gray-500 dark:text-slate-400">
                     {t("auth.orContinueWith")}
                   </span>
                 </div>
@@ -215,12 +216,12 @@ const Login = () => {
                   disabled={demoLoading || googleLoading}
                   onClick={handleDemoLogin}
                   data-testid="demo-access-btn"
-                  className="border border-prosafe-200 bg-prosafe-50 text-prosafe-800 hover:bg-prosafe-100"
+                  className="border border-prosafe-200 dark:border-prosafe-500/40 bg-prosafe-50 dark:bg-prosafe-500/15 text-prosafe-800 dark:text-prosafe-200 hover:bg-prosafe-100 dark:hover:bg-prosafe-500/25"
                 >
                   {demoLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <PlayCircle className="mr-2 h-4 w-4 text-prosafe-600" />
+                    <PlayCircle className="mr-2 h-4 w-4 text-prosafe-600 dark:text-prosafe-400" />
                   )}
                   {t("auth.demoAccess")}
                 </Button>

@@ -213,27 +213,29 @@ const SafetyReportPdfModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-testid="safety-pdf-modal"
-        className="max-w-3xl max-h-[88vh] flex flex-col overflow-hidden"
+        className="max-w-3xl max-h-[88vh] flex flex-col overflow-hidden dark:bg-slate-900 dark:border-slate-800"
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-slate-900">
-            <FileText className="h-5 w-5 text-prosafe-600 shrink-0" />
+          <DialogTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+            <FileText className="h-5 w-5 text-prosafe-600 dark:text-prosafe-400 shrink-0" />
             <span>{copy.dialogTitle}</span>
           </DialogTitle>
           <DialogDescription>{copy.dialogDesc}</DialogDescription>
         </DialogHeader>
 
         {loading || !payload ? (
-          <div className="py-16 flex flex-col items-center justify-center gap-3 text-slate-500 text-sm">
-            <Loader2 className="h-6 w-6 animate-spin text-prosafe-600" />
+          <div className="py-16 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400 text-sm">
+            <Loader2 className="h-6 w-6 animate-spin text-prosafe-600 dark:text-prosafe-400" />
             <span>{copy.loading}</span>
           </div>
         ) : (
           <>
             <div className="flex-1 overflow-y-auto space-y-5 pr-1">
               {/* Report Meta Strip */}
-              <div className="rounded-lg border border-slate-200 bg-slate-50/70 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                <span className="font-semibold text-slate-900">{payload.organization}</span>
+              <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-300">
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {payload.organization}
+                </span>
                 <span className="tabular-nums">
                   {payload.periodLabel} · {payload.generatedBy} ·{" "}
                   {payload.generatedAtIso.slice(0, 10)}
@@ -270,10 +272,12 @@ const SafetyReportPdfModal = ({
                 ].map((metric) => (
                   <div
                     key={metric.label}
-                    className="rounded-lg border border-slate-200 bg-white p-3.5"
+                    className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60 p-3.5"
                   >
-                    <p className="text-[11px] font-medium text-slate-500">{metric.label}</p>
-                    <p className="mt-1 text-xl font-bold text-slate-900 tabular-nums">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {metric.label}
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white tabular-nums">
                       {metric.value}
                     </p>
                   </div>
@@ -282,15 +286,15 @@ const SafetyReportPdfModal = ({
 
               {/* Included Incident Table Preview */}
               <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-slate-900">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                   {copy.recentRegister}{" "}
-                  <span className="font-normal text-slate-500 tabular-nums">
+                  <span className="font-normal text-slate-500 dark:text-slate-400 tabular-nums">
                     ({payload.incidents.length})
                   </span>
                 </h3>
-                <div className="rounded-lg border border-slate-200 overflow-x-auto">
+                <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-x-auto">
                   <table className="w-full text-xs">
-                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+                    <thead className="bg-slate-50 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                       <tr>
                         <th className="text-start font-medium px-3 py-2">{copy.colId}</th>
                         <th className="text-start font-medium px-3 py-2">{copy.colType}</th>
@@ -299,23 +303,23 @@ const SafetyReportPdfModal = ({
                         <th className="text-start font-medium px-3 py-2">{copy.colZone}</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {payload.incidents.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="px-3 py-6 text-center text-slate-500">
+                          <td colSpan={5} className="px-3 py-6 text-center text-slate-500 dark:text-slate-400">
                             {copy.empty}
                           </td>
                         </tr>
                       ) : (
                         payload.incidents.slice(0, 10).map((row) => (
-                          <tr key={row.incidentId} className="hover:bg-slate-50/70">
-                            <td className="px-3 py-2 font-mono font-medium text-slate-900 tabular-nums whitespace-nowrap">
+                          <tr key={row.incidentId} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50">
+                            <td className="px-3 py-2 font-mono font-medium text-slate-900 dark:text-white tabular-nums whitespace-nowrap">
                               {row.incidentId}
                             </td>
-                            <td className="px-3 py-2 text-slate-700">{row.type}</td>
-                            <td className="px-3 py-2 text-slate-700">{row.severity}</td>
-                            <td className="px-3 py-2 text-slate-700">{row.status}</td>
-                            <td className="px-3 py-2 text-slate-600">{row.zone || "—"}</td>
+                            <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.type}</td>
+                            <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.severity}</td>
+                            <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.status}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-400">{row.zone || "—"}</td>
                           </tr>
                         ))
                       )}
@@ -325,14 +329,14 @@ const SafetyReportPdfModal = ({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-end gap-2 shrink-0">
+            <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-end gap-2 shrink-0">
               <Button variant="outline" onClick={handleDownloadHtml}>
                 <Download className="h-4 w-4 me-2" />
                 {copy.downloadBtn}
               </Button>
               <Button
                 onClick={handlePrintPdf}
-                className="bg-prosafe-600 hover:bg-prosafe-700"
+                className="bg-prosafe-600 hover:bg-prosafe-700 text-white"
               >
                 <Printer className="h-4 w-4 me-2" />
                 {copy.printBtn}

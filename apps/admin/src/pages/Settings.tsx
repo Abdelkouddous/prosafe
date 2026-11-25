@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Eye, EyeOff, Globe, Lock, User } from "lucide-react";
+import { Bell, Eye, EyeOff, Globe, Lock, Monitor, Moon, Sun, User } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import NotificationPreferences from "@/components/NotificationPreferences";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { usePublicLocale } from "@/lib/publicSiteCopy";
 import {
   getHighContrast,
   getTextSize,
@@ -32,7 +34,32 @@ import {
   setTextSize,
   type TextSize,
 } from "@/lib/accessibility";
+import { HIGH_CONTRAST_CHANGE_EVENT, type ThemeMode } from "@/lib/theme";
 import { changePassword } from "@/services/usersApi";
+
+const APPEARANCE_COPY = {
+  fr: {
+    title: "Apparence",
+    desc: "Choisissez le thème d'affichage de votre espace PROSAFE.",
+    light: "Clair",
+    dark: "Sombre",
+    system: "Système",
+  },
+  en: {
+    title: "Appearance",
+    desc: "Choose how PROSAFE looks on your workstation or field tablet.",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
+  ar: {
+    title: "المظهر",
+    desc: "اختر وضع العرض المناسب لمحطة العمل أو الجهاز اللوحي.",
+    light: "فاتح",
+    dark: "داكن",
+    system: "النظام",
+  },
+} as const;
 
 const SIZES: { value: TextSize; key: string }[] = [
   { value: "normal", key: "sizeNormal" },
@@ -79,6 +106,9 @@ const PasswordField = ({
 
 const Settings = () => {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const locale = usePublicLocale();
+  const appearanceCopy = APPEARANCE_COPY[locale];
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -87,6 +117,19 @@ const Settings = () => {
   const [pwd, setPwd] = useState({ current: "", next: "", confirm: "" });
 
   const lang = (i18n.language || "en").split("-")[0];
+
+  useEffect(() => {
+    const syncContrast = () => setContrastState(getHighContrast());
+    window.addEventListener(HIGH_CONTRAST_CHANGE_EVENT, syncContrast);
+    return () => window.removeEventListener(HIGH_CONTRAST_CHANGE_EVENT, syncContrast);
+  }, []);
+
+  const handleSelectTheme = (mode: ThemeMode) => {
+    setTheme(mode);
+    if (mode === "dark" && contrast) {
+      setContrastState(false);
+    }
+  };
 
   const handlePasswordChange = async () => {
     if (pwd.next !== pwd.confirm) {
@@ -113,13 +156,17 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">{t("settingsPage.title")}</h1>
-            <p className="text-gray-600 mt-2">{t("settingsPage.subtitle")}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {t("settingsPage.title")}
+            </h1>
+            <p className="text-gray-600 dark:text-slate-400 mt-2">
+              {t("settingsPage.subtitle")}
+            </p>
           </div>
 
           <Tabs defaultValue="general" className="space-y-6">
@@ -140,17 +187,17 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="grid gap-2 text-sm sm:grid-cols-3">
                   <div>
-                    <p className="text-gray-500">{t("settingsPage.name")}</p>
+                    <p className="text-gray-500 dark:text-slate-400">{t("settingsPage.name")}</p>
                     <p className="font-medium">
                       {user?.firstName} {user?.lastName}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500">{t("settingsPage.email")}</p>
+                    <p className="text-gray-500 dark:text-slate-400">{t("settingsPage.email")}</p>
                     <p className="font-medium">{user?.email}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">{t("settingsPage.role")}</p>
+                    <p className="text-gray-500 dark:text-slate-400">{t("settingsPage.role")}</p>
                     <p className="font-medium">{user?.roles?.join(", ")}</p>
                   </div>
                 </CardContent>
@@ -176,6 +223,45 @@ const Settings = () => {
                       <SelectItem value="ar">العربية</SelectItem>
                     </SelectContent>
                   </Select>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sun className="h-5 w-5" />
+                    {appearanceCopy.title}
+                  </CardTitle>
+                  <CardDescription>{appearanceCopy.desc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="flex flex-wrap gap-2"
+                    role="radiogroup"
+                    aria-label={appearanceCopy.title}
+                    data-testid="settings-theme-selector"
+                  >
+                    {(
+                      [
+                        { value: "light" as ThemeMode, label: appearanceCopy.light, Icon: Sun },
+                        { value: "dark" as ThemeMode, label: appearanceCopy.dark, Icon: Moon },
+                        { value: "system" as ThemeMode, label: appearanceCopy.system, Icon: Monitor },
+                      ] as const
+                    ).map(({ value, label, Icon }) => (
+                      <Button
+                        key={value}
+                        type="button"
+                        role="radio"
+                        aria-checked={theme === value}
+                        data-testid={`settings-theme-${value}`}
+                        variant={theme === value ? "default" : "outline"}
+                        onClick={() => handleSelectTheme(value)}
+                      >
+                        <Icon className="h-4 w-4 me-2" />
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -209,7 +295,9 @@ const Settings = () => {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="high-contrast">{t("settingsPage.highContrast")}</Label>
-                      <p className="text-sm text-gray-500">{t("settingsPage.highContrastDesc")}</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
+                        {t("settingsPage.highContrastDesc")}
+                      </p>
                     </div>
                     <Switch
                       id="high-contrast"

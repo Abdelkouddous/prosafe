@@ -391,7 +391,7 @@ const Dashboard = () => {
           data-testid="dashboard-pdf-btn"
           className="whitespace-nowrap shrink-0"
         >
-          <FileText className="h-4 w-4 me-2 text-prosafe-600" />
+          <FileText className="h-4 w-4 me-2 text-prosafe-600 dark:text-prosafe-400" />
           {pdfBtnLabel}
         </Button>
       }
@@ -400,7 +400,7 @@ const Dashboard = () => {
       <div
         role="tablist"
         aria-label="Dashboard sections"
-        className="mb-6 border-b border-slate-200 flex items-center gap-1 overflow-x-auto"
+        className="mb-6 border-b border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto"
       >
         {dashboardTabs.map((tab) => {
           const Icon = tab.icon;
@@ -414,8 +414,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-sm whitespace-nowrap shrink-0 border-b-2 transition-colors ${
                 active
-                  ? "border-prosafe-600 text-prosafe-700 font-semibold"
-                  : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 font-medium"
+                  ? "border-prosafe-600 dark:border-prosafe-400 text-prosafe-700 dark:text-prosafe-300 font-semibold"
+                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700 font-medium"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -744,7 +744,7 @@ const Dashboard = () => {
                           })
                         }
                         disabled={!isEditingProfile}
-                        className="mt-1 w-full p-2 border border-gray-300 rounded-md resize-none"
+                        className="mt-1 w-full p-2 border border-input bg-background text-foreground rounded-md resize-none"
                         rows={3}
                         placeholder="Tell us about yourself..."
                       />

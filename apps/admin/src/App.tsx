@@ -5,10 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import {
   ProtectedRoute,
   AdminRoute,
-  AuthRedirect,
+  GuestOnlyRoute,
 } from "@/components/ProtectedRoute";
 
 // Page imports - organized alphabetically
@@ -66,37 +67,31 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
             <Routes>
-              {/* Public routes - accessible to all users */}
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />}></Route>
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/careers" element={<Carreers />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/features" element={<Features />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/security" element={<Security />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/updates" element={<Updates />} />
-
-              {/* Authentication route - redirects if already logged in */}
-              <Route
-                path="/login"
-                element={
-                  <AuthRedirect>
-                    <Login />
-                  </AuthRedirect>
-                }
-              />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              {/* Guest-only marketing, landing, and auth routes */}
+              <Route element={<GuestOnlyRoute />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/careers" element={<Carreers />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/security" element={<Security />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/updates" element={<Updates />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+              </Route>
 
               {/* Admin-only routes */}
               <Route element={<AdminRoute />}>
@@ -138,7 +133,8 @@ function App() {
             </Suspense>
           </BrowserRouter>
         </AuthProvider>
-      </TooltipProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

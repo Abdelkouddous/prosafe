@@ -22,19 +22,21 @@ const PublicLayout = ({
   }, [title]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-900">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <Navbar />
 
-      <header className="border-b border-slate-200 bg-slate-50/70">
+      <header className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60">
         <div className="container max-w-6xl mx-auto px-4 py-10 md:py-12">
           <div className="max-w-3xl">
             {kicker && (
-              <p className="text-sm font-medium text-prosafe-600 mb-2">{kicker}</p>
+              <p className="text-sm font-medium text-prosafe-600 dark:text-prosafe-400 mb-2">
+                {kicker}
+              </p>
             )}
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 text-balance">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white text-balance">
               {title}
             </h1>
-            <p className="mt-3.5 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
+            <p className="mt-3.5 text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl">
               {subtitle}
             </p>
             {headerActions && (

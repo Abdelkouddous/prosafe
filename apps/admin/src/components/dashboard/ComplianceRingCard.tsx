@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowUpRight, Clock } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { usePublicLocale } from "@/lib/publicSiteCopy";
 import { fmtHours } from "./chartUtils";
 
@@ -22,7 +23,7 @@ const COPY = {
     openCompliance: "Ouvrir la conformité",
     pillars: {
       equipment: "Équip.",
-      training: "Formations",
+      training: "Formation",
       audit: "Audits",
     },
   },
@@ -61,6 +62,7 @@ const ComplianceRingCard = ({
   meanResolutionHours,
 }: ComplianceRingCardProps) => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const locale = usePublicLocale();
   const copy = COPY[locale];
   const [pillar, setPillar] = useState<CompliancePillar>("equipment");
@@ -79,12 +81,20 @@ const ComplianceRingCard = ({
 
   const ringColor =
     activeRate == null
-      ? "#94a3b8"
+      ? isDark
+        ? "#475569"
+        : "#94a3b8"
       : activeRate >= 85
-        ? "#0565d3"
+        ? isDark
+          ? "#3b82f6"
+          : "#0565d3"
         : activeRate >= 70
-          ? "#d97706"
-          : "#dc2626";
+          ? isDark
+            ? "#f59e0b"
+            : "#d97706"
+          : isDark
+            ? "#f87171"
+            : "#dc2626";
 
   const ticks = Array.from({ length: TICK_COUNT }, (_, idx) => {
     const angle = (idx / TICK_COUNT) * 360 - 90;
@@ -104,20 +114,22 @@ const ComplianceRingCard = ({
   return (
     <section
       data-testid="bento-compliance-card"
-      className="bg-white rounded-2xl border border-slate-200/80 p-5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.03)]"
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 flex flex-col justify-between shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white tracking-tight">
             {copy.title}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">{copy.subtitle}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {copy.subtitle}
+          </p>
         </div>
         <Link
           to="/compliance"
           aria-label={copy.openCompliance}
-          className="h-8 w-8 rounded-full border border-slate-200 bg-slate-50/70 hover:bg-prosafe-50 hover:border-prosafe-200 hover:text-prosafe-700 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+          className="h-8 w-8 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 hover:bg-prosafe-50 dark:hover:bg-prosafe-500/20 hover:border-prosafe-200 dark:hover:border-prosafe-500/40 hover:text-prosafe-700 dark:hover:text-prosafe-300 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-colors shrink-0"
         >
           <ArrowUpRight className="h-4 w-4" />
         </Link>
@@ -140,7 +152,15 @@ const ComplianceRingCard = ({
                 y1={tk.y1}
                 x2={tk.x2}
                 y2={tk.y2}
-                stroke={tk.major ? "#cbd5e1" : "#e2e8f0"}
+                stroke={
+                  isDark
+                    ? tk.major
+                      ? "#475569"
+                      : "#1e293b"
+                    : tk.major
+                      ? "#cbd5e1"
+                      : "#e2e8f0"
+                }
                 strokeWidth={tk.major ? 1.5 : 1}
                 strokeLinecap="round"
               />
@@ -151,7 +171,7 @@ const ComplianceRingCard = ({
               cy="92"
               r={RADIUS}
               fill="none"
-              stroke="#f1f5f9"
+              stroke={isDark ? "#1e293b" : "#f1f5f9"}
               strokeWidth="10"
             />
             {/* Active Progress Arc */}
@@ -173,21 +193,23 @@ const ComplianceRingCard = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
             <span
               data-testid="compliance-ring-value"
-              className="text-3xl font-bold tracking-tight text-slate-900 tabular-nums"
+              className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums"
             >
               {displayValue}
             </span>
-            <span className="text-xs font-medium text-slate-500 mt-0.5">
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">
               {copy.pillars[pillar]}
             </span>
           </div>
         </div>
 
         {/* Mean resolution metadata line */}
-        <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 tabular-nums">
-          <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+        <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+          <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
           <span>{t("overview.kpi.meanResolution", { defaultValue: copy.avgResolution })}:</span>
-          <span className="font-semibold text-slate-800">{fmtHours(meanResolutionHours)}</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-100">
+            {fmtHours(meanResolutionHours)}
+          </span>
         </div>
       </div>
 
@@ -195,7 +217,7 @@ const ComplianceRingCard = ({
       <div
         role="group"
         aria-label={copy.title}
-        className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100/90"
+        className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100/90 dark:bg-slate-800/80"
       >
         {(["equipment", "training", "audit"] as CompliancePillar[]).map((item) => {
           const active = pillar === item;
@@ -208,8 +230,8 @@ const ComplianceRingCard = ({
               data-testid={`compliance-pillar-${item}`}
               className={`min-w-0 truncate px-1.5 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors ${
                 active
-                  ? "bg-white text-prosafe-700 shadow-sm font-semibold"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-white dark:bg-slate-900 text-prosafe-700 dark:text-prosafe-300 shadow-sm font-semibold"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {copy.pillars[item]}

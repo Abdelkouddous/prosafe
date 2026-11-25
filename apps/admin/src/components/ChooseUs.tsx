@@ -28,13 +28,13 @@ const ChooseUs = () => {
   ];
 
   return (
-    <section className="py-20 bg-slate-50">
+    <section className="py-20 bg-slate-50 dark:bg-slate-900/50">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">
             {t("chooseUs.title")}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 dark:text-slate-400 max-w-3xl mx-auto">
             {t("chooseUs.subtitle")}
           </p>
         </div>
@@ -43,13 +43,13 @@ const ChooseUs = () => {
           {pillars.map(({ icon: Icon, title, description }) => (
             <div key={title} className="flex">
               <div className="flex-shrink-0">
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-prosafe-100 text-prosafe-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-prosafe-100 dark:bg-prosafe-500/20 text-prosafe-600 dark:text-prosafe-400">
                   <Icon className="h-6 w-6" />
                 </div>
               </div>
               <div className="ms-4">
-                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
-                <p className="mt-2 text-gray-600">{description}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
+                <p className="mt-2 text-gray-600 dark:text-slate-400">{description}</p>
               </div>
             </div>
           ))}

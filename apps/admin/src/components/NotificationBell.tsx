@@ -103,15 +103,17 @@ const NotificationBell = () => {
         </div>
         <ScrollArea className="max-h-80">
           {items.length === 0 ? (
-            <p className="p-4 text-sm text-gray-500 text-center">{t("notifications.empty")}</p>
+            <p className="p-4 text-sm text-gray-500 dark:text-slate-400 text-center">
+              {t("notifications.empty")}
+            </p>
           ) : (
             items.map((n) => (
               <button
                 key={n.id}
                 type="button"
                 onClick={() => onItemClick(n)}
-                className={`w-full text-start px-3 py-2 border-b last:border-0 hover:bg-gray-50 ${
-                  n.readAt ? "" : "bg-orange-50"
+                className={`w-full text-start px-3 py-2 border-b dark:border-slate-800 last:border-0 hover:bg-gray-50 dark:hover:bg-slate-800/70 ${
+                  n.readAt ? "" : "bg-orange-50 dark:bg-orange-500/10"
                 }`}
               >
                 <div className="flex items-start gap-2">
@@ -119,9 +121,13 @@ const NotificationBell = () => {
                     <span className="mt-1.5 h-2 w-2 rounded-full bg-orange-500 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{n.title}</div>
-                    <div className="text-xs text-gray-600 line-clamp-2">{n.body}</div>
-                    <div className="text-[11px] text-gray-400 mt-0.5">
+                    <div className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">
+                      {n.title}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-slate-400 line-clamp-2">
+                      {n.body}
+                    </div>
+                    <div className="text-[11px] text-gray-400 dark:text-slate-500 mt-0.5">
                       {new Date(n.createdAt).toLocaleString(i18n.language)}
                     </div>
                   </div>
