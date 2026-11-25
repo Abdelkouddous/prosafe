@@ -322,21 +322,7 @@ const Dashboard = () => {
     position: "",
     bio: "",
   });
-  const renderDashboardContent = () => (
-    <>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">
-          {t("adminDashboard.welcome_back", {
-            firstName: user?.firstName || "User",
-          })}
-        </h2>
-        <p className="text-gray-600">
-          {t("adminDashboard.dashboard_description")}
-        </p>
-      </div>
-      <Overview />
-    </>
-  );
+  const renderDashboardContent = () => <Overview />;
   const getTabTitle = () => {
     switch (activeTab) {
       case "overview":
