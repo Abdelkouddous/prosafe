@@ -3,34 +3,50 @@ import { useTranslation } from "react-i18next";
 const Stats = () => {
   const { t } = useTranslation();
 
+  const highlights = [
+    {
+      value: "12",
+      label: t("landingStats.modules"),
+      tabular: true,
+    },
+    {
+      value: "5×5",
+      label: t("landingStats.riskMatrix"),
+      tabular: true,
+    },
+    {
+      value: "ISO 45001",
+      label: t("landingStats.compliance"),
+      tabular: false,
+    },
+    {
+      value: "FR · EN · AR",
+      label: t("landingStats.languages"),
+      tabular: false,
+    },
+  ];
+
   return (
-    <section className="py-20">
+    <section
+      data-testid="landing-capabilities-strip"
+      className="py-16 border-y border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950"
+    >
       <div className="container max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          <div>
-            <p className="text-4xl font-bold text-prosafe-600 dark:text-prosafe-400 tabular-nums mb-2">
-              99.9%
-            </p>
-            <p className="text-gray-600 dark:text-slate-400">{t("landingStats.uptime")}</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-prosafe-600 dark:text-prosafe-400 tabular-nums mb-2">
-              24/7
-            </p>
-            <p className="text-gray-600 dark:text-slate-400">{t("landingStats.support")}</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-prosafe-600 dark:text-prosafe-400 tabular-nums mb-2">
-              500+
-            </p>
-            <p className="text-gray-600 dark:text-slate-400">{t("landingStats.enterprises")}</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold text-prosafe-600 dark:text-prosafe-400 mb-2">
-              ISO 45001
-            </p>
-            <p className="text-gray-600 dark:text-slate-400">{t("landingStats.compliance")}</p>
-          </div>
+          {highlights.map((item) => (
+            <div key={item.value} className="space-y-1.5">
+              <p
+                className={`text-3xl md:text-4xl font-bold tracking-tight text-prosafe-600 dark:text-prosafe-400 ${
+                  item.tabular ? "tabular-nums" : ""
+                }`}
+              >
+                {item.value}
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                {item.label}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

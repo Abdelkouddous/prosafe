@@ -123,20 +123,10 @@
     "alert3Meta": "Dans 16 jours"
   },
   "landingStats": {
-    "uptime": "Disponibilité plateforme",
-    "support": "Veille alertes HSE",
-    "enterprises": "Sites industriels",
-    "compliance": "Conforme audits & risques"
-  },
-  "testimonials": {
-    "title": "Approuvé par les responsables HSE",
-    "subtitle": "Découvrez pourquoi les organisations industrielles choisissent PROSAFE pour prévenir les risques professionnels.",
-    "item1Role": "Directeur HSE, TechCorp Industries",
-    "item1Quote": "PROSAFE a transformé notre gestion SST. Le délai de traitement des incidents a chuté de 60 % et nos audits ISO 45001 se préparent en quelques heures.",
-    "item2Role": "Responsable SST, FinSecure Facilities",
-    "item2Quote": "La matrice des risques, le suivi des actions correctives et les rappels de formation alignent tous nos superviseurs sur chaque site.",
-    "item3Role": "Responsable Conformité, GlobalHealth",
-    "item3Quote": "Dans un secteur réglementé, la traçabilité est indispensable. PROSAFE offre à nos équipes terrain et auditeurs une source unique et fiable."
+    "modules": "Modules HSE intégrés",
+    "riskMatrix": "Matrice de risques & LMRA",
+    "compliance": "Audits & rapports PDF",
+    "languages": "Multilingue & support RTL"
   },
   "cta": {
     "title": "Prêt à renforcer la sécurité sur vos sites ?",

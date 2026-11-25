@@ -134,20 +134,10 @@
     "alert3Meta": "Upcoming in 16 days"
   },
   "landingStats": {
-    "uptime": "Platform Availability",
-    "support": "HSE Alert Monitoring",
-    "enterprises": "Industrial Sites",
-    "compliance": "Audit & Risk Aligned"
-  },
-  "testimonials": {
-    "title": "Trusted by HSE & Safety Leaders",
-    "subtitle": "See why industrial and healthcare organizations rely on PROSAFE to prevent workplace incidents.",
-    "item1Role": "HSE Director, TechCorp Industries",
-    "item1Quote": "PROSAFE transformed our workplace safety operations. Incident resolution time dropped by 60% and our ISO 45001 audit prep now takes hours instead of weeks.",
-    "item2Role": "OHS Manager, FinSecure Facilities",
-    "item2Quote": "The live risk matrix, corrective action tracking, and automatic training reminders keep every supervisor aligned across all sites.",
-    "item3Role": "Safety & Compliance Lead, GlobalHealth",
-    "item3Quote": "In regulated environments, traceability is essential. PROSAFE gives our field teams and auditors one clear source of truth."
+    "modules": "Integrated OHS Modules",
+    "riskMatrix": "Risk Matrix & LMRA",
+    "compliance": "Audits & PDF Reporting",
+    "languages": "Multilingual & RTL Ready"
   },
   "cta": {
     "title": "Ready to elevate workplace safety?",
